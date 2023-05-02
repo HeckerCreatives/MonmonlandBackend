@@ -7,9 +7,13 @@ const SubscriptionSchema = new mongoose.Schema({
     amount: {
         type: String
     },
-    description: {
+    descriptions: [
+    {
+        description: {
         type: String
-    },
+        }        
+    }        
+    ],
     image: {
         type: String
     }

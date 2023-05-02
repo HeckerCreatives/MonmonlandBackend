@@ -1,16 +1,20 @@
 const Subscription = require("../Models/Subscription");
 
-module.exports.addSubscription = (request, response) => {
+module.exports.addSubscription = async (request, response) => {
     let input = request.body
 
     let newSubs = new Subscription({
         title: input.title,
-        description: input.description,
+        descriptions:[
+            {
+            description: input.description
+            }
+        ],
         amount: input.amount,
         image: input.image
 
     })
-    return newSubs.save()
+    return await newSubs.save()
     .then(data => {
         return response.send(data)
     })
