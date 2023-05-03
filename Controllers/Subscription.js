@@ -14,6 +14,9 @@ module.exports.addSubscription = async (request, response) => {
         image: input.image
 
     })
+    newSubs.descriptions.push({
+        description: input.anotherDescription
+    })
     return await newSubs.save()
     .then(data => {
         return response.send(data)
