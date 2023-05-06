@@ -1,3 +1,4 @@
+const { response } = require("express");
 const Subscription = require("../Models/Subscription");
 
 module.exports.addSubscription = async (request, response) => {
@@ -5,18 +6,14 @@ module.exports.addSubscription = async (request, response) => {
 
     let newSubs = new Subscription({
         title: input.title,
-        descriptions:[
-            {
-            description: input.description
-            }
-        ],
+        descriptions: [input.descriptions],
         amount: input.amount,
         image: input.image
 
     })
-    newSubs.descriptions.push({
-        description: input.anotherDescription
-    })
+    // newSubs.descriptions.push({
+    //     description: input.anotherDescription
+    // })
     return await newSubs.save()
     .then(data => {
         return response.send(data)
@@ -42,4 +39,10 @@ module.exports.getAll = (request, response) => {
     Subscription.find()
     .then(data => response.send(data))
     .catch(error => response.send(error))
+}
+
+module.exports.save = (request, response) => {
+    Subscription.create(request.body)
+    .then(item => response.json(item))
+    .catch(error => res.status(400).json({ error: error.message }));
 }

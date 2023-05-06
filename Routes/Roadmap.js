@@ -4,11 +4,11 @@ const Roadmap = require("../Controllers/Roadmap");
 
 // [without params]
 router.post("/addroadmap", Roadmap.addRoadmap)
-router.get("/find", Roadmap.getOne)
+router.get("/find", Roadmap.getAll)
 
 // [with params]
 router.put("/:id/update", Roadmap.update)
-
+router.get("/:id/find", Roadmap.getOne)
 
 
 

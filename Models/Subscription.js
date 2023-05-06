@@ -7,12 +7,7 @@ const SubscriptionSchema = new mongoose.Schema({
     amount: {
         type: String
     },
-    descriptions: [
-    {
-        description: {
-        type: String
-        }        
-    }        
+    descriptions: [ String 
     ],
     image: {
         type: String
