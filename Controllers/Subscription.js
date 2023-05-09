@@ -1,26 +1,34 @@
 const { response } = require("express");
-const Subscription = require("../Models/Subscription");
+const Subscription = require("../Models/Subscription"); // subsLevel
+const SubsDesc = require("../Models/SubscriptionDescription");
 
 module.exports.addSubscription = async (request, response) => {
-    let input = request.body
+    const { subscriptionName, amount, description } = request.body;
 
-    let newSubs = new Subscription({
-        title: input.title,
-        descriptions: [input.descriptions],
-        amount: input.amount,
-        image: input.image
+  try {
+    // Create a new subscription
+    const newSubs = new Subscription({
+      subscriptionName: subscriptionName,
+      amount: amount,
+    });
 
-    })
-    // newSubs.descriptions.push({
-    //     description: input.anotherDescription
-    // })
-    return await newSubs.save()
-    .then(data => {
-        return response.send(data)
-    })
-    .catch(error => {
-        return response.send(error)
-    })
+    // Save the subscription
+    const savedSubs = await newSubs.save();
+
+    // Create a new subscription description
+    const newSubsDesc = new SubsDesc({
+      subsId: savedSubs._id,
+      amount: amount,
+      description: description,
+    });
+
+    // Save the subscription description
+    const savedSubsDesc = await newSubsDesc.save();
+
+    return response.send(savedSubsDesc);
+  } catch (error) {
+    return response.send(error);
+  }
 }
 
 module.exports.getOne = (request, response) => {
@@ -29,17 +37,64 @@ module.exports.getOne = (request, response) => {
     .catch(error => response.send(error))
 }
 
-module.exports.update = (request, response) => {
-    Subscription.findByIdAndUpdate(request.params.id, request.body, {new: true})
-    .then(data => response.json(data))
-    .catch(error => response.status(400).json({error: error.message}))
-}
-
-module.exports.getAll = (request, response) => {
-    Subscription.find()
+module.exports.getOneDes = (request, response) => {
+    SubsDesc.find({subsId: request.params.id})
     .then(data => response.send(data))
     .catch(error => response.send(error))
 }
+
+module.exports.update = async (request, response) => {
+    const { subscriptionName, amount, description } = request.body;
+    const subscriptionId = request.params.id
+    try {
+      // Update the subscription
+      const updatedSubs = await Subscription.findByIdAndUpdate(
+        subscriptionId,
+        { subscriptionName: subscriptionName , amount: amount},
+        { new: true }
+      );
+  
+      if (!updatedSubs) {
+        return response.status(404).send("Subscription not found");
+      }
+  
+      // Update or create the subscription description
+      let subsDesc = await SubsDesc.findOne({ subsId: subscriptionId });
+  
+      if (!subsDesc) {
+        subsDesc = new SubsDesc({
+          subsId: subscriptionId,
+          description: description,
+        });
+      } else {
+        subsDesc.description = description;
+      }
+  
+      // Save the updated or new subscription description
+      const updatedSubsDesc = await subsDesc.save();
+  
+      return response.send(updatedSubsDesc);
+    } catch (error) {
+      return response.send(error);
+    }
+}
+
+
+
+module.exports.getAll = (request, response) => {
+    Subscription.find()
+    // SubsDesc.find()
+    .then(data => response.send(data))
+    .catch(error => response.send(error))
+}
+
+module.exports.getAllDesc = (request, response) => {
+    SubsDesc.find()
+    .then(data => response.send(data))
+    .catch(error => response.send(error))
+}
+
+
 
 module.exports.save = (request, response) => {
     Subscription.create(request.body)

@@ -1,17 +1,20 @@
 const mongoose = require("mongoose");
 
-const SubscriptionSchema = new mongoose.Schema({
-    title: {
-        type: String
+
+const SubscriptionSchema = new mongoose.Schema(
+    {
+        subscriptionName : {
+            type: String,
+            required:true
+        },
+        amount : {
+            type: String,
+            required:true
+        }
     },
-    amount: {
-        type: String
-    },
-    descriptions: [ String 
-    ],
-    image: {
-        type: String
+    {
+        timestamps: true
     }
-})
+)
 
 module.exports = mongoose.model("Subscription", SubscriptionSchema);
