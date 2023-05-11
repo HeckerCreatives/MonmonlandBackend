@@ -9,6 +9,8 @@ router.get("/finddesc", Subscription.getAllDesc)
 // router.post("/:id/save", Subscription.save)
 // [with params]
 router.put("/:id/update", Subscription.update)
+router.put("/:id/updatedesc", Subscription.updateDesc)
+router.post("/:id/addnewdesc", Subscription.addDescription)
 router.get("/:id/find", Subscription.getOne)
 router.get("/:id/finddesc", Subscription.getOneDes)
 

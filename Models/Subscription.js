@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+// const SubsDesc = require('./SubscriptionDescription')
 
 const SubscriptionSchema = new mongoose.Schema(
     {
@@ -10,7 +10,7 @@ const SubscriptionSchema = new mongoose.Schema(
         amount : {
             type: String,
             required:true
-        }
+        },
     },
     {
         timestamps: true

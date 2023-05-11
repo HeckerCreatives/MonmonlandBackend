@@ -31,6 +31,35 @@ module.exports.addSubscription = async (request, response) => {
   }
 }
 
+module.exports.addDescription = async (request, response) => {
+  const {description}  = request.body;
+  const subscriptionId = request.params.id;
+  try {
+    // Find the existing subscription
+    const existingSubs = await Subscription.findById(subscriptionId);
+
+    if (!existingSubs) {
+      return response.status(404).send('Subscription not found');
+    }
+
+    let subsDesc = await SubsDesc.findOne({ subsId: subscriptionId })
+    // Create a new subscription description
+    if (subsDesc !== null && subsDesc !== undefined) {
+      subsDesc = new SubsDesc({
+        subsId: subscriptionId,
+        description: description,
+      });
+    }
+
+    // Save the new subscription description
+    const savedSubsDesc = await subsDesc.save();
+
+    return response.send(savedSubsDesc);
+  } catch (error) {
+    return response.send(error);
+  }
+}
+
 module.exports.getOne = (request, response) => {
     Subscription.findById(request.params.id)
     .then(data => response.send(data))
@@ -43,32 +72,23 @@ module.exports.getOneDes = (request, response) => {
     .catch(error => response.send(error))
 }
 
-module.exports.update = async (request, response) => {
-    const { subscriptionName, amount, description } = request.body;
+module.exports.updateDesc = async (request, response) => {
+    const { description } = request.body;
     const subscriptionId = request.params.id
     try {
-      // Update the subscription
-      const updatedSubs = await Subscription.findByIdAndUpdate(
-        subscriptionId,
-        { subscriptionName: subscriptionName , amount: amount},
-        { new: true }
-      );
+      // const SubsId = await Subscription.findById(
+      //   subscriptionId);
   
-      if (!updatedSubs) {
-        return response.status(404).send("Subscription not found");
-      }
+      // if (!SubsId) {
+      //   return response.status(404).send("Subscription not found");
+      // }
   
       // Update or create the subscription description
-      let subsDesc = await SubsDesc.findOne({ subsId: subscriptionId });
-  
-      if (!subsDesc) {
-        subsDesc = new SubsDesc({
-          subsId: subscriptionId,
-          description: description,
-        });
-      } else {
-        subsDesc.description = description;
-      }
+      let subsDesc = await SubsDesc.findById(subscriptionId);
+      
+      
+      subsDesc.description = description;
+      
   
       // Save the updated or new subscription description
       const updatedSubsDesc = await subsDesc.save();
@@ -77,6 +97,12 @@ module.exports.update = async (request, response) => {
     } catch (error) {
       return response.send(error);
     }
+}
+
+module.exports.update = (request, response) => {
+  Subscription.findByIdAndUpdate(request.params.id, request.body, {new: true})
+  .then(data => response.json(data))
+  .catch(error => response.status(400).json({error: error.message}))
 }
 
 
