@@ -11,6 +11,9 @@ const Gameactivity = require("./Routes/Gameactivity");
 const Subscription = require("./Routes/Subscription");
 const News = require("./Routes/News");
 const Roadmap = require("./Routes/Roadmap");
+const User = require("./Routes/Users");
+const Migrate = require("./Routes/Migrate");
+const Auth = require("./Routes/Auth");
 
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
@@ -34,5 +37,8 @@ app.use("/gameactivity", Gameactivity);
 app.use("/subscription", Subscription);
 app.use("/news", News);
 app.use("/roadmap", Roadmap);
+app.use("/user", User);
+app.use("/migrate", Migrate);
+app.use("/auth", Auth);
 
 app.listen(port, ()=> console.log(`Server is running at port ${port}`));

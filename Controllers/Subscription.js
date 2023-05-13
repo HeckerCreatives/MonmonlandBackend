@@ -1,4 +1,3 @@
-const { response } = require("express");
 const Subscription = require("../Models/Subscription"); // subsLevel
 const SubsDesc = require("../Models/SubscriptionDescription");
 
@@ -45,6 +44,11 @@ module.exports.addDescription = async (request, response) => {
     let subsDesc = await SubsDesc.findOne({ subsId: subscriptionId })
     // Create a new subscription description
     if (subsDesc !== null && subsDesc !== undefined) {
+      subsDesc = new SubsDesc({
+        subsId: subscriptionId,
+        description: description,
+      });
+    } else {
       subsDesc = new SubsDesc({
         subsId: subscriptionId,
         description: description,
@@ -109,7 +113,6 @@ module.exports.update = (request, response) => {
 
 module.exports.getAll = (request, response) => {
     Subscription.find()
-    // SubsDesc.find()
     .then(data => response.send(data))
     .catch(error => response.send(error))
 }
@@ -127,3 +130,4 @@ module.exports.save = (request, response) => {
     .then(item => response.json(item))
     .catch(error => res.status(400).json({ error: error.message }));
 }
+
