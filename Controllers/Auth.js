@@ -1,20 +1,24 @@
-const GenerateToken = require('../Config/GenerateToken')
-const User = require('../Models/Users')
-const bcrypt = require('bcrypt')
+const GenerateToken = require('../Config/GenerateToken');
+const User = require('../Models/Users');
+const bcrypt = require('bcrypt');
 
 module.exports.Login = (request, response) => {
     const {email, password} = request.body
 
     User.findOne({ $or: [{email}, {userName: email}]})
+    .populate({
+        path: "roleId",
+        select: "display_name"
+    })
     .then(user => {
-        console.log(user)
-        if (user === null){
+        if (!user){
             return response.send(false)
         } else {
             const isPasswordCorrect = bcrypt.compareSync(password, user.password)
 
             if(isPasswordCorrect){
-                return response.send(GenerateToken(user._id))
+                user.token = GenerateToken(user._id)
+                return response.json(user)
             } else {
                 return response.send(false)
             }

@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const Subscription = require("./Subscription");
 
-const SubsDescription = mongoose.Schema(
+const SubsDescription = new mongoose.Schema(
     {
         subsId : {
             type: mongoose.Schema.Types.ObjectId,
-            ref: Subscription
+            ref: "Subscription"
         },
         description: {             
             type: String,

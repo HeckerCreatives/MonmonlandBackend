@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const RolesSchema = mongoose.Schema(
+const RolesSchema = new mongoose.Schema(
     {
         display_name: {
             type: String,

@@ -3,11 +3,11 @@ const Roles = require('./Roles')
 const Subscription = require('./Subscription')
 
 
-const UserSchema = mongoose.Schema(
+const UserSchema = new mongoose.Schema(
     {   
         roleId:{
             type: mongoose.Schema.Types.ObjectId,
-            ref: Roles
+            ref: "Roles"
         },
         userName: {
             type: String,
@@ -31,8 +31,11 @@ const UserSchema = mongoose.Schema(
         },
         subscriptionId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: Subscription,
+            ref: "Subscription",
             required: false
+        },
+        token :{
+            type: String
         },
         isVerified: {
             type: Boolean,
@@ -41,5 +44,5 @@ const UserSchema = mongoose.Schema(
         }
     }
 )
-
-module.exports = mongoose.model('User', UserSchema)
+const User = mongoose.model('User', UserSchema)
+module.exports = User;
