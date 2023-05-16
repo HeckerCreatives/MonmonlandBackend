@@ -41,7 +41,22 @@ const UserSchema = new mongoose.Schema(
             type: Boolean,
             required: true,
             default: false
-        }
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        banned: {
+            type: Boolean,
+            default: false
+        },
+        balance: {
+            type: Number,
+            default: 0
+        },
+    },
+    {
+        timestamps: true
     }
 )
 const User = mongoose.model('User', UserSchema)

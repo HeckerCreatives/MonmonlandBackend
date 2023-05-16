@@ -40,13 +40,16 @@ module.exports.update = (request, response) => {
     .catch(error => response.status(400).json({error: error.message}))
   }
   
+module.exports.getOne = (request, response) => {
+    User.findById(request.params.id)
+    .then(data => response.send(data))
+    .catch(error => response.send(error))
+}  
   
-  
-  module.exports.getAll = (request, response) => {
-      User.find()
-      .then(data =>{ 
-        data[0].password ="";
-        response.send(data)
-        })
-      .catch(error => response.send(error))
-  }
+module.exports.getAll = (request, response) => {
+    User.find()
+    .then(data =>{
+    response.send(data)
+    })
+    .catch(error => response.send(error))
+}
