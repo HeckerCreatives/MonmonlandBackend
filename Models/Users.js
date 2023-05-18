@@ -9,6 +9,10 @@ const UserSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Roles"
         },
+        referrerId:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        },
         userName: {
             type: String,
             required: true
@@ -58,6 +62,11 @@ const UserSchema = new mongoose.Schema(
     {
         timestamps: true
     }
-)
+);
+
+UserSchema.query.byRefferal = function (referrerId) {
+    return this.where({ referrerId });
+};
+
 const User = mongoose.model('User', UserSchema)
 module.exports = User;
