@@ -1,20 +1,9 @@
 const News = require("../Models/News");
 
 module.exports.addNews = (request, response) => {
-    let input = request.body
-
-    let newNews = new News({
-        title: input.title,
-        description: input.description,
-        image: input.image
-    })
-    return newNews.save()
-    .then(data => {
-        return response.send(data)
-    })
-    .catch(error => {
-        return response.send(error)
-    })
+    News.create(request.body)
+    .then(item => response.json(item))
+    .catch(error => response.status(400).json({ error: error.message }));
 }
 
 module.exports.getOne = (request, response) => {

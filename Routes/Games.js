@@ -5,8 +5,8 @@ const Games = require("../Controllers/Games");
 
 router.post("/addgame", Games.create)
 router.get("/find", Games.findall)
-router.put("/:useId/update", Games.update)
-router.get("/:userId/find", Games.find)
+router.put("/:id/update", Games.update)
+router.get("/:id/findone", Games.find)
 
 
 

@@ -13,12 +13,16 @@ module.exports.update = (request, response) => {
     .catch(error => response.status(400).json({ error: error.message }));
 }
 
-module.exports.find = (request, response) =>
-  Games.findOne({ userId: request.params.userId })
-    .then(item => response.json(item))
-    .catch(error => response.status(400).json({ error: error.message }));
-
-module.exports.findall = (request, response) =>
-Games.find()
+module.exports.find = (request, response) => {
+  Games.findOne({ _id: request.params.id })
   .then(item => response.json(item))
-  .catch(error => response.status(400).json({ error: error.message }));    
+  .catch(error => response.status(400).json({ error: error.message }));
+}
+  
+
+module.exports.findall = (request, response) => {
+  Games.find()
+  .then(item => response.json(item))
+  .catch(error => response.status(400).json({ error: error.message })); 
+}
+   
