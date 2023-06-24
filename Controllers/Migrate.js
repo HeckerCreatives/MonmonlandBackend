@@ -25,6 +25,11 @@ module.exports.migratedata = (request, response) => {
             subscriptionName: "Diamond",
             amount: "FREE"
         },
+        {
+            _id:"629a98a5a881575c013b5333",
+            subscriptionName: "Free",
+            amount: "FREE"
+        },
     ];
     subscription.map(subs => {
         Subscription.create(subs)

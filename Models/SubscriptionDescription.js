@@ -10,11 +10,14 @@ const SubsDescription = new mongoose.Schema(
         description: {             
             type: String,
             required: true            
-        }
+        },
+        deletedAt: {
+            type: String,
+        },
     },
     {
         timestamps:true
     }
 )
-
-module.exports = mongoose.model("SubsDesc", SubsDescription);
+const SubsDesc = mongoose.model("SubsDesc", SubsDescription);
+module.exports = SubsDesc;

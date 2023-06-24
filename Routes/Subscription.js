@@ -13,7 +13,7 @@ router.put("/:id/updatedesc", Subscription.updateDesc)
 router.post("/:id/addnewdesc", Subscription.addDescription)
 router.get("/:id/find", Subscription.getOne)
 router.get("/:id/finddesc", Subscription.getOneDes)
-
+router.delete("/:id/destroy", Subscription.destroyDesc);
 
 
 

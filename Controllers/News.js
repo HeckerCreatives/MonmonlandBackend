@@ -20,6 +20,15 @@ module.exports.update = (request, response) => {
 
 module.exports.getAll = (request, response) => {
     News.find()
-    .then(data => response.send(data))
+    .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
 }
+
+exports.destroy = (request, response) => {
+    News.findByIdAndUpdate(request.params.id, {
+        deletedAt: new Date().toLocaleString(),
+    })
+    .then(() => response.json(request.params.id))
+    .catch(error => response.status(400).json({ error: error.message }));
+}
+  

@@ -72,7 +72,7 @@ module.exports.getOne = (request, response) => {
 
 module.exports.getOneDes = (request, response) => {
     SubsDesc.find({subsId: request.params.id})
-    .then(data => response.send(data))
+    .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
 }
 
@@ -119,7 +119,7 @@ module.exports.getAll = (request, response) => {
 
 module.exports.getAllDesc = (request, response) => {
     SubsDesc.find()
-    .then(data => response.send(data))
+    .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
 }
 
@@ -131,3 +131,10 @@ module.exports.save = (request, response) => {
     .catch(error => res.status(400).json({ error: error.message }));
 }
 
+exports.destroyDesc = (request, response) => {
+  SubsDesc.findByIdAndUpdate(request.params.id, {
+      deletedAt: new Date().toLocaleString(),
+  })
+  .then(() => response.json(request.params.id))
+  .catch(error => response.status(400).json({ error: error.message }));
+}

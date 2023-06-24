@@ -7,7 +7,7 @@ router.post("/addgame", Games.create)
 router.get("/find", Games.findall)
 router.put("/:id/update", Games.update)
 router.get("/:id/findone", Games.find)
-
+router.delete("/:id/destroy", Games.destroy);
 
 
 

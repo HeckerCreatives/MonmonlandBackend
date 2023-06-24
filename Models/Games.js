@@ -15,7 +15,10 @@ const GameSchema = new mongoose.Schema(
       selectsubscription: [{
         type: String,
         required: true
-      }]
+      }],
+      deletedAt: {
+        type: String,
+    },
     },
     {
         timestamps: true
