@@ -7,6 +7,9 @@ const GameactivitySchema = new mongoose.Schema(
         },
         initial: {
             type: Number
+        },
+        createdby: {
+            type: Number
         }
     },
     {
