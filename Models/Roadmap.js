@@ -17,4 +17,5 @@ const RoadmapSchema = new mongoose.Schema(
     }
 )
 
-module.exports = mongoose.model("Roadmap", RoadmapSchema)
+const Roadmap = mongoose.model("Roadmap", RoadmapSchema)
+module.exports = Roadmap;

@@ -2,6 +2,7 @@
 const Gameactivity = require('../Models/Gameactivity')
 const Subscription = require('../Models/Subscription')
 const Roles = require('../Models/Roles')
+const Roadmap = require("../Models/Roadmap")
 
 module.exports.migratedata = (request, response) => {
     const subscription = [
@@ -26,7 +27,7 @@ module.exports.migratedata = (request, response) => {
             amount: "FREE"
         },
         {
-            _id:"629a98a5a881575c013b5333",
+            _id:"629a98a5a881575c013b5324",
             subscriptionName: "Free",
             amount: "FREE"
         },
@@ -61,6 +62,34 @@ module.exports.migratedata = (request, response) => {
         },
     ];
     Gameactivity.create(progressbar)
+
+    const roadmap = [
+        {
+            _id:"629a98a5a881575c013b5333",
+            title: "Slot1",
+            image: "Empty",
+            description:"Empty"
+        },
+        {
+            _id:"629a98a5a881575c013b5334",
+            title: "Slot2",
+            image: "Empty",
+            description:"Empty"
+        },
+        {
+            _id:"629a98a5a881575c013b5335",
+            title: "Slot3",
+            image: "Empty",
+            description:"Empty"
+        },
+        {
+            _id:"629a98a5a881575c013b5336",
+            title: "Slot4",
+            image: "Empty",
+            description:"Empty"
+        },
+    ];
+    Roadmap.create(roadmap)
 
     response.json('Data migration created')
 
