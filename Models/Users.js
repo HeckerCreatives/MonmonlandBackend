@@ -33,6 +33,10 @@ const UserSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        phone: {
+            type: String,
+            required: true
+        },
         subscriptionId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Subscription",
