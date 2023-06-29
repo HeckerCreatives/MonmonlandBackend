@@ -26,11 +26,11 @@ module.exports.migratedata = (request, response) => {
             subscriptionName: "Diamond",
             amount: "FREE"
         },
-        {
-            _id:"629a98a5a881575c013b5324",
-            subscriptionName: "Free",
-            amount: "FREE"
-        },
+        // {
+        //     _id:"629a98a5a881575c013b5324",
+        //     subscriptionName: "Free",
+        //     amount: "FREE"
+        // },
     ];
     subscription.map(subs => {
         Subscription.create(subs)
@@ -40,6 +40,10 @@ module.exports.migratedata = (request, response) => {
         {
             _id:"629a98a5a881575c013b5329",
             display_name: "Administrator"
+        },
+        {
+            _id:"629a98a5a881575c013b5337",
+            display_name: "SubAdministrator"
         },
         {
             _id:"629a98a5a881575c013b5330",

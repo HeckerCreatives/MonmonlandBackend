@@ -142,6 +142,10 @@ module.exports.getOneUser = (request, response) => {
         path: "roleId",
         select: "display_name"
     })
+    .populate({
+      path: "subscriptionId",
+      select: "subscriptionName"
+    })
     .then(data => response.json(data.banned ? "User is banned" : data))
     .catch(error => response.send(error))
 }  
@@ -151,6 +155,10 @@ module.exports.getAll = (request, response) => {
     .populate({
         path: "roleId",
         select: "display_name"
+    })
+    .populate({
+      path: "subscriptionId",
+      select: "subscriptionName"
     })
     .then(data =>{
     response.send(data.banned ? "User is banned" : data)
