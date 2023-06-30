@@ -19,6 +19,7 @@ const Auth = require("./Routes/Auth");
 const ManagePlayer = require("./Routes/Manageplayer");
 const BinancePay = require("./Routes/Binancepay")
 const Games = require("./Routes/Games")
+const UpgradeSubscription = require("./Routes/UpgradeSubscription")
 
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
@@ -49,6 +50,7 @@ app.use("/migrate", Migrate);
 app.use("/auth", Auth);
 app.use("/manage", ManagePlayer);
 app.use("/games", Games);
+app.use("/upgradesubscription", UpgradeSubscription);
 app.use(BinancePay);
 
 app.listen(port, ()=> console.log(`Server is running at port ${port}`));
