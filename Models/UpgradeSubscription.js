@@ -21,7 +21,7 @@ const UpgradeSubscriptionSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            default: "Processing"
+            default: "Close"
         },
         deletedAt: {
             type: String,

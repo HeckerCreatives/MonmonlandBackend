@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
-// const axios = require('axios');
-// const CryptoJS = require('crypto-js');
+const http = require("http");
+const { Server } = require("socket.io");
 const port = 4000;
 const app = express();
 const cors = require("cors")
@@ -33,13 +33,31 @@ let db = mongoose.connection;
 db.on('error', ()=> console.error.bind(console, "Connection to Database has an Error!"));
 db.once('open', ()=> console.log("We are now Connected to the Cloud."))
 
+const corsConfig = {
+    // origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://monmontestwebsite.onrender.com/","https://monmontestwebsite.onrender.com",],
+    methods: ["GET", "POST", "PUT", "DELETE"], // List only` available methods
+    credentials: true, // Must be set to true
+    allowedHeaders: [
+      "Origin",
+      "Content-Type",
+      "X-Requested-With",
+      "Accept",
+      "Authorization",
+    ], // Allowed Headers to be received
+  };
+
 // [Middleware]
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use(cors())
+app.use(cors(corsConfig))
+const server = http.createServer(app);
 
- 
+const io = new Server(server, {
+    cors: corsConfig, // Pass configuration to websocket
+});
 
+require('./socket')(io)
 // [Routing]
 app.use("/gameactivity", Gameactivity);
 app.use("/subscription", Subscription);
@@ -53,4 +71,4 @@ app.use("/games", Games);
 app.use("/upgradesubscription", UpgradeSubscription);
 app.use(BinancePay);
 
-app.listen(port, ()=> console.log(`Server is running at port ${port}`));
+server.listen(port, ()=> console.log(`Server is running at port ${port}`));
