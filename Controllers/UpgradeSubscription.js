@@ -1,4 +1,6 @@
 const UpgradeSubscription = require("../Models/UpgradeSubscription")
+const PaymentHistory = require('../Models/PaymentHistory')
+const User = require('../Models/Users')
 
 module.exports.add = (request, response) => {
     UpgradeSubscription.create(request.body)
@@ -44,3 +46,48 @@ module.exports.destroymultiple = (request, response) => {
       .then(() => response.json(ids))
       .catch((error) => response.status(400).json({ error: error.message }));
   };
+
+//   lineeeeeeeeeeeeee
+
+module.exports.addbuyer = (request, response) => {
+    PaymentHistory.create(request.body)
+    .then(item => response.json(item))
+    .catch(error => response.status(400).json({ error: error.message }));
+}
+
+module.exports.destroybuyer = (request, response) => {
+    PaymentHistory.findByIdAndUpdate(request.params.id, {
+        deletedAt: new Date().toLocaleString(),
+    })
+    .then(() => response.json(request.params.id))
+    .catch(error => response.status(400).json({ error: error.message }));
+}
+
+module.exports.updatebuyer = (request, response) => {
+    const { username, subscription } = request.body;
+  
+    User.findOneAndUpdate(
+      { userName: username },
+      { subscriptionId: subscription },
+      { new: true }
+    )
+      .then((user) => {
+        if (!user) {
+          return response.status(404).json({ error: 'User not found' });
+        }
+  
+        PaymentHistory.findByIdAndUpdate(request.params.id, request.body, {
+          new: true,
+        })
+          .then((data) => response.json(data))
+          .catch((error) => response.status(400).json({ error: error.message }));
+      })
+      .catch((error) => response.status(500).json({ error: error.message }));
+};
+
+module.exports.getAllbuyer = (request, response) => {
+    PaymentHistory.find()
+    .populate('subscriptionlevel')    
+    .then(data => response.send(data.filter(item => !item.deletedAt)))
+    .catch(error => response.send(error))
+}

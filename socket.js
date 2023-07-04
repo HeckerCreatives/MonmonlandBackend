@@ -4,6 +4,7 @@ const cors = require("cors")
 const http = require('http').Server(app);
 const PORT = 4000
 const path = require('path');
+const User = require('./Models/Users')
 
 
 const socket = io => {
@@ -18,9 +19,25 @@ const socket = io => {
         })
     
         socket.on("typing", data => (
-          socket.broadcast.emit("typingResponse", data)
+          socket.emit("typingResponse", data)
         ))
     
+        socket.on("privateChat", ({ senderId, recipientId, message, data }) => {
+          // Find the recipient socket by their ID
+          const recipientSocket = io.sockets.sockets.get(recipientId);
+          if (recipientSocket) {
+            // Emit the private message to the recipient
+            recipientSocket.emit("privateChatResponse", {
+              senderId,
+              message,
+              data
+            });
+          } else {
+            // Handle if the recipient is not found (e.g., user not connected)
+            console.log(`Recipient socket not found: ${recipientId}`);
+          }
+        });
+        
         socket.on("newUser", data => {
           users.push(data)
           io.emit("newUserResponse", users)
