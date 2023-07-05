@@ -13,7 +13,7 @@ const PaymentHistorySchema = new mongoose.Schema(
             ref: "Subscription"
         },
         price: {
-            type: String
+            type: Number
         },
         clientusername:{
             type: String

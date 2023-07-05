@@ -13,7 +13,8 @@ const socket = io => {
     app.use(require('express').static(path.join(__dirname, 'public')));
 
     io.on('connection', (socket) => {
-        console.log(`⚡: ${socket.id} user just connected!`)  
+        console.log(`⚡: ${socket.id} user just connected!`)
+
         socket.on("message", data => {
           io.emit("messageResponse", data)
         })
@@ -37,6 +38,16 @@ const socket = io => {
             console.log(`Recipient socket not found: ${recipientId}`);
           }
         });
+
+        socket.on("private message", ({ content, to }) => {
+          const message = {
+            content,
+            from: socket.id,
+            to,
+          };
+          socket.to(to).to(socket.id).emit("private message", message);
+          // messageStore.saveMessage(message);
+        });
         
         socket.on("newUser", data => {
           users.push(data)
@@ -45,7 +56,7 @@ const socket = io => {
 
         socket.on('image message', (data) => {
           // Broadcast the image to all connected clients
-          socket.broadcast.emit('image message', data);          
+          socket.emit('image message', data);          
         });
 
         socket.on('disconnect', () => {
