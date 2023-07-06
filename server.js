@@ -57,7 +57,7 @@ const io = new Server(server, {
     cors: corsConfig, // Pass configuration to websocket
 });
 
-require('./socket')(io)
+require('./Config/socket')(io)
 // [Routing]
 app.use("/gameactivity", Gameactivity);
 app.use("/subscription", Subscription);
