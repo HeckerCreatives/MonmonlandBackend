@@ -35,7 +35,7 @@ db.once('open', ()=> console.log("We are now Connected to the Cloud."))
 
 const corsConfig = {
     // origin: "http://localhost:3000",
-    origin: ["http://localhost:3000", "https://monmontestwebsite.onrender.com/","https://monmontestwebsite.onrender.com","https://monmontestserver-lotk.onrender.com","https://monmontestserver-lotk.onrender.com/"],
+    origin: ["https://monmontestwebsite.onrender.com/","https://monmontestwebsite.onrender.com","https://monmontestserver-lotk.onrender.com","https://monmontestserver-lotk.onrender.com/"],
     methods: ["GET", "POST", "PUT", "DELETE"], // List only` available methods
     credentials: true, // Must be set to true
     allowedHeaders: [
