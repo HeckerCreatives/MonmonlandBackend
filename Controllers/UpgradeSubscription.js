@@ -64,7 +64,7 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = (request, response) => {
-    const { username, subscription } = request.body;
+    const { username, subscription, cashierId, amount} = request.body;
   
     User.findOneAndUpdate(
       { userName: username },
@@ -75,13 +75,20 @@ module.exports.updatebuyer = (request, response) => {
         if (!user) {
           return response.status(404).json({ error: 'User not found' });
         }
-  
-        PaymentHistory.findByIdAndUpdate(request.params.id, request.body, {
-          new: true,
-        })
-          .then((data) => response.json(data))
-          .catch((error) => response.status(400).json({ error: error.message }));
+        return UpgradeSubscription.findByIdAndUpdate(
+          cashierId,
+          { $inc: { paymentcollected: amount, numberoftransaction: 1 } },
+          { new: true }
+        );
       })
+      .then((upgradeSubscription) => {
+        return PaymentHistory.findByIdAndUpdate(
+          request.params.id,
+          request.body,
+          { new: true }
+        );
+      })
+      .then((data) => response.json(data))
       .catch((error) => response.status(500).json({ error: error.message }));
 };
 

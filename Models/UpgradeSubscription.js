@@ -13,8 +13,11 @@ const UpgradeSubscriptionSchema = new mongoose.Schema(
             type: String
         },
         numberoftransaction: {
-            type: String,
-            default: "0"
+            type: Number,
+            default: 0
+        },
+        paymentcollected: {
+            type: Number
         },
         paymentlimit: {
             type: String
