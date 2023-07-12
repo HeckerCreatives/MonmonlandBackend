@@ -64,7 +64,7 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = (request, response) => {
-    const { username, subscription, cashierId, amount} = request.body;
+    const { username, subscription, cashierId, amount, stats} = request.body;
   
     User.findOneAndUpdate(
       { userName: username },
@@ -77,9 +77,9 @@ module.exports.updatebuyer = (request, response) => {
         }
         return UpgradeSubscription.findByIdAndUpdate(
           cashierId,
-          { $inc: { paymentcollected: amount, numberoftransaction: 1 } },
+          { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
           { new: true }
-        );
+        )        
       })
       .then((upgradeSubscription) => {
         return PaymentHistory.findByIdAndUpdate(
