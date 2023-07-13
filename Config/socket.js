@@ -102,11 +102,11 @@ const socket = io => {
             }
           });
 
-          socket.on('image message', (data) => {
-            // Broadcast the image to all connected clients
-            socket.emit('image message', data);          
-          });
-          // console.log(chatRoomUsers)
+          // socket.on('image message', (data) => {
+          //   // Broadcast the image to all connected clients
+          //   socket.emit('image message', data);          
+          // });
+          console.log(chatRoomUsers)
 
           
           

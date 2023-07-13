@@ -50,16 +50,32 @@ module.exports.destroymultiple = (request, response) => {
 //   lineeeeeeeeeeeeee
 
 module.exports.addbuyer = (request, response) => {
+  const { cashierId, stats } = request.body;
     PaymentHistory.create(request.body)
     .then(item => response.json(item))
+    .then((data) => {
+      return UpgradeSubscription.findByIdAndUpdate(
+        cashierId,
+        { status: stats },
+        { new: true }
+      )        
+    })    
     .catch(error => response.status(400).json({ error: error.message }));
 }
 
 module.exports.destroybuyer = (request, response) => {
+  const { cashierId, stats } = request.body;
     PaymentHistory.findByIdAndUpdate(request.params.id, {
         deletedAt: new Date().toLocaleString(),
     })
     .then(() => response.json(request.params.id))
+    .then((data) => {
+      return UpgradeSubscription.findByIdAndUpdate(
+        cashierId,
+        { status: stats },
+        { new: true }
+      )        
+    })
     .catch(error => response.status(400).json({ error: error.message }));
 }
 
