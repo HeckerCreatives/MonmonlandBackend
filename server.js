@@ -6,7 +6,7 @@ const port = 4000;
 const app = express();
 const cors = require("cors")
 require('dotenv').config();
-const request = require('request');
+const axios = require('axios');
 
 
 const Gameactivity = require("./Routes/Gameactivity");
@@ -71,30 +71,30 @@ app.use("/games", Games);
 app.use("/upgradesubscription", UpgradeSubscription);
 app.use(BinancePay);
 
-app.get('/phtime', (req, res) => {
-  const city = 'manila';
-  const apiUrl = process.env.WTninjaurl;
-  const apiKey = process.env.Apininja; // Replace this with your actual API key
+const apiUrl = process.env.WTninjaurl;
+const apiKey = process.env.Apininja; 
 
-  const options = {
-    url: `${apiUrl}?city=${city}`,
-    headers: {
-      'X-Api-Key': apiKey,
-    },
-  };
+app.get('/phtime', async (req, res) => {
+  try {
+    const city = 'manila';
+    const response = await axios.get(apiUrl, {
+      params: {
+        city: city,
+      },
+      headers: {
+        'X-Api-Key': apiKey,
+      },
+    });
 
-  request.get(options, function (error, response, body) {
-    if (error) {
-      console.error('Request failed:', error);
-      return res.status(500).send('Internal Server Error');
-    } else if (response.statusCode !== 200) {
-      console.error('Error:', response.statusCode, body.toString('utf8'));
-      return res.status(response.statusCode).send(body.toString('utf8'));
-    } else {
-      // Send the API response back to the client
-      res.send(body);
-    }
-  });
+    // You can access the API response data using response.data
+    res.json(response.data);
+
+    // Return the API response as the result
+    res.json(response.data);
+  } catch (error) {
+    console.error('Request failed:', error);
+    res.status(500).json({ error: 'Something went wrong' });
+  }
 });
 
 server.listen(port, ()=> console.log(`Server is running at port ${port}`));
