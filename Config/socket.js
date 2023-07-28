@@ -29,12 +29,14 @@ const socket = io => {
            if (roomUsers && (roomUsers.size >= 2 && room !== username)) {
              // Send an error message to the client indicating that the room is full
              socket.emit('room_full', {
-               message: `Processing`,
+               message: `The Admin is still Processing other transaction`,
              });
              return;
            }
 
           socket.join(room); // Join the user to a socket room
+
+          
           
           // Add this
           let __createdtime__ = Date.now(); // Current timestamp
@@ -102,11 +104,19 @@ const socket = io => {
             }
           });
 
-          // socket.on('image message', (data) => {
-          //   // Broadcast the image to all connected clients
-          //   socket.emit('image message', data);          
-          // });
-          console.log(chatRoomUsers)
+           // Check if the user trying to join is the room owner
+           if (username !== room) {
+            // Find the room owner's socket ID
+            const roomOwnerSocket = chatRoomUsers.find(user => user.username === room);
+
+            // If the room owner is not in the room, send an error message to the user
+            if (!roomOwnerSocket || !roomUsers.has(roomOwnerSocket.id)) {
+              socket.emit('room_not_allowed', {
+                message: `You cannot join this room. The room owner is not present.`,
+              });
+              return;
+            }
+          }
 
           
           
