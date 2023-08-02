@@ -67,8 +67,7 @@ module.exports.destroybuyer = (request, response) => {
   const { cashierId, stats } = request.body;
     PaymentHistory.findByIdAndUpdate(request.params.id, {
         deletedAt: new Date().toLocaleString(),
-    })
-    .then(() => response.json(request.params.id))
+    })    
     .then((data) => {
       return UpgradeSubscription.findByIdAndUpdate(
         cashierId,
@@ -76,6 +75,7 @@ module.exports.destroybuyer = (request, response) => {
         { new: true }
       )        
     })
+    .then(() => response.json(request.params.id))
     .catch(error => response.status(400).json({ error: error.message }));
 }
 

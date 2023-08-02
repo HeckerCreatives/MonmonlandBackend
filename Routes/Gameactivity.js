@@ -7,6 +7,7 @@ const Gameactivity = require("../Controllers/Gameactivity");
 router.post("/addprogressbar", Gameactivity.Progressbar);
 router.get("/find", Gameactivity.getall)
 router.get("/history", Gameactivity.gethistory)
+router.get("/progress", Gameactivity.getprogress)
 
 // [with params]
 router.put("/:id/update", Gameactivity.update)

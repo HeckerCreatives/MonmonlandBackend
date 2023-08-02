@@ -62,3 +62,21 @@ module.exports.gethistory = (request, response) => {
     .then(data => response.send(data))
     .catch(error => response.send(error))
 }
+
+module.exports.getprogress = async (req, res) => {
+try {
+  const initial = await GameactivityHistory.find({value: "Initial"}).sort({createdAt: -1})
+  const target = await GameactivityHistory.find({value: "Target"}).sort({createdAt: -1})
+
+  const progress = {
+    initial: initial[0].enteredamount,
+    target: target[0].enteredamount
+  }
+
+  res.json({message: "success", data: progress})
+} catch (error) {
+  res.status(500).json({ message: "Error retrieving progress data", error });
+}
+
+
+}

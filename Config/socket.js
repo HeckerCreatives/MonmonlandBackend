@@ -71,6 +71,20 @@ const socket = io => {
             });
           }
 
+            // Check if the user trying to join is the room owner
+            if (username !== room) {
+              // Find the room owner's socket ID
+              const roomOwnerSocket1 = chatRoomUsers.find(user => user.username === room);
+
+              // If the room owner is not in the room, send an error message to the user
+              if (!roomOwnerSocket1 || !roomUsers.has(roomOwnerSocket1.id)) {
+                socket.emit('room_not_allowed', {
+                  message: `You cannot join this room. The room owner is not present.`,
+                });
+                return;
+              }
+            }
+
           socket.on('send_message', (data) => {
             const {image, message, username, room, __createdtime__ } = data;
             io.in(room).emit('receive_message', data); // Send to all users in room, including sender
@@ -104,19 +118,7 @@ const socket = io => {
             }
           });
 
-           // Check if the user trying to join is the room owner
-           if (username !== room) {
-            // Find the room owner's socket ID
-            const roomOwnerSocket = chatRoomUsers.find(user => user.username === room);
-
-            // If the room owner is not in the room, send an error message to the user
-            if (!roomOwnerSocket || !roomUsers.has(roomOwnerSocket.id)) {
-              socket.emit('room_not_allowed', {
-                message: `You cannot join this room. The room owner is not present.`,
-              });
-              return;
-            }
-          }
+           
 
           
           

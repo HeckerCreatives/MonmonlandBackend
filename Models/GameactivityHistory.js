@@ -4,7 +4,7 @@ const GameactivityHistorySchema = new mongoose.Schema(
     {
         barId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Subscription"
+            ref: "Gameactivity"
         },
         value: {
             type: String
