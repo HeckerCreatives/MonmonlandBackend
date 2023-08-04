@@ -2,10 +2,7 @@ const express = require("express")
 const app = express()
 const path = require('path');
 
-const CHAT_BOT = 'ChatBot';
-let chatRoom = ''; // E.g. javascript, node,...
-let allUsers = []; // All users in current chat room
-let roomOwnerUsername = [];
+
 
 function leaveRoom(userID, chatRoomUsers) {
   return chatRoomUsers.filter((user) => user.id != userID);
@@ -13,7 +10,10 @@ function leaveRoom(userID, chatRoomUsers) {
 
 const socket = io => {
     // let users = []
-
+    const CHAT_BOT = 'ChatBot';
+    let chatRoom = ''; // E.g. javascript, node,...
+    let allUsers = []; // All users in current chat room
+    let chatRoomUsers ;
 
     app.use(require('express').static(path.join(__dirname, 'public')));
     
@@ -36,8 +36,6 @@ const socket = io => {
 
           socket.join(room); // Join the user to a socket room
 
-          
-          
           // Add this
           let __createdtime__ = Date.now(); // Current timestamp
           // Send message to all users currently in the room, apart from the user that just joined
@@ -61,15 +59,15 @@ const socket = io => {
           socket.to(room).emit('chatroom_users', chatRoomUsers);
           socket.emit('chatroom_users', chatRoomUsers);
 
-          // Find the room owner's socket ID
-          const roomOwnerSocket = chatRoomUsers.find(user => user.username === room);
+          // // Find the room owner's socket ID
+          // const roomOwnerSocket = chatRoomUsers.find(user => user.username === room);
           
-          if (roomOwnerSocket && roomOwnerSocket.id !== socket.id) {
-            // Send a notification to the room owner
-            io.to(roomOwnerSocket.id).emit('receive_notification', {
-              message: `${username} has joined your chat room`             
-            });
-          }
+          // if (roomOwnerSocket && roomOwnerSocket.id !== socket.id) {
+          //   // Send a notification to the room owner
+          //   io.to(roomOwnerSocket.id).emit('receive_notification', {
+          //     message: `${username} has joined your chat room`             
+          //   });
+          // }
 
             // Check if the user trying to join is the room owner
             if (username !== room) {
@@ -90,20 +88,20 @@ const socket = io => {
             io.in(room).emit('receive_message', data); // Send to all users in room, including sender
           });
 
-          socket.on('leave_room', (data) => {
-            const { username, room } = data;
-            socket.leave(room);
-            const __createdtime__ = Date.now();
-            // Remove user from memory
-            allUsers = leaveRoom(socket.id, allUsers);
-            socket.to(room).emit('chatroom_users', allUsers);
-            socket.to(room).emit('receive_message', {
-              username: CHAT_BOT,
-              message: `${username} has left the chat`,
-              __createdtime__,
-            });
-            console.log(`${username} has left the chat`);
-          });
+          // socket.on('leave_room', (data) => {
+          //   const { username, room } = data;
+          //   socket.leave(room);
+          //   const __createdtime__ = Date.now();
+          //   // Remove user from memory
+          //   allUsers = leaveRoom(socket.id, allUsers);
+          //   socket.to(room).emit('chatroom_users', allUsers);
+          //   socket.to(room).emit('receive_message', {
+          //     username: CHAT_BOT,
+          //     message: `${username} has left the chat`,
+          //     __createdtime__,
+          //   });
+          //   console.log(`${username} has left the chat`);
+          // });
 
           socket.on('disconnect', () => {
             console.log('User disconnected from the chat');
@@ -117,11 +115,7 @@ const socket = io => {
               });
             }
           });
-
-           
-
-          
-          
+          console.log(chatRoomUsers)
           });
     });
 
