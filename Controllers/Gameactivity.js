@@ -73,7 +73,7 @@ try {
     target: target[0].enteredamount
   }
 
-  res.json({message: "success", data: progress})
+  res.json(progress)
 } catch (error) {
   res.status(500).json({ message: "Error retrieving progress data", error });
 }
