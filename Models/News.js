@@ -6,6 +6,9 @@ const NewsSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        subtitle: {
+            type: String,
+        },
         description:{
             type: String,
             required: true

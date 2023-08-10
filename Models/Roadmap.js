@@ -5,6 +5,9 @@ const RoadmapSchema = new mongoose.Schema(
         title: {
             type: String
         },
+        subtitle: {
+            type: String,
+        },
         image: {
             type: String
         },

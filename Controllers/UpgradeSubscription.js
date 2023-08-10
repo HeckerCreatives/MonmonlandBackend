@@ -21,6 +21,44 @@ module.exports.getAll = (request, response) => {
     .catch(error => response.send(error))
 }
 
+module.exports.paymentfilter = (req, res ) => {
+  const { method } = req.body;
+  if(method === "All") {
+    UpgradeSubscription.find()
+    .populate('userId')
+    .then(data => res.send({message: "success" , data: data.filter(item => !item.deletedAt)}))
+    .catch(error => res.send(error))
+  } else {
+    UpgradeSubscription.find({paymentmethod: method})
+    .populate('userId')
+    .then(data => res.send({message: "success" , data: data.filter(item => !item.deletedAt)}))
+    .catch(error => res.send(error))
+  }
+  
+}
+
+module.exports.searchcashier = (req, res) => {
+  const { cashier } = req.body;
+  User.find({userName: { $regex: cashier, $options: "i" }})
+  .then((user)=> {
+    const id = user.map(user => user._id);
+    const ids = {
+      userId: {$in : id}
+    }
+    if(user.length > 0){
+      UpgradeSubscription.find(ids)
+      .populate({path: "userId"})
+      .then((data) => {
+        res.send({message: "success", data: data.filter(item => !item.deletedAt)})
+      })
+      .catch(error => res.send(error))
+    } else {
+      res.send({message:"failed", data: "User not found"})
+    }
+  })
+  .catch(error => res.send(error))
+} 
+
 module.exports.getOneUser = (request, response) => {
     UpgradeSubscription.findById(request.params.id)
     .populate('userId')

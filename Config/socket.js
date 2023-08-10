@@ -14,6 +14,7 @@ const socket = io => {
     let chatRoom = ''; // E.g. javascript, node,...
     let allUsers = []; // All users in current chat room
     let chatRoomUsers ;
+    let queue = {}; // Store queues for each room
 
     app.use(require('express').static(path.join(__dirname, 'public')));
     
@@ -24,7 +25,7 @@ const socket = io => {
       socket.on('join_room', (data) => {
           const { username, room } = data; // Data sent from client when join_room event emitted
 
-           // Check if the room already has two users || 
+          //  Check if the room already has two users || 
            const roomUsers = io.sockets.adapter.rooms.get(room);
            if (roomUsers && (roomUsers.size >= 2 && room !== username)) {
              // Send an error message to the client indicating that the room is full
@@ -53,8 +54,21 @@ const socket = io => {
           });
 
           // Save the new user to the room
-          chatRoom = room;
+          // chatRoom = room;
           allUsers.push({ id: socket.id, username, room });
+
+          // Add user to queue
+          // queue[room].push(socket.id);
+
+          // Emit queue position to user
+          // const position = queue[room].length;
+          // socket.emit('queue_position', position);
+
+          // // Check if the user is at the front of the queue
+          // if (queue[room][0] === socket.id) {
+          //   socket.emit('your_turn');
+          // }
+
           chatRoomUsers = allUsers.filter((user) => user.room === room);
           socket.to(room).emit('chatroom_users', chatRoomUsers);
           socket.emit('chatroom_users', chatRoomUsers);
@@ -115,7 +129,14 @@ const socket = io => {
               });
             }
           });
-          console.log(chatRoomUsers)
+          // // Remove user from the queue
+          // queue[room] = queue[room].filter((id) => id !== socket.id);
+
+          // // Check if the user was at the front of the queue
+          // if (queue[room][0] === socket.id) {
+          //   // Emit event to let the next user know it's their turn
+          //   io.to(queue[room][0]).emit('your_turn');
+          // }
           });
     });
 

@@ -13,7 +13,8 @@ router.put("/updatebuyer/:id", UpgradeSubscription.updatebuyer)
 router.delete("/:id/destroy", UpgradeSubscription.destroy);
 router.delete("/:id/destroybuyer", UpgradeSubscription.destroybuyer);
 router.delete("/destroymultiple", UpgradeSubscription.destroymultiple);
-
+router.post('/filterpayment', UpgradeSubscription.paymentfilter);
+router.post('/searchcashier', UpgradeSubscription.searchcashier);
 
 
 module.exports = router;
