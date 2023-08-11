@@ -10,39 +10,28 @@ function leaveRoom(userID, chatRoomUsers) {
 const socket = io => {
   const CHAT_BOT = 'ChatBot';
   let chatRoom = '';
-  let adminrooms = [];
+  let adminrooms = {};
   let allUsers = [];
   let chatRoomUsers;
   let queue = {}; // Store queues for each room
-
+  let __createdtime__ = Date.now();
   app.use(require('express').static(path.join(__dirname, 'public')));
 
   io.on("connection", (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
 
-    
-
-    // io.of("/").adapter.on("create-room", (room) => {
-    //   console.log(`room ${room} was created`);
-    // });
-
-    // socket.on('create-room', (room) => {
-    //   console.log(`${room} was created`)
-    //   adminrooms.push(room)
-    //   console.log(allRooms)
-    // })
-
-    // socket.on('allroom', ()=>{
-    //   socket.emit('rooms', io.sockets.adapter.rooms);
-    // })
-
-    // const allRooms = (io.sockets.adapter.rooms);
-    
+    socket.on('create-room', (username, room) => {
+      console.log(`${room} was created`)
+      // socket.join(room)
+      // socket.emit('join_room', {username, room})
+      adminrooms[room] = true;
+      io.emit('room_created', {room: room})
+    })
 
     socket.on('join_room', (data) => {
       const { username, room } = data;
       const roomUsers = io.sockets.adapter.rooms.get(room);
-      let __createdtime__ = Date.now();
+      
       if (!roomUsers || roomUsers.size < 2) {
         socket.join(room);
         
@@ -52,7 +41,6 @@ const socket = io => {
           __createdtime__,
         });
 
-        io.to(room).emit('user_joined', { username, room });
 
         socket.emit('receive_message', {
           message: `Welcome ${username}`,
@@ -65,7 +53,6 @@ const socket = io => {
         chatRoomUsers = allUsers.filter((user) => user.room === room);
         socket.to(room).emit('chatroom_users', chatRoomUsers);
         socket.emit('chatroom_users', chatRoomUsers);
-
       } else {
         // Queue the user and emit a queue message
         if (!queue[room]) {
