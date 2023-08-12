@@ -75,7 +75,7 @@ try {
 
   res.json(progress)
 } catch (error) {
-  res.status(500).json({ message: "Error retrieving progress data", error });
+  res.status(500).json({ error: 'Something went wrong' });
 }
 
 
