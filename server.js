@@ -71,24 +71,11 @@ app.use("/games", Games);
 app.use("/upgradesubscription", UpgradeSubscription);
 app.use(BinancePay);
 
-const apiUrl = process.env.WTninjaurl;
-const apiKey = process.env.Apininja; 
+const apiUrl = process.env.worldtimeapi
 
 app.get('/phtime', async (req, res) => {
   try {
-    const city = 'manila';
-    const response = await axios.get(apiUrl, {
-      params: {
-        city: city,
-      },
-      headers: {
-        'X-Api-Key': apiKey,
-      },
-    });
-
-    // You can access the API response data using response.data
-    res.json(response.data);
-
+    const response = await axios.get(apiUrl);
     // Return the API response as the result
     res.json(response.data);
   } catch (error) {
