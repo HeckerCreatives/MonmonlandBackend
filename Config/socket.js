@@ -73,6 +73,37 @@ const socket = io => {
           message: `The room is currently full. your queing number is ${queuePosition}.`,
         });
       }
+      console.log(chatRoomUsers)
+      console.log(adminrooms)
+
+      socket.on('kick', (data) => {
+        const {userid, room} = data;
+          const user = adminrooms.find(e => e.id)
+          
+          if(user.id !== userid){
+            socket.leave(room)
+            console.log(`${username} has left the chat`);
+          } else if (user.id === userid) {
+            const userSocketToKick = io.sockets.sockets.get(userid)
+            userSocketToKick.disconnect(true)
+            console.log(`${username} say bye`);
+          }
+      })
+
+      socket.on('leave_room', (data) => {
+          const { username, room } = data;
+          socket.leave(room);
+          // const __createdtime__ = Date.now();
+          // Remove user from memory
+          allUsers = leaveRoom(socket.id, allUsers);
+          socket.to(room).emit('chatroom_users', allUsers);
+          socket.to(room).emit('receive_message', {
+            username: CHAT_BOT,
+            message: `${username} has left the chat`,
+            __createdtime__,
+          });
+          console.log(`${username} has left the chat`);
+        });
 
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;

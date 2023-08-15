@@ -17,7 +17,10 @@ const PaymentHistorySchema = new mongoose.Schema(
         },
         clientusername:{
             type: String
-        },       
+        },
+        image:{
+            type: String
+        },      
         deletedAt:{
             type: String
         }        
