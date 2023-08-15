@@ -81,7 +81,7 @@ const socket = io => {
 
       socket.on('disconnect', () => {
         console.log('User disconnected from the chat');
-        queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
+        
         const user = allUsers.find((user) => user.id === socket.id);
         const admin = adminrooms.find(admin => admin.id === socket.id)
         if (user?.username) {
@@ -98,9 +98,9 @@ const socket = io => {
 
         if (queuedUsers[socket.id]) {
           delete queuedUsers[socket.id]; // Remove the user from the queued users
-          
+          queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
           // Recalculate and update the queue position for the remaining users in the queue
-          if (queue[chatRoom] || queuedUsers[socket.id]) {
+          if (queue[chatRoom]) {
             queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
             // const remainingQueueLength = queue[chatRoom].length;
       
