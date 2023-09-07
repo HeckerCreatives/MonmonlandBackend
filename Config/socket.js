@@ -51,15 +51,20 @@ const socket = io => {
           playfabid,
         };
         userdetails.push({ id: socket.id, userDetails });
-
-        socket.on('get_admin_room_users', () => {
-          const adminRoomUsers = userdetails.map(admin => admin.userDetails);
-          // Now `adminRoomUsers` contains an array of user details in the admin room
-          // You can emit this data to the client or perform any other actions with it.
-          socket.emit('admin_room_users', adminRoomUsers);
-          console.log(adminRoomUsers)
-        });
+        io.emit("details", userdetails)
         
+        // socket.on('userdetails', (id)=> {
+        //   const user = adminrooms.find(e => e.id)
+        //   // const roomuserss = userdetails.filter((user) => user.id !== id)
+        //   // userdetails.push({id: roomuserss[0].id, username: roomuserss[0].username})
+        //   // const usertoget = io.sockets.sockets.get(roomuserss[0].id)
+          
+        //   // if (user.id !== id) {
+        //   //   socket.emit("details", userdetails[1])
+        //   //   console.log(userdetails[1])
+        //   // }
+        // })
+        // console.log(userdetails)
         socket.to(room).emit('receive_message', {
           message: `${username} has joined the chat room`,
           username: CHAT_BOT,
@@ -114,19 +119,7 @@ const socket = io => {
         
       });
 
-      // socket.on('userdetails', (id)=> {
-      //   const user = adminrooms.find(e => e.id)
-      //   const roomuserss = allUsers.filter((user) => user.id !== id)
-      //   userdetails.push({id: roomuserss[0].id, username: roomuserss[0].username})
-      //   const usertoget = io.sockets.sockets.get(roomuserss[0].id)
-      //   console.log(userdetails)
-      //   if (user.id !== id) {
-      //     socket.emit("details", {
-      //       user: usertoget.username,
-      //       id: usertoget.playfabid
-      //     })
-      //   }
-      // })
+      
 
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;
@@ -139,6 +132,7 @@ const socket = io => {
         const user = allUsers.find((user) => user.id === socket.id);
         const admin = adminrooms.find(admin => admin.id === socket.id)
         const kik = kikroomusers.find(kik => kik.id === socket.id)
+        const detail = userdetails.find(detail => detail.id === socket.id)
         if (user?.username) {
           allUsers = leaveRoom(socket.id, allUsers);
           socket.to(chatRoom).emit('chatroom_users', allUsers);
@@ -153,6 +147,10 @@ const socket = io => {
 
         if(kik?.id){
           kikroomusers = leaveRoom(socket.id, kikroomusers)
+        }
+
+        if(detail?.id){
+          userdetails = leaveRoom(socket.id, userdetails)
         }
 
         if (queuedUsers[socket.id]) {

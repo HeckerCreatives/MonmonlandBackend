@@ -9,7 +9,7 @@ const SubscriptionSchema = new mongoose.Schema(
         },
         amount : {
             type: String,
-            required:true
+            required: true
         },
         image: {
             type: String
