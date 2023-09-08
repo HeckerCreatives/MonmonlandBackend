@@ -118,23 +118,13 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = (request, response) => {
-    const { username, subscription, cashierId, amount, stats} = request.body;
+    const { cashierId, amount, stats } = request.body;
   
-    User.findOneAndUpdate(
-      { userName: username },
-      { subscriptionId: subscription },
-      { new: true }
-    )
-      .then((user) => {
-        if (!user) {
-          return response.status(404).json({ error: 'User not found' });
-        }
-        return UpgradeSubscription.findByIdAndUpdate(
-          cashierId,
-          { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
-          { new: true }
-        )        
-      })
+      UpgradeSubscription.findByIdAndUpdate(
+        cashierId,
+        { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
+        { new: true }
+      ) 
       .then((upgradeSubscription) => {
         return PaymentHistory.findByIdAndUpdate(
           request.params.id,
@@ -148,6 +138,7 @@ module.exports.updatebuyer = (request, response) => {
 
 module.exports.getAllbuyer = (request, response) => {
     PaymentHistory.find()
+    .sort({ createdAt: -1 })
     .populate('subscriptionlevel')    
     .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
