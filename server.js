@@ -20,7 +20,7 @@ const ManagePlayer = require("./Routes/Manageplayer");
 const BinancePay = require("./Routes/Binancepay")
 const Games = require("./Routes/Games")
 const UpgradeSubscription = require("./Routes/UpgradeSubscription")
-
+const Coin = require("./Routes/Coinbase")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -71,6 +71,7 @@ app.use("/auth", Auth);
 app.use("/manage", ManagePlayer);
 app.use("/games", Games);
 app.use("/upgradesubscription", UpgradeSubscription);
+app.use("/coin", Coin);
 app.use(BinancePay);
 
 const apiUrl = process.env.worldtimeapi
