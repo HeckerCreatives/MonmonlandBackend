@@ -37,7 +37,7 @@ router.post("/ruby", async (req, res) => {
     const quantity = req.body.quantity;
     let amount;
     let randomid = generateRandomString();
-    const encryptxt = encryptString(randomid, secretKey)
+    const encryptxt = encryptString(randomid, secretKey);
     
     await Subscription.findOne({subscriptionName: "Ruby"})
     .then(data => {
@@ -57,8 +57,8 @@ router.post("/ruby", async (req, res) => {
           "customer_name": name,
           "receiptId": randomid,
         },
-        "redirect_url": `http://localhost:3000/payment/success?id=${encryptxt}`,
-        "cancel_url": `http://localhost:3000/payment/cancel?id=${encryptxt}`,
+        "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
+        "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
         "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
       });
       
@@ -113,8 +113,8 @@ router.post("/emerald", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `http://localhost:3000/payment/success?id=${encryptxt}`,
-      "cancel_url": `http://localhost:3000/payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
       "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
     });
     
@@ -168,8 +168,8 @@ router.post("/diamond", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `http://localhost:3000/payment/success?id=${encryptxt}`,
-      "cancel_url": `http://localhost:3000/payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
       "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
     });
     
