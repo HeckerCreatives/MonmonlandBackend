@@ -101,8 +101,8 @@ router.post("/emerald", async (req, res) => {
   })
   
   let data = new Charge({
-      "name": "Ruby",
-      "description": "Ruby Subscription",
+      "name": "Emerald",
+      "description": "Emerald Subscription",
       "pricing_type": "fixed_price",
       "local_price": {
         "amount": amount,
@@ -115,7 +115,7 @@ router.post("/emerald", async (req, res) => {
       },
       "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
       "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
-      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
+      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414673/ecdrzy1t31uiw7cjjtfa.png"
     });
     
     
@@ -156,8 +156,8 @@ router.post("/diamond", async (req, res) => {
   })
   
   let data = new Charge({
-      "name": "Ruby",
-      "description": "Ruby Subscription",
+      "name": "Diamond",
+      "description": "Diamond Subscription",
       "pricing_type": "fixed_price",
       "local_price": {
         "amount": amount,
@@ -170,7 +170,7 @@ router.post("/diamond", async (req, res) => {
       },
       "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
       "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
-      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
+      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414734/n9rci7fftx3ggpzv4sbp.png"
     });
     
     

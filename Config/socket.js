@@ -53,18 +53,9 @@ const socket = io => {
         userdetails.push({ id: socket.id, userDetails });
         io.emit("details", userdetails)
         
-        // socket.on('userdetails', (id)=> {
-        //   const user = adminrooms.find(e => e.id)
-        //   // const roomuserss = userdetails.filter((user) => user.id !== id)
-        //   // userdetails.push({id: roomuserss[0].id, username: roomuserss[0].username})
-        //   // const usertoget = io.sockets.sockets.get(roomuserss[0].id)
-          
-        //   // if (user.id !== id) {
-        //   //   socket.emit("details", userdetails[1])
-        //   //   console.log(userdetails[1])
-        //   // }
-        // })
-        // console.log(userdetails)
+        
+        
+
         socket.to(room).emit('receive_message', {
           message: `${username} has joined the chat room`,
           username: CHAT_BOT,
@@ -101,25 +92,41 @@ const socket = io => {
         const user = adminrooms.find(e => e.id)
         // Find the normal user's socket
         const normalUserSocket = io.sockets.sockets.get(normalUserId);
+        const adminsocket = io.sockets.sockets.get(user.id);
         const roomusers = allUsers.filter((user) => user.id !== normalUserId);
         kikroomusers.push({id: roomusers[0].id, username: roomusers[0].username})
         const usertokick = io.sockets.sockets.get(roomusers[0].id)
         if (user.id !== normalUserId) {
-          
+        
           // Remove the normal user from the chat room
           normalUserSocket.leave(room);
           // Emit 'kicked' event to the normal user
           normalUserSocket.emit('kicked');
+          adminsocket.emit('ey')
         } else {
           // Remove the normal user from the chat room
           usertokick.leave(room);
           // Emit 'kicked' event to the normal user
           usertokick.emit('kicked');
+          adminsocket.emit('ey')
         }
         
       });
 
-      
+      socket.on('leave', (room) => {
+        const user = adminrooms.find(e => e.id)
+        const adminsocket = io.sockets.sockets.get(user.id);
+        adminsocket.leave(room)
+        adminsocket.emit("alis")
+      })
+
+      socket.on('isonline', (id) => {
+        const user = adminrooms.find(e => e.id)
+        const adminsocket = io.sockets.sockets.get(id);
+        if(id === user.id){
+          adminsocket.emit("onlinenga")
+        }
+      })
 
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;

@@ -34,10 +34,10 @@ db.on('error', ()=> console.error.bind(console, "Connection to Database has an E
 db.once('open', ()=> console.log("We are now Connected to the Cloud."))
 
 const corsConfig = {
-    // origin: "http://localhost:3000",
+    origin: "http://localhost:3000",
     // origin: ["http://localhost:3000","https://monmontestwebsite.onrender.com/","https://monmontestwebsite.onrender.com","https://monmontestserver-lotk.onrender.com","https://monmontestserver-lotk.onrender.com/", "https://mon-mon-land-dashboard-website.vercel.app/", 'https://mon-mon-land-dashboard-website.vercel.app'],
-    origin: ["https://www.monmonland.games/", "https://www.monmonland.games", 
-      "https://monmonland.games/", "https://monmonland.games"],
+    // origin: ["https://www.monmonland.games/", "https://www.monmonland.games", 
+    //   "https://monmonland.games/", "https://monmonland.games"],
     methods: ["GET", "POST", "PUT", "DELETE"], // List only` available methods
     credentials: true, // Must be set to true
     allowedHeaders: [
