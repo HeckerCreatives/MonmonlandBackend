@@ -31,9 +31,9 @@ const socket = io => {
       .populate({path: "userId"})
       .then((data) => {
         const item = data.filter(item => !item.deletedAt)
-        adminrooms.push({id: socket.id, item})
+        adminrooms.push({id: socket.id,user: username, item})
       })
-      // adminrooms[room] = true;
+      // socket.join(room);
     })
     io.emit('room_created', {room: adminrooms,})
 
@@ -74,6 +74,8 @@ const socket = io => {
         chatRoomUsers = allUsers.filter((user) => user.room === room);
         socket.to(room).emit('chatroom_users', chatRoomUsers);
         socket.emit('chatroom_users', chatRoomUsers);
+
+        
       } else {
         // Queue the user and emit a queue message
        
@@ -125,9 +127,54 @@ const socket = io => {
         const adminsocket = io.sockets.sockets.get(id);
         if(id === user.id){
           adminsocket.emit("onlinenga")
-        }
+        } 
       })
 
+      // socket.on('admincheck', (username) => {
+      //   const user = adminrooms.find((admin) => admin.user);
+      //   // const adminSocket = io.sockets.sockets.get(user.id); 
+      //   console.log(username)
+      //     // Check if the admin is disconnected
+      //     if (!user) {
+      //       // Find all users in the admin room
+      //       // const usersInAdminRoom = allUsers.filter((user) => user.room === room);
+
+      //       // Notify all users in the admin room about admin disconnection
+      //       chatRoomUsers.forEach((user) => {
+      //         const userSocket = io.sockets.sockets.get(user.id);
+      //         if (userSocket) {
+      //           userSocket.emit('walasiadmin', {
+      //             message: 'Admin has disconnected.',
+      //           });
+      //           userSocket.leave(room); // Remove the user from the admin room
+      //         }
+      //       });
+
+      //       // Remove all users in the queue for this admin room
+      //       if (queue[room]) {
+      //         queue[room].forEach((queuedUser) => {
+      //           const queuedUserSocket = io.sockets.sockets.get(queuedUser.id);
+      //           if (queuedUserSocket) {
+      //             queuedUserSocket.emit('queue_message', {
+      //               message: 'Admin has disconnected.',
+      //             });
+      //             delete queuedUsers[queuedUser.id];
+      //           }
+      //         });
+      //         queue[room] = []; // Clear the queue for this admin room
+      //       }
+
+      //       // Remove the admin room from the list of admin rooms
+      //       adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
+
+      //       // Remove the admin socket
+      //       io.sockets.sockets.delete(socket.id);
+      //     }
+        
+        
+      // })
+     
+      
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;
         io.in(room).emit('receive_message', data);
@@ -140,6 +187,8 @@ const socket = io => {
         const admin = adminrooms.find(admin => admin.id === socket.id)
         const kik = kikroomusers.find(kik => kik.id === socket.id)
         const detail = userdetails.find(detail => detail.id === socket.id)
+        // adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
+        //   io.sockets.sockets.delete(socket.id);
         if (user?.username) {
           allUsers = leaveRoom(socket.id, allUsers);
           socket.to(chatRoom).emit('chatroom_users', allUsers);
@@ -147,9 +196,38 @@ const socket = io => {
             message: `${user.username} has disconnected from the chat.`,
             __createdtime__,
           });
-        
+          
         if(admin?.id){
           adminrooms = leaveRoom(socket.id, adminrooms)
+          chatRoomUsers.forEach((user) => {
+            const userSocket = io.sockets.sockets.get(user.id);
+            if (userSocket) {
+              userSocket.emit('walasiadmin', {
+                message: 'Admin has disconnected.',
+              });
+              userSocket.leave(room); // Remove the user from the admin room
+            }
+          });
+
+          // Remove all users in the queue for this admin room
+          if (queue[room]) {
+            queue[room].forEach((queuedUser) => {
+              const queuedUserSocket = io.sockets.sockets.get(queuedUser.id);
+              if (queuedUserSocket) {
+                queuedUserSocket.emit('queue_message', {
+                  message: 'Admin has disconnected.',
+                });
+                delete queuedUsers[queuedUser.id];
+              }
+            });
+            queue[room] = []; // Clear the queue for this admin room
+          }
+
+          // Remove the admin room from the list of admin rooms
+          adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
+
+          // Remove the admin socket
+          io.sockets.sockets.delete(socket.id);
         }
 
         if(kik?.id){
