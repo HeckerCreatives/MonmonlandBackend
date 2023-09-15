@@ -39,8 +39,12 @@ const socket = io => {
 
     socket.on('join_room', (data) => {
       const { username, room, playfabid } = data;
-      const roomUsers = io.sockets.adapter.rooms.get(room);     
-      
+      const roomUsers = io.sockets.adapter.rooms.get(room);
+
+      if(adminrooms.length !== 0){
+        io.emit('ifqueue', {no:roomUsers?.size});
+      }
+       
       if (!roomUsers || roomUsers.size < 2) {
         socket.join(room);
 
@@ -52,6 +56,7 @@ const socket = io => {
         };
         userdetails.push({ id: socket.id, userDetails });
         io.emit("details", userdetails)
+
         
         
         
@@ -74,11 +79,12 @@ const socket = io => {
         chatRoomUsers = allUsers.filter((user) => user.room === room);
         socket.to(room).emit('chatroom_users', chatRoomUsers);
         socket.emit('chatroom_users', chatRoomUsers);
-
+        
         
       } else {
         // Queue the user and emit a queue message
-       
+        
+
         if (!queue[room]) {
           queue[room] = [];
         }
@@ -130,51 +136,14 @@ const socket = io => {
         } 
       })
 
-      // socket.on('admincheck', (username) => {
-      //   const user = adminrooms.find((admin) => admin.user);
-      //   // const adminSocket = io.sockets.sockets.get(user.id); 
-      //   console.log(username)
-      //     // Check if the admin is disconnected
-      //     if (!user) {
-      //       // Find all users in the admin room
-      //       // const usersInAdminRoom = allUsers.filter((user) => user.room === room);
-
-      //       // Notify all users in the admin room about admin disconnection
-      //       chatRoomUsers.forEach((user) => {
-      //         const userSocket = io.sockets.sockets.get(user.id);
-      //         if (userSocket) {
-      //           userSocket.emit('walasiadmin', {
-      //             message: 'Admin has disconnected.',
-      //           });
-      //           userSocket.leave(room); // Remove the user from the admin room
-      //         }
-      //       });
-
-      //       // Remove all users in the queue for this admin room
-      //       if (queue[room]) {
-      //         queue[room].forEach((queuedUser) => {
-      //           const queuedUserSocket = io.sockets.sockets.get(queuedUser.id);
-      //           if (queuedUserSocket) {
-      //             queuedUserSocket.emit('queue_message', {
-      //               message: 'Admin has disconnected.',
-      //             });
-      //             delete queuedUsers[queuedUser.id];
-      //           }
-      //         });
-      //         queue[room] = []; // Clear the queue for this admin room
-      //       }
-
-      //       // Remove the admin room from the list of admin rooms
-      //       adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
-
-      //       // Remove the admin socket
-      //       io.sockets.sockets.delete(socket.id);
-      //     }
-        
-        
-      // })
+      socket.on('buyer', (data) => {
+        io.emit('buyerdata', {item: data})
+      })
      
-      
+      socket.on('selectsubs', (data) => {
+        io.emit('badge', {item: data})
+      })
+
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;
         io.in(room).emit('receive_message', data);
