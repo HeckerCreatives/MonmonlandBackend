@@ -22,6 +22,14 @@ const socket = io => {
   let userdetails=[];
   app.use(require('express').static(path.join(__dirname, 'public')));
 
+  function checkRoomCapacity(roomName, socket) {
+    const room = io.sockets.adapter.rooms.get(roomName);
+    if (room && room.size >= 2) {
+      io.emit('room_full', { message: 'The room is already full.' });
+      return true;
+    }
+    return false;
+  }
   io.on("connection", (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
     // const list = io.sockets.adapter.rooms
@@ -38,14 +46,15 @@ const socket = io => {
     io.emit('room_created', {room: adminrooms,})
 
     socket.on('join_room', (data) => {
-      const { username, room, playfabid } = data;
+      const { username, room, playfabid, transaction } = data;
       const roomUsers = io.sockets.adapter.rooms.get(room);
-
-      if(adminrooms.length !== 0){
-        io.emit('ifqueue', {no:roomUsers?.size});
-      }
-       
+      // if (checkRoomCapacity(room, socket)) {
+      //   return;
+      // }
+    
       if (!roomUsers || roomUsers.size < 2) {
+        // Check room capacity before allowing the user to join
+        
         socket.join(room);
 
         const userDetails = {
@@ -53,13 +62,18 @@ const socket = io => {
           username,
           room,
           playfabid,
+          transaction,
         };
         userdetails.push({ id: socket.id, userDetails });
         io.emit("details", userdetails)
 
-        
-        
-        
+        // socket.on('buyer', (data) => {
+        //   io.emit('buyerdata', {item: data})
+        // })
+       
+        socket.on('selectsubs', (data) => {
+          io.emit('badge', {item: data})
+        })
 
         socket.to(room).emit('receive_message', {
           message: `${username} has joined the chat room`,
@@ -88,7 +102,7 @@ const socket = io => {
         if (!queue[room]) {
           queue[room] = [];
         }
-        queue[room].push({ id: socket.id, username,});
+        queue[room].push({ id: socket.id, username, playfabid, transaction});
         queuedUsers[socket.id] = true;
         const queuePosition = queue[room].length;
         socket.emit('queue_message', {
@@ -136,13 +150,10 @@ const socket = io => {
         } 
       })
 
-      socket.on('buyer', (data) => {
-        io.emit('buyerdata', {item: data})
-      })
-     
-      socket.on('selectsubs', (data) => {
-        io.emit('badge', {item: data})
-      })
+      // socket.on('buyer', (data) => {
+      //   io.emit('buyerdata', {item: data})
+      //   io.emit("details", userdetails)
+      // })
 
       socket.on('send_message', (data) => {
         const { image, message, username, room, __createdtime__ } = data;
@@ -168,6 +179,9 @@ const socket = io => {
           
         if(admin?.id){
           adminrooms = leaveRoom(socket.id, adminrooms)
+          adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
+          io.sockets.sockets.delete(socket.id);
+          
           chatRoomUsers.forEach((user) => {
             const userSocket = io.sockets.sockets.get(user.id);
             if (userSocket) {
@@ -191,12 +205,6 @@ const socket = io => {
             });
             queue[room] = []; // Clear the queue for this admin room
           }
-
-          // Remove the admin room from the list of admin rooms
-          adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
-
-          // Remove the admin socket
-          io.sockets.sockets.delete(socket.id);
         }
 
         if(kik?.id){
@@ -205,6 +213,8 @@ const socket = io => {
 
         if(detail?.id){
           userdetails = leaveRoom(socket.id, userdetails)
+          userdetails = userdetails.filter((userdetails) => userdetails.id !== socket.id);
+          io.sockets.sockets.delete(socket.id);
         }
 
         if (queuedUsers[socket.id]) {
@@ -217,6 +227,7 @@ const socket = io => {
       
             // Update queue positions for remaining users
             queue[chatRoom].forEach((user, index) => {
+              
               const userSocket = io.sockets.sockets.get(user.id);
               if (userSocket) {
                 const updatedPosition = index + 1; // Queue position is 1-based
@@ -236,10 +247,20 @@ const socket = io => {
           const nextSocket = io.sockets.sockets.get(nextUser.id);
 
           if (nextSocket) {
+            
             nextSocket.join(chatRoom);
             nextSocket.emit('queue_message', {
               message: `Now its your turn.`,
             });
+            const userDetails = {
+              id: nextUser.id,
+              username: nextUser.username,
+              room: chatRoom,
+              playfabid: nextUser.playfabid,
+              transaction: nextUser.transaction
+            };
+            userdetails.push({ id: socket.id, userDetails });
+            io.emit("details", userdetails)
             allUsers.push({ id: nextUser.id, username: nextUser.username, room: chatRoom });
             chatRoomUsers = allUsers.filter((user) => user.room === chatRoom);
             io.in(chatRoom).emit('chatroom_users', chatRoomUsers);
