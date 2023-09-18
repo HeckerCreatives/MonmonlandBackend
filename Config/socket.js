@@ -19,7 +19,8 @@ const socket = io => {
   let queuedUsers = {}
   let __createdtime__ = Date.now();
   let kikroomusers=[];
-  let userdetails=[];
+  let userdetails={};
+  const roomUserDetails = {};
   app.use(require('express').static(path.join(__dirname, 'public')));
 
   function checkRoomCapacity(roomName, socket) {
@@ -44,28 +45,33 @@ const socket = io => {
       // socket.join(room);
     })
     io.emit('room_created', {room: adminrooms,})
-
+    
     socket.on('join_room', (data) => {
       const { username, room, playfabid, transaction } = data;
       const roomUsers = io.sockets.adapter.rooms.get(room);
-      // if (checkRoomCapacity(room, socket)) {
-      //   return;
-      // }
-    
+      
       if (!roomUsers || roomUsers.size < 2) {
         // Check room capacity before allowing the user to join
         
-        socket.join(room);
 
+        socket.join(room);
+        
+        if (!roomUserDetails[room]) {
+          roomUserDetails[room] = [];
+        }
+  
         const userDetails = {
-          id: socket.id,
           username,
           room,
           playfabid,
           transaction,
         };
-        userdetails.push({ id: socket.id, userDetails });
-        io.emit("details", userdetails)
+        
+        roomUserDetails[room].push({
+          id: socket.id,
+          userDetails
+        });
+        socket.to(room).emit('details', roomUserDetails[room]);
 
         // socket.on('buyer', (data) => {
         //   io.emit('buyerdata', {item: data})
@@ -166,9 +172,17 @@ const socket = io => {
         const user = allUsers.find((user) => user.id === socket.id);
         const admin = adminrooms.find(admin => admin.id === socket.id)
         const kik = kikroomusers.find(kik => kik.id === socket.id)
-        const detail = userdetails.find(detail => detail.id === socket.id)
-        // adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
-        //   io.sockets.sockets.delete(socket.id);
+        // const detail = userdetails.find(detail => detail.id === socket.id)
+
+        if (roomUserDetails[chatRoom]) {
+          roomUserDetails[chatRoom] = roomUserDetails[chatRoom].filter(
+            (userDetail) => userDetail.id !== socket.id
+          );
+          roomUserDetails[chatRoom] = leaveRoom(socket.id, roomUserDetails[chatRoom])
+          io.sockets.sockets.delete(socket.id);
+          io.to(chatRoom).emit('details', roomUserDetails[chatRoom]);
+        }
+
         if (user?.username) {
           allUsers = leaveRoom(socket.id, allUsers);
           socket.to(chatRoom).emit('chatroom_users', allUsers);
@@ -176,7 +190,27 @@ const socket = io => {
             message: `${user.username} has disconnected from the chat.`,
             __createdtime__,
           });
+          delete queuedUsers[socket.id]; // Remove the user from the queued users
           
+          queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
+          // Recalculate and update the queue position for the remaining users in the queue
+          if (queue[chatRoom]) {
+            // delete queuedUsers[socket.id]
+            queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
+            const remainingQueueLength = queue[chatRoom].length;
+            io.sockets.sockets.delete(socket.id);
+            // Update queue positions for remaining users
+            queue[chatRoom].forEach((user, index) => {
+              const userSocket = io.sockets.sockets.get(user.id);
+              if (userSocket) {
+                const updatedPosition = index; // Queue position is 1-based
+                userSocket.emit('queue_message', {
+                  message: `The room is currently full. Your updated queuing number is ${updatedPosition}.`,
+                });
+              }
+            });
+          }
+        }
         if(admin?.id){
           adminrooms = leaveRoom(socket.id, adminrooms)
           adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
@@ -209,28 +243,32 @@ const socket = io => {
 
         if(kik?.id){
           kikroomusers = leaveRoom(socket.id, kikroomusers)
-        }
-
-        if(detail?.id){
-          userdetails = leaveRoom(socket.id, userdetails)
-          userdetails = userdetails.filter((userdetails) => userdetails.id !== socket.id);
+          kikroomusers = kikroomusers.filter((kikroomusers) => kikroomusers.id !== socket.id);
           io.sockets.sockets.delete(socket.id);
         }
 
+        // if(detail?.id){
+        //   userdetails = leaveRoom(socket.id, userdetails)
+        //   userdetails = userdetails.filter((userdetails) => userdetails.id !== socket.id);
+        //   io.sockets.sockets.delete(socket.id);
+        // }
+        console.log(queue)
         if (queuedUsers[socket.id]) {
           delete queuedUsers[socket.id]; // Remove the user from the queued users
+          
           queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
           // Recalculate and update the queue position for the remaining users in the queue
           if (queue[chatRoom]) {
+            // delete queuedUsers[socket.id]
             queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
-            // const remainingQueueLength = queue[chatRoom].length;
-      
+            const remainingQueueLength = queue[chatRoom].length;
+            io.sockets.sockets.delete(socket.id);
             // Update queue positions for remaining users
             queue[chatRoom].forEach((user, index) => {
-              
               const userSocket = io.sockets.sockets.get(user.id);
+              console.log(userSocket.username)
               if (userSocket) {
-                const updatedPosition = index + 1; // Queue position is 1-based
+                const updatedPosition = index; // Queue position is 1-based
                 userSocket.emit('queue_message', {
                   message: `The room is currently full. Your updated queuing number is ${updatedPosition}.`,
                 });
@@ -238,7 +276,7 @@ const socket = io => {
             });
             
           }}
-      
+          console.log(userdetails)
         
         
           // Handle queue
@@ -252,15 +290,17 @@ const socket = io => {
             nextSocket.emit('queue_message', {
               message: `Now its your turn.`,
             });
-            const userDetails = {
+            
+            roomUserDetails[chatRoom].push({
               id: nextUser.id,
+              userDetails: {
               username: nextUser.username,
               room: chatRoom,
               playfabid: nextUser.playfabid,
               transaction: nextUser.transaction
-            };
-            userdetails.push({ id: socket.id, userDetails });
-            io.emit("details", userdetails)
+              },
+            });
+            socket.to(chatRoom).emit('details', roomUserDetails[chatRoom]);
             allUsers.push({ id: nextUser.id, username: nextUser.username, room: chatRoom });
             chatRoomUsers = allUsers.filter((user) => user.room === chatRoom);
             io.in(chatRoom).emit('chatroom_users', chatRoomUsers);
@@ -271,7 +311,8 @@ const socket = io => {
             });
           }
         }
-        }
+        
+        // }
       });
       
     });
