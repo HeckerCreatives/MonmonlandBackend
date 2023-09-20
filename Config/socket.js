@@ -1,322 +1,202 @@
 const express = require("express");
 const app = express();
 const path = require('path');
-const UpgradeSubscription = require('../Models/UpgradeSubscription')
-
-function leaveRoom(userID, chatRoomUsers) {
-  return chatRoomUsers.filter((user) => user.id !== userID);
-}
-
-
+const UpgradeSubscription = require('../Models/UpgradeSubscription');
+const User = require('../Models/Users');
 
 const socket = io => {
-  const CHAT_BOT = 'ChatBot';
-  let chatRoom = '';
-  let adminrooms = [];
-  let allUsers = [];
-  let chatRoomUsers;
-  let queue = {}; // Store queues for each room
-  let queuedUsers = {}
+  const roomlist = {};
+  const adminroomowner = {};
+  const playerrooms = {};
+  const playerlist = {}; // si queueing
   let __createdtime__ = Date.now();
-  let kikroomusers=[];
-  let userdetails={};
-  const roomUserDetails = {};
-  app.use(require('express').static(path.join(__dirname, 'public')));
-
-  function checkRoomCapacity(roomName, socket) {
-    const room = io.sockets.adapter.rooms.get(roomName);
-    if (room && room.size >= 2) {
-      io.emit('room_full', { message: 'The room is already full.' });
-      return true;
-    }
-    return false;
-  }
   io.on("connection", (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
-    // const list = io.sockets.adapter.rooms
-    
-    socket.on('create-room', (username, room) => {
-      UpgradeSubscription.find({userId: room})
-      .populate({path: "userId"})
-      .then((data) => {
-        const item = data.filter(item => !item.deletedAt)
-        adminrooms.push({id: socket.id,user: username, item})
-      })
-      // socket.join(room);
-    })
-    io.emit('room_created', {room: adminrooms,})
-    
-    socket.on('join_room', (data) => {
-      const { username, room, playfabid, transaction } = data;
-      const roomUsers = io.sockets.adapter.rooms.get(room);
-      
-      if (!roomUsers || roomUsers.size < 2) {
-        // Check room capacity before allowing the user to join
-        
 
-        socket.join(room);
-        
-        if (!roomUserDetails[room]) {
-          roomUserDetails[room] = [];
-        }
-  
-        const userDetails = {
-          username,
-          room,
-          playfabid,
-          transaction,
-        };
-        
-        roomUserDetails[room].push({
-          id: socket.id,
-          userDetails
-        });
-        socket.to(room).emit('details', roomUserDetails[room]);
-
-        // socket.on('buyer', (data) => {
-        //   io.emit('buyerdata', {item: data})
-        // })
-       
-        socket.on('selectsubs', (data) => {
-          io.emit('badge', {item: data})
-        })
-
-        socket.to(room).emit('receive_message', {
-          message: `${username} has joined the chat room`,
-          username: CHAT_BOT,
-          __createdtime__,
-        });
-
-
-        socket.emit('receive_message', {
-          message: `Welcome ${username}`,
-          username: CHAT_BOT,
-          __createdtime__,
-        });
-        
-        chatRoom = room;
-        allUsers.push({ id: socket.id, username, room,});
-        chatRoomUsers = allUsers.filter((user) => user.room === room);
-        socket.to(room).emit('chatroom_users', chatRoomUsers);
-        socket.emit('chatroom_users', chatRoomUsers);
-        
-        
-      } else {
-        // Queue the user and emit a queue message
-        
-
-        if (!queue[room]) {
-          queue[room] = [];
-        }
-        queue[room].push({ id: socket.id, username, playfabid, transaction});
-        queuedUsers[socket.id] = true;
-        const queuePosition = queue[room].length;
+    function getQueNumber(roomname, username){
+      const keysArray = Object.keys(playerlist[roomname])
+      const queuePosition = keysArray.indexOf(username)
+      if(queuePosition > 0){
         socket.emit('queue_message', {
-          message: `The room is currently full. your queing number is ${queuePosition}.`,
+          message: "full",
+          data: `The room is currently full. Your updated queuing number is ${queuePosition + 1}.`
         });
+      } else if (queuePosition === 0){
+        socket.emit('queue_message', {
+          message: "turn",
+          data: "Now it's your turn."
+        })
       }
-      // Listen for 'doneTransaction' event from admin
-      socket.on('doneTransaction', (room, normalUserId) => {
-        const user = adminrooms.find(e => e.id)
-        // Find the normal user's socket
-        const normalUserSocket = io.sockets.sockets.get(normalUserId);
-        const adminsocket = io.sockets.sockets.get(user.id);
-        const roomusers = allUsers.filter((user) => user.id !== normalUserId);
-        kikroomusers.push({id: roomusers[0].id, username: roomusers[0].username})
-        const usertokick = io.sockets.sockets.get(roomusers[0].id)
-        if (user.id !== normalUserId) {
-        
-          // Remove the normal user from the chat room
-          normalUserSocket.leave(room);
-          // Emit 'kicked' event to the normal user
-          normalUserSocket.emit('kicked');
-          adminsocket.emit('ey')
+    }
+
+    socket.on("joinroom", (data) => {
+      const { roomid, playfabid, username, transaction } = data;
+
+      User.findOne({userName: username})
+      .then(data => {
+        if(data){
+          if(data.roleId.toString() === process.env.subadminrole || data.roleId.toString() === process.env.csrrole){
+            UpgradeSubscription.find({userId: data._id})
+            .populate({path: "userId"})
+            .then((cashier) => {
+              const item = cashier.filter(item => !item.deletedAt)
+              roomlist[roomid] = {
+                id: socket.id,
+                user: username, 
+                item,
+              }
+              adminroomowner[socket.id] = {roomid: roomid}
+              playerlist[roomid] = {}
+              socket.join(roomid);
+              socket.to("lobby").emit("sendroomlist", roomlist)
+            })
+            
+          }
         } else {
-          // Remove the normal user from the chat room
-          usertokick.leave(room);
-          // Emit 'kicked' event to the normal user
-          usertokick.emit('kicked');
-          adminsocket.emit('ey')
-        }
-        
-      });
+          let list = {};
 
-      socket.on('leave', (room) => {
-        const user = adminrooms.find(e => e.id)
-        const adminsocket = io.sockets.sockets.get(user.id);
-        adminsocket.leave(room)
-        adminsocket.emit("alis")
+          if(Object.keys(playerlist[roomid]).length !== 0){
+            list = playerlist[roomid]
+          }
+
+          list[socket.id] = {
+            id: socket.id,
+            username,
+            playfabid,
+            transaction
+          }
+          
+          playerlist[roomid] = list
+          playerrooms[socket.id] = {room: roomid}
+          socket.join(roomid)
+          // socket.to(roomlist[roomid].id).emit("playerdetails", list[username])
+          getQueNumber(roomid, socket.id);
+        }
       })
 
-      socket.on('isonline', (id) => {
-        const user = adminrooms.find(e => e.id)
-        const adminsocket = io.sockets.sockets.get(id);
-        if(id === user.id){
-          adminsocket.emit("onlinenga")
-        } 
-      })
-
-      // socket.on('buyer', (data) => {
-      //   io.emit('buyerdata', {item: data})
-      //   io.emit("details", userdetails)
-      // })
-
-      socket.on('send_message', (data) => {
-        const { image, message, username, room, __createdtime__ } = data;
-        io.in(room).emit('receive_message', data);
-      });
-
-      socket.on('disconnect', () => {
-        console.log('User disconnected from the chat');
-        
-        const user = allUsers.find((user) => user.id === socket.id);
-        const admin = adminrooms.find(admin => admin.id === socket.id)
-        const kik = kikroomusers.find(kik => kik.id === socket.id)
-        // const detail = userdetails.find(detail => detail.id === socket.id)
-
-        if (roomUserDetails[chatRoom]) {
-          roomUserDetails[chatRoom] = roomUserDetails[chatRoom].filter(
-            (userDetail) => userDetail.id !== socket.id
-          );
-          roomUserDetails[chatRoom] = leaveRoom(socket.id, roomUserDetails[chatRoom])
-          io.sockets.sockets.delete(socket.id);
-          io.to(chatRoom).emit('details', roomUserDetails[chatRoom]);
-        }
-
-        if (user?.username) {
-          allUsers = leaveRoom(socket.id, allUsers);
-          socket.to(chatRoom).emit('chatroom_users', allUsers);
-          socket.to(chatRoom).emit('receive_message', {
-            message: `${user.username} has disconnected from the chat.`,
-            __createdtime__,
-          });
-          delete queuedUsers[socket.id]; // Remove the user from the queued users
-          
-          queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
-          // Recalculate and update the queue position for the remaining users in the queue
-          if (queue[chatRoom]) {
-            // delete queuedUsers[socket.id]
-            queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
-            const remainingQueueLength = queue[chatRoom].length;
-            io.sockets.sockets.delete(socket.id);
-            // Update queue positions for remaining users
-            queue[chatRoom].forEach((user, index) => {
-              const userSocket = io.sockets.sockets.get(user.id);
-              if (userSocket) {
-                const updatedPosition = index; // Queue position is 1-based
-                userSocket.emit('queue_message', {
-                  message: `The room is currently full. Your updated queuing number is ${updatedPosition}.`,
-                });
-              }
-            });
-          }
-        }
-        if(admin?.id){
-          adminrooms = leaveRoom(socket.id, adminrooms)
-          adminrooms = adminrooms.filter((admin) => admin.id !== socket.id);
-          io.sockets.sockets.delete(socket.id);
-          
-          chatRoomUsers.forEach((user) => {
-            const userSocket = io.sockets.sockets.get(user.id);
-            if (userSocket) {
-              userSocket.emit('walasiadmin', {
-                message: 'Admin has disconnected.',
-              });
-              userSocket.leave(room); // Remove the user from the admin room
-            }
-          });
-
-          // Remove all users in the queue for this admin room
-          if (queue[room]) {
-            queue[room].forEach((queuedUser) => {
-              const queuedUserSocket = io.sockets.sockets.get(queuedUser.id);
-              if (queuedUserSocket) {
-                queuedUserSocket.emit('queue_message', {
-                  message: 'Admin has disconnected.',
-                });
-                delete queuedUsers[queuedUser.id];
-              }
-            });
-            queue[room] = []; // Clear the queue for this admin room
-          }
-        }
-
-        if(kik?.id){
-          kikroomusers = leaveRoom(socket.id, kikroomusers)
-          kikroomusers = kikroomusers.filter((kikroomusers) => kikroomusers.id !== socket.id);
-          io.sockets.sockets.delete(socket.id);
-        }
-
-        // if(detail?.id){
-        //   userdetails = leaveRoom(socket.id, userdetails)
-        //   userdetails = userdetails.filter((userdetails) => userdetails.id !== socket.id);
-        //   io.sockets.sockets.delete(socket.id);
-        // }
-        console.log(queue)
-        if (queuedUsers[socket.id]) {
-          delete queuedUsers[socket.id]; // Remove the user from the queued users
-          
-          queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
-          // Recalculate and update the queue position for the remaining users in the queue
-          if (queue[chatRoom]) {
-            // delete queuedUsers[socket.id]
-            queue[chatRoom] = queue[chatRoom].filter(user => user.id !== socket.id);
-            const remainingQueueLength = queue[chatRoom].length;
-            io.sockets.sockets.delete(socket.id);
-            // Update queue positions for remaining users
-            queue[chatRoom].forEach((user, index) => {
-              const userSocket = io.sockets.sockets.get(user.id);
-              console.log(userSocket.username)
-              if (userSocket) {
-                const updatedPosition = index; // Queue position is 1-based
-                userSocket.emit('queue_message', {
-                  message: `The room is currently full. Your updated queuing number is ${updatedPosition}.`,
-                });
-              }
-            });
-            
-          }}
-          console.log(userdetails)
-        
-        
-          // Handle queue
-        if (queue[chatRoom] && queue[chatRoom].length > 0) {
-          const nextUser = queue[chatRoom].shift();
-          const nextSocket = io.sockets.sockets.get(nextUser.id);
-
-          if (nextSocket) {
-            
-            nextSocket.join(chatRoom);
-            nextSocket.emit('queue_message', {
-              message: `Now its your turn.`,
-            });
-            
-            roomUserDetails[chatRoom].push({
-              id: nextUser.id,
-              userDetails: {
-              username: nextUser.username,
-              room: chatRoom,
-              playfabid: nextUser.playfabid,
-              transaction: nextUser.transaction
-              },
-            });
-            socket.to(chatRoom).emit('details', roomUserDetails[chatRoom]);
-            allUsers.push({ id: nextUser.id, username: nextUser.username, room: chatRoom });
-            chatRoomUsers = allUsers.filter((user) => user.room === chatRoom);
-            io.in(chatRoom).emit('chatroom_users', chatRoomUsers);
-            nextSocket.to(chatRoom).emit('receive_message', {
-              message: `${nextUser.username} has joined the chat room`,
-              username: CHAT_BOT,
-              __createdtime__,
-            });
-          }
-        }
-        
-        // }
-      });
-      
     });
-  });
+
+    socket.on("joinlobby", () => {
+      socket.join("lobby")
+    })
+
+    socket.on("receiveroomlist", () => {
+      // console.log(roomlist)
+      socket.emit("sendroomlist", roomlist)
+    })
+    
+    socket.on("playerready", (data) => {
+      const {room, username} = data;
+      socket.emit("admindetails", roomlist[room])
+      socket.to(roomlist[room].id).emit("playerdetails", playerlist[room][socket.id])
+      socket.to(roomlist[room].id).emit("receive_message", {
+        message: `Welcome ${username}`,
+        username: "CHAT_BOT",
+        __createdtime__,
+      })
+    })
+
+    socket.on("doneTransactionAdmin", (data) => {
+      const { room, buyer } = data;
+      socket.to(buyer).emit("kicked")
+      
+      delete playerlist[room][buyer]
+      delete playerrooms[buyer]
+      
+      socket.to(room).emit("donegetlist")
+
+    })
+
+    socket.on("doneTransactionUser", (data) => {
+      // delete playerlist[playerrooms[socket.id]["room"]][socket.id]
+      const {roomId} = data
+      socket.emit("kicked")
+      socket.leave(playerrooms[socket.id]["room"])
+      
+    })
+
+    socket.on("refreshque", (data) => {
+      const {room } = data
+      getQueNumber(room, socket.id);
+    })
+
+    socket.on('selectsubs', (data) => {
+      const {id, subs} = data
+      socket.to(id).emit('badge', {item: subs})
+    })
+
+    socket.on("cancelTransactionAdmin", (data) => {
+      const { room, buyer } = data;
+      socket.to(buyer).emit("canceled")
+      
+      delete playerlist[room][buyer]
+      delete playerrooms[buyer]
+      
+      socket.to(room).emit("donegetlist")
+
+    })
+
+    socket.on("cancelTransactionUser", () => {
+      socket.to(roomlist[playerrooms[socket.id]["room"]].id).emit("canceleduser", playerlist[playerrooms[socket.id]["room"]][socket.id])
+      
+      delete playerlist[playerrooms[socket.id]["room"]][socket.id]
+      socket.to(playerrooms[socket.id]["room"]).emit("donegetlist")
+      delete playerrooms[socket.id]
+      
+    })
+
+    socket.on("disconnect", () => {
+      console.log('User disconnected from the chat');
+      const id = socket.id
+      if(adminroomowner.hasOwnProperty(id)){
+        socket.to(adminroomowner[id]["roomid"]).emit("queue_message",{
+          message: "admindisconnect",
+          data: "Admin has disconnected."})
+          delete roomlist[adminroomowner[id]["roomid"]]
+          delete playerlist[adminroomowner[id]["roomid"]]
+          delete adminroomowner[id]
+          socket.to("lobby").emit("sendroomlist", roomlist)
+      } else if(playerrooms.hasOwnProperty(id)){
+        if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
+          if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
+            socket.to(roomlist[playerrooms[id]["room"]].id).emit("adminrefreshlist", playerlist[playerrooms[id]["room"]][id])
+            delete playerlist[playerrooms[id]["room"]][id]
+            socket.to(playerrooms[id]["room"]).emit("donegetlist")
+            
+            delete playerrooms[id]
+          }
+        }
+       
+        
+      }
+      
+    })
+
+    socket.on("leave", () => {
+      const id = socket.id
+      if(adminroomowner.hasOwnProperty(id)){
+        socket.to(adminroomowner[id]["roomid"]).emit("queue_message",{
+          message: "admindisconnect",
+          data: "Admin has disconnected."})
+          delete roomlist[adminroomowner[id]["roomid"]]
+          delete playerlist[adminroomowner[id]["roomid"]]
+          delete adminroomowner[id]
+          socket.to("lobby").emit("sendroomlist", roomlist)
+      } else if(playerrooms.hasOwnProperty(id)){
+        if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
+          if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
+            delete playerlist[playerrooms[id]["room"]][id]
+            socket.to(playerrooms[id]["room"]).emit("donegetlist")
+            delete playerrooms[id]
+          }
+        }
+       
+        
+      }
+      
+    })
+
+  })
 }
 
 module.exports = socket;
