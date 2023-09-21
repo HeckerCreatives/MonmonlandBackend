@@ -10,6 +10,7 @@ const socket = io => {
   const playerrooms = {};
   const playerlist = {}; // si queueing
   let __createdtime__ = Date.now();
+  app.use(require('express').static(path.join(__dirname, 'public')));
   io.on("connection", (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
 
@@ -31,7 +32,6 @@ const socket = io => {
 
     socket.on("joinroom", (data) => {
       const { roomid, playfabid, username, transaction } = data;
-
       User.findOne({userName: username})
       .then(data => {
         if(data){
@@ -94,6 +94,16 @@ const socket = io => {
         username: "CHAT_BOT",
         __createdtime__,
       })
+    })
+
+    socket.on("send_message", (data) => {
+      const { image, message, username, room, __createdtime__, usersocket } = data;
+      console.log(usersocket)
+      console.log(socket.id)
+      console.log(roomlist)
+      console.log(playerlist)
+      socket.emit('receive_message', data)
+      socket.to(usersocket).emit('receive_message', data)
     })
 
     socket.on("doneTransactionAdmin", (data) => {
