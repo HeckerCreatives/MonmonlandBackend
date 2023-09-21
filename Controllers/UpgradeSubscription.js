@@ -126,13 +126,14 @@ module.exports.updatebuyer = (request, response) => {
         { new: true }
       ) 
       .then((upgradeSubscription) => {
-        return PaymentHistory.findByIdAndUpdate(
+        PaymentHistory.findByIdAndUpdate(
           request.params.id,
           request.body,
           { new: true }
-        );
+        ).then(history => {
+          response.json({userhistory: history, roomdetails: upgradeSubscription})
+        })
       })
-      .then((data) => response.json(data))
       .catch((error) => response.status(500).json({ error: error.message }));
 };
 

@@ -54,7 +54,6 @@ const socket = io => {
           }
         } else {
           let list = {};
-
           if(Object.keys(playerlist[roomid]).length !== 0){
             list = playerlist[roomid]
           }
@@ -76,12 +75,18 @@ const socket = io => {
 
     });
 
+    socket.on("refreshcashierdata", (data) => {
+      roomlist[adminroomowner[socket.id]["roomid"]].item[0].numberoftransaction = data.numberoftransaction;
+      roomlist[adminroomowner[socket.id]["roomid"]].item[0].paymentcollected = data.paymentcollected;
+      socket.to(adminroomowner[socket.id]["roomid"]).emit("admindetails", roomlist[adminroomowner[socket.id]["roomid"]])
+      socket.to("lobby").emit("sendroomlist", roomlist)
+    })
+
     socket.on("joinlobby", () => {
       socket.join("lobby")
     })
 
     socket.on("receiveroomlist", () => {
-      // console.log(roomlist)
       socket.emit("sendroomlist", roomlist)
     })
     
@@ -98,10 +103,6 @@ const socket = io => {
 
     socket.on("send_message", (data) => {
       const { image, message, username, room, __createdtime__, usersocket } = data;
-      console.log(usersocket)
-      console.log(socket.id)
-      console.log(roomlist)
-      console.log(playerlist)
       socket.emit('receive_message', data)
       socket.to(usersocket).emit('receive_message', data)
     })
