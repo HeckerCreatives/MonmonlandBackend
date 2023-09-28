@@ -3,25 +3,31 @@ const mongoose = require("mongoose");
 const PayoutSchema = new mongoose.Schema(
     {
         id: {
-            type: String
+            type: String,
+            required: true
         },
         username: {
-            type: String
+            type: String,
+            required: true
         },
         amount: {
-            type: String
+            type: String,
+            required: true
         },
-        requestAt: {
-            type: String
-        },
+        // requestAt: {
+        //     type: String
+        // },
         walletaddress:{
-            type: String
+            type: String,
+            required: true
         },
         network:{
-            type: String
+            type: String,
+            required: true
         },  
         paymentmethod:{
-            type: String
+            type: String,
+            required: true
         },     
         admin:{
             type: String
