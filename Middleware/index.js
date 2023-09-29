@@ -32,3 +32,32 @@ exports.protect = (req, res, next) => {
     }
   }
 };
+
+exports.gameprotect = (req, res, next) => {
+  const token = req.headers.authorization;
+ 
+  if(!token){
+    res.status(401).json({message: "Not authorized, fake token"});
+  } else {
+    if(token.startsWith("Bearer")){
+      jwt.verify(
+        token.split(" ")[1],
+        process.env.JWT_SECRET,
+        async (err, response) => {
+          if (err && err.name) {
+            res.status(401).json({message: "Not authorized, fake token",});
+          } else {
+            
+            if (response.message === "cbspayaman") {
+              next();
+            } else {
+              res.status(401).json({message: "Not authorized, fake token",});
+            }
+          }
+        }
+      );
+    } else {
+      res.status(401).json({message: "Not authorized, fake token"});
+    }
+  }
+}

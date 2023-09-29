@@ -28,3 +28,12 @@ module.exports.Login = (request, response) => {
         return response.send(error)
     })
 }
+
+exports.gentoken = (req, res) => {
+    try {
+        const token = GenerateToken();
+        res.json(token)
+    } catch (error) {
+        res.json({error: error.message})
+    }
+}

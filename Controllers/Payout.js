@@ -1,6 +1,10 @@
 const Payout = require("../Models/Payout")
+const { nanoid } = require("nanoid")
 
 exports.create = (req, res) => {
+
+    const id = nanoid(10)
+    req.body["id"] = id
     Payout.create(req.body)
     .then(item => res.json(item))
     .catch(error => res.status(400).json({ error: error.message }));

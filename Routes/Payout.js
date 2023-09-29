@@ -1,10 +1,10 @@
 const express =  require("express")
 const router = express.Router();
 const Payout = require("../Controllers/Payout");
-const { protect } = require("../Middleware");
+const { protect, gameprotect } = require("../Middleware");
 
 
-router.post("/create", Payout.create)
+router.post("/create", gameprotect ,Payout.create)
 router.post("/adminfind", Payout.adminfind)
 router.post("/agentfind", Payout.agentfind)
 router.post("/process/:id", Payout.process)
