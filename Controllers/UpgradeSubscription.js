@@ -1,6 +1,7 @@
 const UpgradeSubscription = require("../Models/UpgradeSubscription")
 const PaymentHistory = require('../Models/PaymentHistory')
 const User = require('../Models/Users')
+const AutoReceipt = require("../Models/Receiptautomated");
 
 module.exports.add = (request, response) => {
     UpgradeSubscription.create(request.body)
@@ -143,4 +144,11 @@ module.exports.getAllbuyer = (request, response) => {
     .populate('subscriptionlevel')    
     .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
+}
+
+exports.findcoinbasereceipt = (req, res) => {
+  const { type } = req.body
+  AutoReceipt.find({status: "success", subscriptionType: type})
+  .then(data => res.send(data))
+  .catch(error => res.send(error))
 }

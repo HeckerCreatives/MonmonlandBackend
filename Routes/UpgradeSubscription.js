@@ -15,6 +15,6 @@ router.delete("/:id/destroybuyer", UpgradeSubscription.destroybuyer);
 router.delete("/destroymultiple", UpgradeSubscription.destroymultiple);
 router.post('/filterpayment', UpgradeSubscription.paymentfilter);
 router.post('/searchcashier', UpgradeSubscription.searchcashier);
-
+router.post('/autoreceipt', UpgradeSubscription.findcoinbasereceipt);
 
 module.exports = router;

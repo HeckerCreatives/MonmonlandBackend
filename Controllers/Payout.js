@@ -30,12 +30,12 @@ exports.process = (req, res) => {
 
 exports.done = (req, res) => {
     const { id } = req.params
-    const { admin } = req.body
+    const { admin, receipt } = req.body
     const status = "done"
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "process"){
-            Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
+            Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: receipt}, {new: true})
             .then(() => res.json({message: "success"}))
             .catch(error => res.status(400).json({error: error.message}))
         } else {

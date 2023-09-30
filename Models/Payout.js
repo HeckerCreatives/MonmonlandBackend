@@ -11,7 +11,7 @@ const PayoutSchema = new mongoose.Schema(
             required: true
         },
         amount: {
-            type: String,
+            type: Number,
             required: true
         },
         // requestAt: {
@@ -30,6 +30,9 @@ const PayoutSchema = new mongoose.Schema(
             required: true
         },     
         admin:{
+            type: String
+        },
+        receipt:{
             type: String
         },
         status:{

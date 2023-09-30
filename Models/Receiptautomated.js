@@ -12,7 +12,7 @@ const AutoReceiptSchema = new mongoose.Schema(
             type: String,
         },
         amount: {
-            type: String,
+            type: Number,
         },
         subscriptionType: {
             type: String,
