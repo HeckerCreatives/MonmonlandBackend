@@ -2,7 +2,7 @@ const AutoReceipt = require("../Models/Receiptautomated.js")
 var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
-PlayFab.settings.titleId = "307E3";
+PlayFab.settings.titleId = process.env.monmontitleid;
 const crypto = require('crypto');
 const secretKey = process.env.crypto_secret;
 
