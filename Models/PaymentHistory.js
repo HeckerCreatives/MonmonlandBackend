@@ -8,10 +8,10 @@ const PaymentHistorySchema = new mongoose.Schema(
         transactionnumber: {
             type: String
         },
-        subscriptionlevel: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Subscription"
-        },
+        // subscriptionlevel: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: "Subscription"
+        // },
         price: {
             type: Number
         },

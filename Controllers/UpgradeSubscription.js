@@ -140,8 +140,7 @@ module.exports.updatebuyer = (request, response) => {
 
 module.exports.getAllbuyer = (request, response) => {
     PaymentHistory.find()
-    .sort({ createdAt: -1 })
-    .populate('subscriptionlevel')    
+    .sort({ createdAt: -1 })   
     .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
 }
