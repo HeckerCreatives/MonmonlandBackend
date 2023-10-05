@@ -29,7 +29,106 @@ function encryptString(text, key) {
   return encrypted;
 }
 
+router.post("/funds", async (req, res) => {
+  const name = req.body.name;
+  const playfabId = req.body.playfabId;
+  const {amount} = req.body;
+  let randomid = generateRandomString();
+  const encryptxt = encryptString(randomid, secretKey);
+  
+  
+  
+  let data = new Charge({
+      "name": `$${amount} Top up`,
+      "description": "Top Up",
+      "pricing_type": "fixed_price",
+      "local_price": {
+        "amount": amount,
+        "currency": "USD"
+      },
+      "metadata": {
+        "customer_id": playfabId,
+        "customer_name": name,
+        "receiptId": randomid,
+      },
+      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
+    });
+    
+    
+    data.save(function (error, response) {
+      AutoReceipt.create({
+        receiptId: response.metadata.receiptId,
+        orderCode: response.code,
+        username: response.metadata.customer_name,
+        playerPlayfabId: response.metadata.customer_id,
+        subscriptionType: `Top Up ${amount}`,
+        amount: response.pricing.local.amount,
+      })
 
+      if (response && response.id) {
+          Charge.retrieve(response.id, function (error, response) {
+              res.json(response);
+          });
+      }
+  });
+    
+})
+
+router.post("/bundles", async (req, res) => {
+  const name = req.body.name;
+  const playfabId = req.body.playfabId;
+  const { amount, bundle, bundledescription, subs } = req.body;
+  let randomid = generateRandomString();
+  let logo;
+  const encryptxt = encryptString(randomid, secretKey);
+  
+  if(subs === "ruby"){
+    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
+  } else if (subs === "emerald"){
+    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414673/ecdrzy1t31uiw7cjjtfa.png"
+  } else if (subs === "diamond"){
+    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414734/n9rci7fftx3ggpzv4sbp.png"
+  }
+  
+  let data = new Charge({
+      "name": bundle,
+      "description": bundledescription,
+      "pricing_type": "fixed_price",
+      "local_price": {
+        "amount": amount,
+        "currency": "USD"
+      },
+      "metadata": {
+        "customer_id": playfabId,
+        "customer_name": name,
+        "receiptId": randomid,
+      },
+      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "logo_url": logo,
+    });
+    
+    
+    data.save(function (error, response) {
+      AutoReceipt.create({
+        receiptId: response.metadata.receiptId,
+        orderCode: response.code,
+        username: response.metadata.customer_name,
+        playerPlayfabId: response.metadata.customer_id,
+        subscriptionType: bundle,
+        amount: response.pricing.local.amount,
+      })
+
+      if (response && response.id) {
+          Charge.retrieve(response.id, function (error, response) {
+              res.json(response);
+          });
+      }
+  });
+    
+})
 
 router.post("/ruby", async (req, res) => {
     const name = req.body.name;
@@ -64,8 +163,6 @@ router.post("/ruby", async (req, res) => {
       
       
       data.save(function (error, response) {
-        console.log('Created charge(callback)');
-        console.log(error);
         AutoReceipt.create({
           receiptId: response.metadata.receiptId,
           orderCode: response.code,
@@ -77,9 +174,7 @@ router.post("/ruby", async (req, res) => {
 
         if (response && response.id) {
             Charge.retrieve(response.id, function (error, response) {
-                console.log('Retrived charge(callback)');
                 res.json(response);
-                console.log(error);
             });
         }
     });
@@ -120,8 +215,6 @@ router.post("/emerald", async (req, res) => {
     
     
     data.save(function (error, response) {
-      console.log('Created charge(callback)');
-      console.log(error);
       AutoReceipt.create({
         receiptId: response.metadata.receiptId,
         orderCode: response.code,
@@ -133,9 +226,7 @@ router.post("/emerald", async (req, res) => {
 
       if (response && response.id) {
           Charge.retrieve(response.id, function (error, response) {
-              console.log('Retrived charge(callback)');
               res.json(response);
-              console.log(error);
           });
       }
   });
@@ -175,8 +266,6 @@ router.post("/diamond", async (req, res) => {
     
     
     data.save(function (error, response) {
-      console.log('Created charge(callback)');
-      console.log(error);
       AutoReceipt.create({
         receiptId: response.metadata.receiptId,
         orderCode: response.code,
@@ -188,9 +277,7 @@ router.post("/diamond", async (req, res) => {
 
       if (response && response.id) {
           Charge.retrieve(response.id, function (error, response) {
-              console.log('Retrived charge(callback)');
               res.json(response);
-              console.log(error);
           });
       }
   });

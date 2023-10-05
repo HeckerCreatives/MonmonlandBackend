@@ -54,12 +54,10 @@ module.exports.success = (req, res) => {
       PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
         if(result){
           PlayFabClient.ExecuteCloudScript({
-            FunctionName: "Subscription",
+            FunctionName: "Topup",
             FunctionParameter: {
-              playerPlayfabId: item.playerPlayfabId,
-              playerUsername: item.username,
-              subscriptionType: item.subscriptionType,
-              subscriptionAmount: item.amount,
+              playerId: item.playerPlayfabId,
+              topupAmount: item.amount,
             },
             ExecuteCloudScript: true,
             GeneratePlayStreamEvent: true,
