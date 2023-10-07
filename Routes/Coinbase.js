@@ -287,5 +287,8 @@ router.post("/diamond", async (req, res) => {
 // 
 router.post("/success", Coin.success)
 router.post("/cancel", Coin.cancel)
+router.post("/find", Coin.find)
+router.post("/topupwallet", Coin.findtopup)
+
 
 module.exports = router

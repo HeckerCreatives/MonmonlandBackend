@@ -1,4 +1,5 @@
 const AutoReceipt = require("../Models/Receiptautomated.js")
+const TopUpWallet = require("../Models/Topupwallet.js")
 var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
@@ -66,7 +67,11 @@ module.exports.success = (req, res) => {
             if(result1.data.FunctionResult.message === "success"){
               AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
               .then(data => {
-                res.json({message: "success", data: data})
+                TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                .then(()=> {
+                  res.json({message: "success", data: data})
+                })
+                .catch(err => res.json({message: "BadRequest", data: err.message}))
               })
               .catch(err => res.json({message: "BadRequest", data: err.message}))
             } else {
@@ -79,6 +84,24 @@ module.exports.success = (req, res) => {
       })
 
       
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+exports.find = (req,res) => {
+  const {status} = req.body;
+  AutoReceipt.find({status: status})
+  .then(item => {
+    res.json({message: "success", data: item})
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+exports.findtopup = (req,res) => {
+  const {name} = req.body;
+  TopUpWallet.findOne({name: name})
+  .then(item => {
+    res.json({message: "success", data: item})
   })
   .catch(err => res.json({message: "Badrequest", data: err.message}))
 }

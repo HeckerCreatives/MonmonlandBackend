@@ -1,6 +1,9 @@
 const User = require('../Models/Users')
 const bcrypt = require('bcrypt')
 const Roles = require('../Models/Roles')
+const TopUpWallet = require("../Models/Topupwallet")
+const PayoutWallet = require("../Models/PayoutWallet")
+
 
 module.exports.userRegister = async (request, response) => {
     const {firstName,lastName,userName,email,password, roleId, referrerId, phone} = request.body
@@ -20,12 +23,39 @@ module.exports.userRegister = async (request, response) => {
                 userName: userName,
                 email:email,
                 phone: phone,
-                password: bcrypt.hashSync(password, 10)
+                password: password
             })
+            
             // Save new user
             newUser.save()
             .then(save => {
-            return response.send(save)
+              
+              const topupwallet = {
+                amount: 0,
+                name: "manual",
+                user: save._id
+              }
+
+              TopUpWallet.create(topupwallet)
+
+              const payoutwalletprocess = [
+                {
+                amount: 0,
+                name: "process",
+                user: save._id
+                },
+                {
+                  amount: 0,
+                  name: "done",
+                  user: save._id
+                },
+              ]
+
+              PayoutWallet.create(payoutwalletprocess)
+
+             
+
+             response.send(save)
             })
             
             }
@@ -184,4 +214,5 @@ exports.destroymultiple = (request, response) => {
       .then(() => response.json(ids))
       .catch((error) => response.status(400).json({ error: error.message }));
   };
+  
   

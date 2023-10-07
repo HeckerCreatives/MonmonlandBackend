@@ -14,9 +14,10 @@ const PayoutSchema = new mongoose.Schema(
             type: Number,
             required: true
         },
-        // requestAt: {
-        //     type: String
-        // },
+        payoutwallet: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "PayoutWallet"
+        },
         walletaddress:{
             type: String,
             required: true

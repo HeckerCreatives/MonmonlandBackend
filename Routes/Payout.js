@@ -10,6 +10,6 @@ router.post("/agentfind", Payout.agentfind)
 router.post("/process/:id", Payout.process)
 router.post("/done/:id", Payout.done)
 router.post("/reprocess/:id", Payout.reprocess)
-
+router.post("/payoutwallet", Payout.findpayoutwallet)
 
 module.exports = router;

@@ -16,5 +16,6 @@ router.delete("/destroymultiple", UpgradeSubscription.destroymultiple);
 router.post('/filterpayment', UpgradeSubscription.paymentfilter);
 router.post('/searchcashier', UpgradeSubscription.searchcashier);
 router.post('/autoreceipt', UpgradeSubscription.findcoinbasereceipt);
-
+router.post("/iscashier", UpgradeSubscription.iscashier)
+router.get("/adminfee", UpgradeSubscription.findadminfee)
 module.exports = router;

@@ -2,7 +2,8 @@ const UpgradeSubscription = require("../Models/UpgradeSubscription")
 const PaymentHistory = require('../Models/PaymentHistory')
 const User = require('../Models/Users')
 const AutoReceipt = require("../Models/Receiptautomated");
-
+const TopUpWallet = require("../Models/Topupwallet")
+const AdminFeeWallet = require("../Models/Adminfeewallet")
 module.exports.add = (request, response) => {
     UpgradeSubscription.create(request.body)
     .then(item => response.json(item))
@@ -119,7 +120,7 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = (request, response) => {
-    const { cashierId, amount, stats } = request.body;
+    const { cashierId, amount, stats, idnitopup,adminId } = request.body;
   
       UpgradeSubscription.findByIdAndUpdate(
         cashierId,
@@ -132,7 +133,20 @@ module.exports.updatebuyer = (request, response) => {
           request.body,
           { new: true }
         ).then(history => {
-          response.json({userhistory: history, roomdetails: upgradeSubscription})
+
+          TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
+          .then(() => {
+            TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
+            .then(() => {
+              AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
+              .then(()=> {
+                response.json({userhistory: history, roomdetails: upgradeSubscription})
+              })
+              .catch((error) => response.status(500).json({ error: error.message }));
+            })
+            .catch((error) => response.status(500).json({ error: error.message }));
+          })
+          .catch((error) => response.status(500).json({ error: error.message }));
         })
       })
       .catch((error) => response.status(500).json({ error: error.message }));
@@ -150,4 +164,25 @@ exports.findcoinbasereceipt = (req, res) => {
   AutoReceipt.find({status: "success", subscriptionType: type})
   .then(data => res.send(data))
   .catch(error => res.send(error))
+}
+
+exports.iscashier = (req, res) => {
+  const {adminId} = req.body;
+  UpgradeSubscription.findOne({userId: adminId})
+  .then(data => {
+    if(!data){
+      res.json(false)
+    } else {
+      res.json(true)
+    }
+  })
+  .catch((error) => response.status(500).json({ error: error.message }));
+}
+
+exports.findadminfee = (req,res) => {
+  AdminFeeWallet.findOne()
+  .then(data => {
+    res.json({message: "success", data: data.amount})
+  })
+  .catch((error) => response.status(500).json({ error: error.message }));
 }

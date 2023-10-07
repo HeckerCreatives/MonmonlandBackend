@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Roles = require('./Roles')
 const Subscription = require('./Subscription')
-
+const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema(
     {   
@@ -71,6 +71,14 @@ const UserSchema = new mongoose.Schema(
 UserSchema.query.byRefferal = function (referrerId) {
     return this.where({ referrerId });
 };
+
+UserSchema.pre("save", async function (next) {
+    if (!this.isModified) {
+      next();
+    }
+  
+    this.password = await bcrypt.hashSync(this.password, 10)
+});
 
 const User = mongoose.model('User', UserSchema)
 module.exports = User;

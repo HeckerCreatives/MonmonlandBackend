@@ -1,24 +1,44 @@
 const Payout = require("../Models/Payout")
 const { nanoid } = require("nanoid")
-
+const PayoutWallet = require("../Models/PayoutWallet")
+const User = require("../Models/Users")
 exports.create = (req, res) => {
-
     const id = nanoid(10)
+    const {amount} = req.body;
     req.body["id"] = id
     Payout.create(req.body)
-    .then(item => res.json(item))
+    .then(item =>{
+        PayoutWallet.findOneAndUpdate({name: "request"}, {$inc: {amount: amount}})
+        .then(()=> {
+            res.json(item)
+        })
+        .catch(error => res.status(400).json({ error: error.message }));
+    })
     .catch(error => res.status(400).json({ error: error.message }));
 }
 
 exports.process = (req, res) => {
     const { id } = req.params
-    const { admin } = req.body
+    const { admin, adminId } = req.body
     const status = "process"
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "pending"){
             Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
-            .then(() => res.json({message: "success"}))
+            .then(() => {
+                PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
+                .then(() => {
+                    PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: data[0].amount}})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
+                        .then(() => {
+                            res.json({message: "success"})
+                        })
+                    })
+                    .catch(error => res.status(400).json({error: error.message}))
+                })
+                .catch(error => res.status(400).json({error: error.message}))
+            })
             .catch(error => res.status(400).json({error: error.message}))
         } else {
             res.json({message: "failed", data: "This payout is already in process"})
@@ -30,13 +50,31 @@ exports.process = (req, res) => {
 
 exports.done = (req, res) => {
     const { id } = req.params
-    const { admin, receipt } = req.body
+    const { admin, receipt, adminId } = req.body
     const status = "done"
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "process"){
             Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: receipt}, {new: true})
-            .then(() => res.json({message: "success"}))
+            .then(() => {
+                PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
+                .then(() => {
+                    PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
+                        .then(() => {
+                            PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
+                            .then(() => {
+                                res.json({message: "success"})
+                            })
+                            .catch(error => res.status(400).json({error: error.message}))
+                        })
+                        .catch(error => res.status(400).json({error: error.message}))
+                    })
+                    .catch(error => res.status(400).json({error: error.message}))
+                })
+                .catch(error => res.status(400).json({error: error.message}))
+            })
             .catch(error => res.status(400).json({error: error.message}))
         } else {
             res.json({message: "failed", data: "This payout is already done"})
@@ -48,13 +86,31 @@ exports.done = (req, res) => {
 
 exports.reprocess = (req, res) => {
     const { id } = req.params
-    // const { admin } = req.body
+    const { admin } = req.body
     const status = "pending"
+    const adminId = User.findOne({userName: admin})
+    .then(item => {
+        return item._id
+    })
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
             Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
-            .then(() => res.json({message: "success"}))
+            .then(() => {
+                PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: -data[0].amount}})
+                .then(() => {
+                    PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
+                        .then(() => {
+                            res.json({message: "success"})
+                        })
+                        .catch(error => res.status(400).json({error: error.message}))
+                    })
+                    .catch(error => res.status(400).json({error: error.message}))
+                })
+                .catch(error => res.status(400).json({error: error.message}))
+            })
             .catch(error => res.status(400).json({error: error.message}))
         } else {
             res.json({message: "failed", data: "This payout is already in reprocess"})
@@ -103,6 +159,26 @@ exports.agentfind = (req, res) => {
             res.json({ message: "success", data: user, pages: totalPages })
         })
         .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+    })
+    .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+}
+
+exports.findpayoutwallet = (req, res) => {
+    const {name} = req.body;
+    PayoutWallet.find({name: name})
+    .populate({path: "user"})
+    .then(item => {
+        res.json({message: "success", data: item})
+    })
+    .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+}
+
+exports.agentpayoutwallet = (req, res) => {
+    const {adminId, item} = req.body;
+    PayoutWallet.find({user: adminId, name: item})
+    .populate({path: "user"})
+    .then(item => {
+        res.json({message: "success", data: item})
     })
     .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
 }

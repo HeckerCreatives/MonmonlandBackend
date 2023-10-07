@@ -8,9 +8,9 @@ const PaymentHistorySchema = new mongoose.Schema(
         transactionnumber: {
             type: String
         },
-        // subscriptionlevel: {
+        // topupwallet: {
         //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: "Subscription"
+        //     ref: "TopUpWallet"
         // },
         price: {
             type: Number
