@@ -84,14 +84,16 @@ exports.done = (req, res) => {
     
 }
 
-exports.reprocess = (req, res) => {
+exports.reprocess = async (req, res) => {
     const { id } = req.params
     const { admin } = req.body
     const status = "pending"
-    const adminId = User.findOne({userName: admin})
+    const adminId = await User.findOne({userName: admin})
     .then(item => {
+        // console.log(item)
         return item._id
     })
+    console.log(adminId)
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
