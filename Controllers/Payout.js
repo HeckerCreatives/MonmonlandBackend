@@ -10,7 +10,7 @@ exports.create = (req, res) => {
     .then(item =>{
         PayoutWallet.findOneAndUpdate({name: "request"}, {$inc: {amount: amount}})
         .then(()=> {
-            res.json(item)
+            res.json({message: "cbspayaman"})
         })
         .catch(error => res.status(400).json({ error: error.message }));
     })
