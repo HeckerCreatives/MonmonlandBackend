@@ -51,8 +51,8 @@ router.post("/funds", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
-      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
       "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
     });
     
@@ -105,8 +105,8 @@ router.post("/bundles", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
-      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
       "logo_url": logo,
     });
     
@@ -156,8 +156,8 @@ router.post("/ruby", async (req, res) => {
           "customer_name": name,
           "receiptId": randomid,
         },
-        "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
-        "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+        "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
         "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
       });
       
@@ -208,8 +208,8 @@ router.post("/emerald", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
-      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
       "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414673/ecdrzy1t31uiw7cjjtfa.png"
     });
     
@@ -259,8 +259,8 @@ router.post("/diamond", async (req, res) => {
         "customer_name": name,
         "receiptId": randomid,
       },
-      "redirect_url": `${process.env.WEBSITE_URL}payment/success?id=${encryptxt}`,
-      "cancel_url": `${process.env.WEBSITE_URL}payment/cancel?id=${encryptxt}`,
+      "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
+      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
       "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414734/n9rci7fftx3ggpzv4sbp.png"
     });
     
@@ -285,8 +285,8 @@ router.post("/diamond", async (req, res) => {
 })
 
 // 
-router.post("/success", Coin.success)
-router.post("/cancel", Coin.cancel)
+router.get("/success", Coin.success)
+router.get("/cancel", Coin.cancel)
 router.post("/find", Coin.find)
 router.post("/topupwallet", Coin.findtopup)
 

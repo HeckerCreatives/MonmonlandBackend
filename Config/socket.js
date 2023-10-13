@@ -5,6 +5,7 @@ const UpgradeSubscription = require('../Models/UpgradeSubscription');
 const User = require('../Models/Users');
 
 const socket = io => {
+  const roomMessages = {};
   const roomlist = {};
   const adminroomowner = {};
   const playerrooms = {};
@@ -103,6 +104,12 @@ const socket = io => {
 
     socket.on("send_message", (data) => {
       const { image, message, username, room, __createdtime__, usersocket } = data;
+      if (!roomMessages[room]) {
+        roomMessages[room] = [];
+      }
+    
+      roomMessages[room].push(data);
+
       socket.emit('receive_message', data)
       socket.to(usersocket).emit('receive_message', data)
     })
@@ -110,7 +117,11 @@ const socket = io => {
     socket.on("doneTransactionAdmin", (data) => {
       const { room, buyer } = data;
       socket.to(buyer).emit("kicked")
-      
+
+      if (roomMessages[room]) {
+        roomMessages[room] = [];
+      }
+
       delete playerlist[room][buyer]
       delete playerrooms[buyer]
       
@@ -121,6 +132,8 @@ const socket = io => {
     socket.on("doneTransactionUser", (data) => {
       // delete playerlist[playerrooms[socket.id]["room"]][socket.id]
       const {roomId} = data
+
+
       socket.emit("kicked")
       socket.leave(playerrooms[socket.id]["room"])
       

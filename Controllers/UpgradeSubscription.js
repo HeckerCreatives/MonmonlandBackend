@@ -4,6 +4,7 @@ const User = require('../Models/Users')
 const AutoReceipt = require("../Models/Receiptautomated");
 const TopUpWallet = require("../Models/Topupwallet")
 const AdminFeeWallet = require("../Models/Adminfeewallet")
+
 module.exports.add = (request, response) => {
     UpgradeSubscription.create(request.body)
     .then(item => response.json(item))

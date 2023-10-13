@@ -16,26 +16,39 @@ function decryptString(encryptedText, key) {
 }
 
 module.exports.cancel = (req, res) => {
-  const id = req.body.id;
+  const {id} = req.query;
   const decrypt = decryptString(id, secretKey)
   AutoReceipt.findOne({receiptId: decrypt})
   .then(item =>{
 
       if(item.status !== 'pending'){
-        return res.json({message: "failed", data: "This Order is already proccessed."})
+        res.status(302)
+        res.header("Location", "https://monmonland.games/")
+        return res.send("This Order is already proccessed.")
       }
 
       AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel"}, {new: true})
       .then(data => {
-        res.json({message:"success", data: data})
+        // res.json({message:"success", data: data})
+        res.status(302)
+        res.header("Location", "https://monmonland.games/")
+        res.send("Redirecting...")
       })
-      .catch(err => res.json({message: "BadRequest", data: err.message}))
+      .catch(err => {
+        res.status(302)
+        res.header("Location", "https://monmonland.games/")
+        return res.send(err.message)
+      })
   })
-  .catch(err => res.json({message: "Badrequest", data: err.message}))
+  .catch(err => {
+    res.status(302)
+    res.header("Location", "https://monmonland.games/")
+    return res.send(err.message)
+  })
 }
 
 module.exports.success = (req, res) => {
-  const id = req.body.id;
+  const {id} = req.query;
   const decrypt = decryptString(id, secretKey)
   const playFabUserData = {
     Username: "monmonland",            
@@ -45,11 +58,15 @@ module.exports.success = (req, res) => {
   AutoReceipt.findOne({receiptId: decrypt})
   .then(item => {
       if(!item){
-        return res.json({message: "failed", data: "Receipt Id not Found"})
+        res.status(302)
+        res.header("Location", "https://monmonland.games/")
+        return res.send("Receipt Id Not Found")
       }
 
       if(item.status !== 'pending'){
-        return res.json({message: "failed", data: "This Order is already proccessed."})
+        res.status(302)
+        res.header("Location", "https://monmonland.games/")
+        return res.send("This Order is already proccessed.")
       }
 
       PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
@@ -69,23 +86,42 @@ module.exports.success = (req, res) => {
               .then(data => {
                 TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
                 .then(()=> {
-                  res.json({message: "success", data: data})
+                  // res.json({message: "success", data: data})
+                  res.status(302)
+                  res.header("Location", "https://monmonland.games/")
+                  res.send("Redirecting...")
                 })
-                .catch(err => res.json({message: "BadRequest", data: err.message}))
+                .catch(err => {
+                  res.status(302)
+                  res.header("Location", "https://monmonland.games/")
+                  return res.send(err.message)
+                })
               })
-              .catch(err => res.json({message: "BadRequest", data: err.message}))
+              .catch(err => {
+                res.status(302)
+                res.header("Location", "https://monmonland.games/")
+                return res.send(err.message)
+              })
             } else {
-              res.json(error1)
+              res.status(302)
+              res.header("Location", "https://monmonland.games/")
+              return res.send(error1)
             }
           })
         } else {
-          res.json(error)
-        }
+          res.status(302)
+          res.header("Location", "https://monmonland.games/")
+          return res.send(error)
+       }
       })
 
       
   })
-  .catch(err => res.json({message: "Badrequest", data: err.message}))
+  .catch(err => {
+    res.status(302)
+    res.header("Location", "https://monmonland.games/")
+    return res.send(err.message)
+  })
 }
 
 exports.find = (req,res) => {
