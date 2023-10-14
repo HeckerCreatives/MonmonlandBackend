@@ -27,6 +27,8 @@ const Playfabs = require("./Routes/Playfabs")
 const Subsuser = require("./Routes/SubscriptionUser")
 const Subsaccu = require("./Routes/SubsAccumulated")
 const Merchandise = require("./Routes/Merchandise")
+const Totalusers = require("./Routes/Totalusers")
+const Monmoncoin = require("./Routes/Monmoncoin")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -84,6 +86,8 @@ app.use("/monmon", Playfabs)
 app.use("/subsuser", Subsuser)
 app.use("/subsaccu", Subsaccu)
 app.use("/merchandise", Merchandise)
+app.use("/totalusers", Totalusers)
+app.use("/monmoncoin", Monmoncoin)
 app.use(BinancePay);
 
 const apiUrl = process.env.worldtimeapi

@@ -7,6 +7,8 @@ const TopUpWallet = require("../Models/Topupwallet")
 const PayoutWallet = require("../Models/PayoutWallet")
 const User = require("../Models/Users")
 const AdminFeeWallet = require("../Models/Adminfeewallet")
+const Monmoncoin = require("../Models/Monmoncoin")
+const Totalusers = require("../Models/Totalusers")
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -168,6 +170,28 @@ module.exports.migratedata = (request, response) => {
       }
 
       AdminFeeWallet.create(adminfee)
+    
+      const data = [ 
+        {
+            _id: "629a98a5a881575c013b5370",
+            name: "Monster Coin",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5371",
+            name: "Monster Gem",
+            amount: 0
+        }
+    ]
+
+    Monmoncoin.create(data)
+
+    const totaluser = {
+        _id: "629a98a5a881575c013b5373",
+        count: 0
+    }
+
+    Totalusers.create(totaluser)
 
     response.json('Data migration created')
 
@@ -234,4 +258,33 @@ exports.adminfeewallet = (req, res) => {
       AdminFeeWallet.create(adminfee)
 
       res.json("adminfeewallet created")
+}
+
+exports.monmoncoin = (req, res) => {
+    const data = [ 
+        {
+            _id: "629a98a5a881575c013b5370",
+            name: "Monster Coin",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5371",
+            name: "Monster Gem",
+            amount: 0
+        }
+    ]
+
+    Monmoncoin.create(data)
+    res.json("Monmon coin mc and mg created")
+}
+
+exports.totalusers = (req, res) => {
+    
+    const totaluser = {
+        _id: "629a98a5a881575c013b5373",
+        count: 0
+    }
+
+    Totalusers.create(totaluser)
+    res.json("total users created")
 }

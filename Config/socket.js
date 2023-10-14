@@ -104,12 +104,7 @@ const socket = io => {
 
     socket.on("send_message", (data) => {
       const { image, message, username, room, __createdtime__, usersocket } = data;
-      if (!roomMessages[room]) {
-        roomMessages[room] = [];
-      }
-    
-      roomMessages[room].push(data);
-
+     
       socket.emit('receive_message', data)
       socket.to(usersocket).emit('receive_message', data)
     })
@@ -118,21 +113,16 @@ const socket = io => {
       const { room, buyer } = data;
       socket.to(buyer).emit("kicked")
 
-      if (roomMessages[room]) {
-        roomMessages[room] = [];
-      }
-
       delete playerlist[room][buyer]
       delete playerrooms[buyer]
       
       socket.to(room).emit("donegetlist")
-
+      socket.emit("deletemsg")
     })
 
     socket.on("doneTransactionUser", (data) => {
       // delete playerlist[playerrooms[socket.id]["room"]][socket.id]
       const {roomId} = data
-
 
       socket.emit("kicked")
       socket.leave(playerrooms[socket.id]["room"])
@@ -166,7 +156,7 @@ const socket = io => {
       delete playerlist[playerrooms[socket.id]["room"]][socket.id]
       socket.to(playerrooms[socket.id]["room"]).emit("donegetlist")
       delete playerrooms[socket.id]
-      
+    
     })
 
     socket.on("disconnect", () => {
