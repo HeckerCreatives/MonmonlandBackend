@@ -1,8 +1,15 @@
 const SubscriptionUser = require("../Models/SubscriptionUser")
+const Totalusers = require("../Models/Totalusers")
 
 exports.create = (req, res) => {
    SubscriptionUser.create(req.body)
-   .then((data) => res.json({message: "success"}))
+   .then((data) => {
+    Totalusers.findByIdAndUpdate(process.env.totaluser, {$inc: {count: 1}})
+    .then(() => {
+        res.json({message: "success"})
+    })
+    .catch(error => response.status(400).json({ error: error.message }));
+   })
    .catch((error) => response.status(500).json({ error: error.message }));
 }
 

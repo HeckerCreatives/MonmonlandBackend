@@ -9,6 +9,7 @@ const User = require("../Models/Users")
 const AdminFeeWallet = require("../Models/Adminfeewallet")
 const Monmoncoin = require("../Models/Monmoncoin")
 const Totalusers = require("../Models/Totalusers")
+const Wallets = require("../Models/Wallets")
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -193,6 +194,14 @@ module.exports.migratedata = (request, response) => {
 
     Totalusers.create(totaluser)
 
+    const commiwallet = {
+        _id: "629a98a5a881575c013b5380",
+        userId: "64672f8f6d8526e7eed1759b",
+        commission: 0
+    }
+
+    Wallets.create(commiwallet)
+
     response.json('Data migration created')
 
 }
@@ -287,4 +296,16 @@ exports.totalusers = (req, res) => {
 
     Totalusers.create(totaluser)
     res.json("total users created")
+}
+
+exports.admincommi = (req, res) => {
+    const commiwallet = {
+        _id: "629a98a5a881575c013b5380",
+        userId: "64672f8f6d8526e7eed1759b",
+        commission: 0
+    }
+
+    Wallets.create(commiwallet)
+
+    res.json("admin commi wallet created")
 }

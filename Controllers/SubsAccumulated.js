@@ -1,5 +1,5 @@
 const SubsAccumulated = require("../Models/SubsAccumulated")
-
+const SubscriptionUser = require ("../Models/SubscriptionUser")
 exports.create = (req, res) => {
 
     const data = [
@@ -30,9 +30,13 @@ exports.create = (req, res) => {
 }
 
 exports.update = (req, res) => {
-    const {subsname, amount} = req.body;
+    const {subsname, amount, playfabid,} = req.body;
     SubsAccumulated.findOneAndUpdate({subsname: subsname}, {$inc: {amount: amount}})
-    .then(data => res.json({message: "success"}))
+    .then(data => {
+        SubscriptionUser.findOneAndUpdate({playfabid: playfabid}, {name: subsname}, {new: true})
+        .then(data => res.json({message: "success"}))
+        .catch((error) => response.status(500).json({ error: error.message }));
+    })
     .catch((error) => res.status(500).json({ error: error.message }));
 }
 

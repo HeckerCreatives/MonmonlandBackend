@@ -15,15 +15,31 @@ const socket = io => {
   io.on("connection", (socket) => {
     console.log(`⚡: ${socket.id} user just connected!`);
 
-    function getQueNumber(roomname, username){
-      const keysArray = Object.keys(playerlist[roomname])
-      const queuePosition = keysArray.indexOf(username)
+    function getQueNumber(roomname, username, oldsocket){
+      console.log(roomname)
+      console.log(username)
+      let queuePosition;
+      
+      if(oldsocket !== undefined){
+        queuePosition = playerlist[roomname].findIndex((object) => oldsocket in object)
+        let olddata = playerlist[roomname][queuePosition]
+        let newdata = {}
+        newdata[username] = olddata[oldsocket]
+        playerlist[roomname].shift()
+        playerlist[roomname].unshift(newdata)
+        
+      } else {
+        queuePosition = playerlist[roomname].findIndex((object) => username in object)
+      }
+      console.log(queuePosition)
       if(queuePosition > 0){
+        console.log("hello" + queuePosition)
         socket.emit('queue_message', {
           message: "full",
           data: `The room is currently full. Your updated queuing number is ${queuePosition + 1}.`
         });
       } else if (queuePosition === 0){
+        console.log("hello")
         socket.emit('queue_message', {
           message: "turn",
           data: "Now it's your turn."
@@ -32,7 +48,7 @@ const socket = io => {
     }
 
     socket.on("joinroom", (data) => {
-      const { roomid, playfabid, username, transaction } = data;
+      const { roomid, playfabid, username, transaction, reconnect, oldsocket } = data;
       User.findOne({userName: username})
       .then(data => {
         if(data){
@@ -47,31 +63,46 @@ const socket = io => {
                 item,
               }
               adminroomowner[socket.id] = {roomid: roomid}
-              playerlist[roomid] = {}
+              playerlist[roomid] = []
               socket.join(roomid);
               socket.to("lobby").emit("sendroomlist", roomlist)
             })
             
           }
         } else {
-          let list = {};
-          if(Object.keys(playerlist[roomid]).length !== 0){
-            list = playerlist[roomid]
-          }
+          if(!reconnect){
+            let list = {};
+            if(Object.keys(playerlist[roomid]).length !== 0){
+              list = playerlist[roomid]
+            }
+            
+            list[socket.id] = {
+              id: socket.id,
+              username,
+              playfabid,
+              transaction,
+            }
+            
+            playerlist[roomid].push(list)
+            playerrooms[socket.id] = {room: roomid}
+            
+          } else {
+            if(!roomlist.hasOwnProperty(roomid)){
+              socket.emit("forcekick")
+              return
+            }
+            
+           const queuePosition = playerlist[roomid].findIndex((object) => oldsocket in object)
 
-          list[socket.id] = {
-            id: socket.id,
-            username,
-            playfabid,
-            transaction
+           if(queuePosition <= -1){
+            socket.emit("forcekick")
+            return
+           }
           }
-          
-          playerlist[roomid] = list
-          playerrooms[socket.id] = {room: roomid}
           socket.join(roomid)
-          // socket.to(roomlist[roomid].id).emit("playerdetails", list[username])
-          getQueNumber(roomid, socket.id);
+          getQueNumber(roomid, socket.id, oldsocket);
         }
+
       })
 
     });
@@ -94,7 +125,7 @@ const socket = io => {
     socket.on("playerready", (data) => {
       const {room, username} = data;
       socket.emit("admindetails", roomlist[room])
-      socket.to(roomlist[room].id).emit("playerdetails", playerlist[room][socket.id])
+      socket.to(roomlist[room].id).emit("playerdetails", playerlist[room][0][socket.id])
       socket.to(roomlist[room].id).emit("receive_message", {
         message: `Welcome ${username}`,
         username: "CHAT_BOT",
@@ -111,9 +142,10 @@ const socket = io => {
 
     socket.on("doneTransactionAdmin", (data) => {
       const { room, buyer } = data;
-      socket.to(buyer).emit("kicked")
 
-      delete playerlist[room][buyer]
+      socket.to(Object.keys(playerlist[room][0])[0]).emit("kicked")
+
+      playerlist[room].shift()
       delete playerrooms[buyer]
       
       socket.to(room).emit("donegetlist")
@@ -121,11 +153,10 @@ const socket = io => {
     })
 
     socket.on("doneTransactionUser", (data) => {
-      // delete playerlist[playerrooms[socket.id]["room"]][socket.id]
       const {roomId} = data
 
       socket.emit("kicked")
-      socket.leave(playerrooms[socket.id]["room"])
+      playerlist[roomId].shift()
       
     })
 
@@ -141,9 +172,9 @@ const socket = io => {
 
     socket.on("cancelTransactionAdmin", (data) => {
       const { room, buyer } = data;
-      socket.to(buyer).emit("canceled")
+      socket.to(Object.keys(playerlist[room][0])[0]).emit("canceled")
       
-      delete playerlist[room][buyer]
+      playerlist[room].shift()
       delete playerrooms[buyer]
       
       socket.to(room).emit("donegetlist")
@@ -151,9 +182,10 @@ const socket = io => {
     })
 
     socket.on("cancelTransactionUser", () => {
-      socket.to(roomlist[playerrooms[socket.id]["room"]].id).emit("canceleduser", playerlist[playerrooms[socket.id]["room"]][socket.id])
-      
-      delete playerlist[playerrooms[socket.id]["room"]][socket.id]
+      socket.to(roomlist[playerrooms[socket.id]["room"]].id).emit("canceleduser", playerlist[playerrooms[socket.id]["room"]][0][socket.id])
+
+      playerlist[playerrooms[socket.id]["room"]][0][socket.id].shift()
+      // delete playerlist[playerrooms[socket.id]["room"]][0][socket.id]
       socket.to(playerrooms[socket.id]["room"]).emit("donegetlist")
       delete playerrooms[socket.id]
     
@@ -170,19 +202,18 @@ const socket = io => {
           delete playerlist[adminroomowner[id]["roomid"]]
           delete adminroomowner[id]
           socket.to("lobby").emit("sendroomlist", roomlist)
-      } else if(playerrooms.hasOwnProperty(id)){
-        if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
-          if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
-            socket.to(roomlist[playerrooms[id]["room"]].id).emit("adminrefreshlist", playerlist[playerrooms[id]["room"]][id])
-            delete playerlist[playerrooms[id]["room"]][id]
-            socket.to(playerrooms[id]["room"]).emit("donegetlist")
-            
-            delete playerrooms[id]
-          }
-        }
-       
-        
       }
+      //  else if(playerrooms.hasOwnProperty(id)){
+      //   if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
+      //     if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
+      //       socket.to(roomlist[playerrooms[id]["room"]].id).emit("adminrefreshlist", playerlist[playerrooms[id]["room"]][id])
+      //       delete playerlist[playerrooms[id]["room"]][id]
+      //       socket.to(playerrooms[id]["room"]).emit("donegetlist")
+            
+      //       delete playerrooms[id]
+      //     }
+      //   }
+      // }
       
     })
 
@@ -196,17 +227,18 @@ const socket = io => {
           delete playerlist[adminroomowner[id]["roomid"]]
           delete adminroomowner[id]
           socket.to("lobby").emit("sendroomlist", roomlist)
-      } else if(playerrooms.hasOwnProperty(id)){
-        if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
-          if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
-            delete playerlist[playerrooms[id]["room"]][id]
-            socket.to(playerrooms[id]["room"]).emit("donegetlist")
-            delete playerrooms[id]
-          }
-        }
+      } 
+      // else if(playerrooms.hasOwnProperty(id)){
+      //   if(playerlist.hasOwnProperty(playerrooms[id]["room"])){
+      //     if(playerlist[playerrooms[id]["room"]].hasOwnProperty(id)){
+      //       delete playerlist[playerrooms[id]["room"]][id]
+      //       socket.to(playerrooms[id]["room"]).emit("donegetlist")
+      //       delete playerrooms[id]
+      //     }
+      //   }
        
         
-      }
+      // }
       
     })
 
