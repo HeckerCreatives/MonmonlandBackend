@@ -137,14 +137,12 @@ const socket = io => {
 
     socket.on("send_message", (data) => {
       const { image, message, username, room, __createdtime__, usersocket } = data;
-      console.log(message)
       socket.emit('receive_message', data)
       socket.to(usersocket).emit('receive_message', data)
     })
 
     socket.on("admin_send_message", (data) => {
       const { image, message, username, room, _createdtime_, usersocket } = data;
-      console.log(message)
       socket.emit("receive_message", data)
       socket.to(Object.keys(playerlist[room][0])[0]).emit("receive_message", data)
     })

@@ -1,6 +1,10 @@
 const { response } = require("express");
 const Gameactivity = require("../Models/Gameactivity");
 const GameactivityHistory = require("../Models/GameactivityHistory");
+var playfab = require('playfab-sdk')
+var PlayFab = playfab.PlayFab
+var PlayFabClient = playfab.PlayFabClient
+PlayFab.settings.titleId = process.env.monmontitleid;
 
 module.exports.Progressbar = (request, response) => {
     let input = request.body
@@ -25,7 +29,7 @@ module.exports.getOne = (request, response) => {
 }
 
 module.exports.update = (request, response) => {
-    const { value, enteredamount, createdby } = request.body;
+    const { value, enteredamount, createdby, playfabid } = request.body;
     const { id } = request.params;
   
     const history = {
@@ -34,20 +38,44 @@ module.exports.update = (request, response) => {
       enteredamount: enteredamount,
       createdby: createdby
     };
-  
-    Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
-      .then((updatedData) => {
-        // Check if the Gameactivity was successfully updated
-        if (updatedData) {
-          // Create the GameactivityHistory entry
-          GameactivityHistory.create(history)
-            .then(() => response.json(updatedData))
+
+    const playFabUserData = {
+      CreateAccount: false,            
+      CustomId: playfabid,           
+    };
+
+    PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
+      if(result){
+        PlayFabClient.ExecuteCloudScript({
+          FunctionName: "SetTotalIncome",
+          FunctionParameter: {
+              totalIncome: enteredamount
+          },
+          ExecuteCloudScript: true,
+          GeneratePlayStreamEvent: true,
+        }, (error1, result1) => {
+          if(result1.data.FunctionResult.message === "success"){
+            Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
+            .then((updatedData) => {
+              // Check if the Gameactivity was successfully updated
+              if (updatedData) {
+                // Create the GameactivityHistory entry
+                GameactivityHistory.create(history)
+                  .then(() => response.json(updatedData))
+                  .catch((error) => response.status(400).json({ error: error.message }));
+              } else {
+                response.status(404).json({ error: "Gameactivity not found" });
+              }
+            })
             .catch((error) => response.status(400).json({ error: error.message }));
-        } else {
-          response.status(404).json({ error: "Gameactivity not found" });
-        }
-      })
-      .catch((error) => response.status(400).json({ error: error.message }));
+          } else {
+            response.json({message: "failed", data: result1.data.FunctionResult.data})
+          }
+        })
+      }
+    })
+
+    
   };
   
 
