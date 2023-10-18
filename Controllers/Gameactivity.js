@@ -29,7 +29,7 @@ module.exports.getOne = (request, response) => {
 }
 
 module.exports.update = (request, response) => {
-    const { value, enteredamount, createdby, playfabid } = request.body;
+    const { value, enteredamount, createdby, playfabid, playfabToken } = request.body;
     const { id } = request.params;
   
     const history = {
@@ -43,35 +43,32 @@ module.exports.update = (request, response) => {
       CreateAccount: false,            
       CustomId: playfabid,           
     };
-
-    PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
-      if(result){
-        PlayFabClient.ExecuteCloudScript({
-          FunctionName: "SetTotalIncome",
-          FunctionParameter: {
-              totalIncome: enteredamount
-          },
-          ExecuteCloudScript: true,
-          GeneratePlayStreamEvent: true,
-        }, (error1, result1) => {
-          if(result1.data.FunctionResult.message === "success"){
-            Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
-            .then((updatedData) => {
-              // Check if the Gameactivity was successfully updated
-              if (updatedData) {
-                // Create the GameactivityHistory entry
-                GameactivityHistory.create(history)
-                  .then(() => response.json(updatedData))
-                  .catch((error) => response.status(400).json({ error: error.message }));
-              } else {
-                response.status(404).json({ error: "Gameactivity not found" });
-              }
-            })
-            .catch((error) => response.status(400).json({ error: error.message }));
+    
+    PlayFab._internalSettings.sessionTicket = playfabToken;
+    PlayFabClient.ExecuteCloudScript({
+      FunctionName: "SetTotalIncome",
+      FunctionParameter: {
+          totalIncome: enteredamount
+      },
+      ExecuteCloudScript: true,
+      GeneratePlayStreamEvent: true,
+    }, (error1, result1) => {
+      if(result1.data.FunctionResult.message === "success"){
+        Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
+        .then((updatedData) => {
+          // Check if the Gameactivity was successfully updated
+          if (updatedData) {
+            // Create the GameactivityHistory entry
+            GameactivityHistory.create(history)
+              .then(() => response.json(updatedData))
+              .catch((error) => response.status(400).json({ error: error.message }));
           } else {
-            response.json({message: "failed", data: result1.data.FunctionResult.data})
+            response.status(404).json({ error: "Gameactivity not found" });
           }
         })
+        .catch((error) => response.status(400).json({ error: error.message }));
+      } else {
+        response.json({message: "failed", data: result1.data.FunctionResult.data})
       }
     })
 

@@ -23,7 +23,8 @@
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.5",
     "nanoid": "^3.0.0",
-    "playfab-sdk": "^2.135.230901",
+    "nodemon": "^3.0.1",
+    "playfab-sdk": "^2.139.231013",
     "socket.io": "^4.7.1"
   }
 }

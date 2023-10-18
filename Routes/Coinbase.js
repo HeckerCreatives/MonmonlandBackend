@@ -32,6 +32,7 @@ function encryptString(text, key) {
 router.post("/funds", async (req, res) => {
   const name = req.body.name;
   const playfabId = req.body.playfabId;
+  const playfabToken = req.body.playfabToken
   const {amount} = req.body;
   let randomid = generateRandomString();
   const encryptxt = encryptString(randomid, secretKey);
@@ -65,6 +66,7 @@ router.post("/funds", async (req, res) => {
         playerPlayfabId: response.metadata.customer_id,
         subscriptionType: `Top Up ${amount}`,
         amount: response.pricing.local.amount,
+        playfabToken: playfabToken
       })
 
       if (response && response.id) {
@@ -79,6 +81,7 @@ router.post("/funds", async (req, res) => {
 router.post("/bundles", async (req, res) => {
   const name = req.body.name;
   const playfabId = req.body.playfabId;
+  const playfabToken = req.body.playfabToken
   const { amount, bundle, bundledescription, subs } = req.body;
   let randomid = generateRandomString();
   let logo;
@@ -119,6 +122,7 @@ router.post("/bundles", async (req, res) => {
         playerPlayfabId: response.metadata.customer_id,
         subscriptionType: bundle,
         amount: response.pricing.local.amount,
+        playfabToken: playfabToken
       })
 
       if (response && response.id) {
@@ -186,6 +190,7 @@ router.post("/emerald", async (req, res) => {
   const name = req.body.name;
   const playfabId = req.body.playfabId;
   const quantity = req.body.quantity;
+  const playfabToken = req.body.playfabToken
   let amount;
   let randomid = generateRandomString();
   const encryptxt = encryptString(randomid, secretKey)
@@ -222,6 +227,7 @@ router.post("/emerald", async (req, res) => {
         playerPlayfabId: response.metadata.customer_id,
         subscriptionType: "2",
         amount: response.pricing.local.amount,
+        playfabToken: playfabToken
       })
 
       if (response && response.id) {

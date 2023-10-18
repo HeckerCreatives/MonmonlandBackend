@@ -4,6 +4,10 @@ const User = require('../Models/Users')
 const AutoReceipt = require("../Models/Receiptautomated");
 const TopUpWallet = require("../Models/Topupwallet")
 const AdminFeeWallet = require("../Models/Adminfeewallet")
+var playfab = require('playfab-sdk')
+var PlayFab = playfab.PlayFab
+var PlayFabClient = playfab.PlayFabClient
+PlayFab.settings.titleId = process.env.monmontitleid;
 
 module.exports.add = (request, response) => {
     UpgradeSubscription.create(request.body)
@@ -121,36 +125,57 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = (request, response) => {
-    const { cashierId, amount, stats, idnitopup,adminId } = request.body;
+    const { cashierId, amount, stats, idnitopup,adminId, playfabId, playfabPrice, playfabToken } = request.body;
   
-      UpgradeSubscription.findByIdAndUpdate(
-        cashierId,
-        { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
-        { new: true }
-      ) 
-      .then((upgradeSubscription) => {
-        PaymentHistory.findByIdAndUpdate(
-          request.params.id,
-          request.body,
-          { new: true }
-        ).then(history => {
 
-          TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
-          .then(() => {
-            TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
+    PlayFab._internalSettings.sessionTicket = playfabToken;
+    PlayFabClient.ExecuteCloudScript({
+      FunctionName: "Topup",
+      FunctionParameter: {
+          playerId: playfabId,
+          topupAmount: playfabPrice,
+        },
+        ExecuteCloudScript: true,
+        GeneratePlayStreamEvent: true,
+      }, (error, result) => {
+      if(result.data.FunctionResult.message === "success"){
+        UpgradeSubscription.findByIdAndUpdate(
+          cashierId,
+          { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
+          { new: true }
+        ) 
+        .then((upgradeSubscription) => {
+          PaymentHistory.findByIdAndUpdate(
+            request.params.id,
+            request.body,
+            { new: true }
+          ).then(history => {
+  
+            TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
             .then(() => {
-              AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
-              .then(()=> {
-                response.json({userhistory: history, roomdetails: upgradeSubscription})
+              TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
+              .then(() => {
+                AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
+                .then(()=> {
+                  response.json({userhistory: history, roomdetails: upgradeSubscription})
+                })
+                .catch((error) => response.status(500).json({ error: error.message }));
               })
               .catch((error) => response.status(500).json({ error: error.message }));
             })
             .catch((error) => response.status(500).json({ error: error.message }));
           })
-          .catch((error) => response.status(500).json({ error: error.message }));
         })
-      })
-      .catch((error) => response.status(500).json({ error: error.message }));
+        .catch((error) => response.status(500).json({ error: error.message }));
+      }
+      else if (error){
+        response.status(500).json({ error: error })
+      }
+      else{
+        response.status(500).json({ error: "failed" })
+      }
+    })
+      
 };
 
 module.exports.getAllbuyer = (request, response) => {

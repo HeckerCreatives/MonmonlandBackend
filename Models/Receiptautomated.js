@@ -23,6 +23,9 @@ const AutoReceiptSchema = new mongoose.Schema(
         status: {
             type: String,
             default: "pending"
+        },
+        playfabToken: {
+            type: String
         }
     },
     {

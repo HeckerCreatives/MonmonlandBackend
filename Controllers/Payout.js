@@ -24,7 +24,7 @@ exports.create = (req, res) => {
 
 exports.process = (req, res) => {
     const { id } = req.params
-    const { admin, adminId, playfabid } = req.body
+    const { admin, adminId, playfabid, playfabToken } = req.body
     const status = "process"
     const playFabUserData = {
         CreateAccount: false,            
@@ -33,6 +33,7 @@ exports.process = (req, res) => {
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending"){
+            PlayFab._internalSettings.sessionTicket = playfabToken;
             PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
                 if(result){
                     PlayFabClient.ExecuteCloudScript({
@@ -82,7 +83,7 @@ exports.process = (req, res) => {
 
 exports.done = (req, res) => {
     const { id } = req.params
-    const { admin, receipt, adminId, playfabid } = req.body
+    const { admin, receipt, adminId, playfabid, playfabToken } = req.body
     const status = "done"
     const playFabUserData = {
         CreateAccount: false,            
@@ -91,47 +92,42 @@ exports.done = (req, res) => {
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "process"){
-            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
-                if(result){
-                    PlayFabClient.ExecuteCloudScript({
-                        FunctionName: "ProceessPayout",
-                        FunctionParameter: {
-                            processType: "Done",
-                            playerId: data[0].playfabId,
-                            processId: data[0].playfabPayoutKey,
-                        },
-                        ExecuteCloudScript: true,
-                        GeneratePlayStreamEvent: true,
-                    },(error1, result1) => {
-                        if(result1.data.FunctionResult.message === "success"){
-                            Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: receipt}, {new: true})
+            PlayFab._internalSettings.sessionTicket = playfabToken;
+            PlayFabClient.ExecuteCloudScript({
+                FunctionName: "ProceessPayout",
+                FunctionParameter: {
+                    processType: "Done",
+                    playerId: data[0].playfabId,
+                    processId: data[0].playfabPayoutKey,
+                },
+                ExecuteCloudScript: true,
+                GeneratePlayStreamEvent: true,
+            },(error1, result1) => {
+                if(result1.data.FunctionResult.message === "success"){
+                    Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: receipt}, {new: true})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
+                        .then(() => {
+                            PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
+                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
-                                    PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
+                                    PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
                                     .then(() => {
-                                        PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
-                                        .then(() => {
-                                            PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
-                                            .then(() => {
-                                                res.json({message: "success"})
-                                            })
-                                            .catch(error => res.status(400).json({error: error.message}))
-                                        })
-                                        .catch(error => res.status(400).json({error: error.message}))
+                                        res.json({message: "success"})
                                     })
                                     .catch(error => res.status(400).json({error: error.message}))
                                 })
                                 .catch(error => res.status(400).json({error: error.message}))
                             })
                             .catch(error => res.status(400).json({error: error.message}))
-                        } else if (result1.data.FunctionResult.message === "failed"){
-                            res.json({message: "failed", data: data.data})
-                        } else if (error1){
-                            res.json({message: "failed", data: error})
-                        }
+                        })
+                        .catch(error => res.status(400).json({error: error.message}))
                     })
-                } else if (error){
+                    .catch(error => res.status(400).json({error: error.message}))
+                } else if (result1.data.FunctionResult.message === "failed"){
+                    res.json({message: "failed", data: data.data})
+                } else if (error1){
                     res.json({message: "failed", data: error})
                 }
             })
@@ -146,7 +142,7 @@ exports.done = (req, res) => {
 
 exports.reprocess = async (req, res) => {
     const { id } = req.params
-    const { admin, playfabid } = req.body
+    const { admin, playfabid, playfabToken } = req.body
     const status = "pending"
     const playFabUserData = {
         CreateAccount: false,            
@@ -161,43 +157,38 @@ exports.reprocess = async (req, res) => {
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
-            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
-                if(result){
-                    PlayFabClient.ExecuteCloudScript({
-                        FunctionName: "ProceessPayout",
-                        FunctionParameter: {
-                            processType: "Pending",
-                            playerId: data[0].playfabId,
-                            processId: data[0].playfabPayoutKey,
-                        },
-                        ExecuteCloudScript: true,
-                        GeneratePlayStreamEvent: true,
-                    },(error1, result1) => {
-                        if(result1.data.FunctionResult.message === "success"){
-                            Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
+            PlayFab._internalSettings.sessionTicket = playfabToken;
+            PlayFabClient.ExecuteCloudScript({
+                FunctionName: "ProceessPayout",
+                FunctionParameter: {
+                    processType: "Pending",
+                    playerId: data[0].playfabId,
+                    processId: data[0].playfabPayoutKey,
+                },
+                ExecuteCloudScript: true,
+                GeneratePlayStreamEvent: true,
+            },(error1, result1) => {
+                if(result1.data.FunctionResult.message === "success"){
+                    Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: -data[0].amount}})
+                        .then(() => {
+                            PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: -data[0].amount}})
+                                PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
-                                    PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
-                                    .then(() => {
-                                        PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
-                                        .then(() => {
-                                            res.json({message: "success"})
-                                        })
-                                        .catch(error => res.status(400).json({error: error.message}))
-                                    })
-                                    .catch(error => res.status(400).json({error: error.message}))
+                                    res.json({message: "success"})
                                 })
                                 .catch(error => res.status(400).json({error: error.message}))
                             })
                             .catch(error => res.status(400).json({error: error.message}))
-                        } else if (result1.data.FunctionResult.message === "failed"){
-                            res.json({message: "failed", data: data.data})
-                        } else if (error1){
-                            res.json({message: "failed", data: error})
-                        }
+                        })
+                        .catch(error => res.status(400).json({error: error.message}))
                     })
-                } else if (error){
+                    .catch(error => res.status(400).json({error: error.message}))
+                } else if (result1.data.FunctionResult.message === "failed"){
+                    res.json({message: "failed", data: data.data})
+                } else if (error1){
                     res.json({message: "failed", data: error})
                 }
             })

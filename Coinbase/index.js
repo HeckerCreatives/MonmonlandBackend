@@ -69,53 +69,44 @@ module.exports.success = (req, res) => {
         return res.send("This Order is already proccessed.")
       }
 
-      PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
-        if(result){
-          PlayFabClient.ExecuteCloudScript({
-            FunctionName: "Topup",
-            FunctionParameter: {
-              playerId: item.playerPlayfabId,
-              topupAmount: item.amount,
-            },
-            ExecuteCloudScript: true,
-            GeneratePlayStreamEvent: true,
-          }, (error1, result1) => {
-            console.log(result1)
-            if(result1.data.FunctionResult.message === "success"){
-              AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
-              .then(data => {
-                TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
-                .then(()=> {
-                  // res.json({message: "success", data: data})
-                  res.status(302)
-                  res.header("Location", "https://monmonland.games/")
-                  res.send("Redirecting...")
-                })
-                .catch(err => {
-                  res.status(302)
-                  res.header("Location", "https://monmonland.games/")
-                  return res.send(err.message)
-                })
-              })
-              .catch(err => {
-                res.status(302)
-                res.header("Location", "https://monmonland.games/")
-                return res.send(err.message)
-              })
-            } else {
+      PlayFab._internalSettings.sessionTicket = item.playfabToken;
+      PlayFabClient.ExecuteCloudScript({
+        FunctionName: "Topup",
+        FunctionParameter: {
+          playerId: item.playerPlayfabId,
+          topupAmount: item.amount,
+        },
+        ExecuteCloudScript: true,
+        GeneratePlayStreamEvent: true,
+      }, (error1, result1) => {
+        console.log(result1)
+        if(result1.data.FunctionResult.message === "success"){
+          AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
+          .then(data => {
+            TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+            .then(()=> {
+              // res.json({message: "success", data: data})
               res.status(302)
               res.header("Location", "https://monmonland.games/")
-              return res.send(error1)
-            }
+              res.send("Redirecting...")
+            })
+            .catch(err => {
+              res.status(302)
+              res.header("Location", "https://monmonland.games/")
+              return res.send(err.message)
+            })
+          })
+          .catch(err => {
+            res.status(302)
+            res.header("Location", "https://monmonland.games/")
+            return res.send(err.message)
           })
         } else {
           res.status(302)
           res.header("Location", "https://monmonland.games/")
-          return res.send(error)
-       }
+          return res.send(error1)
+        }
       })
-
-      
   })
   .catch(err => {
     res.status(302)
