@@ -16,30 +16,28 @@ const socket = io => {
     console.log(`⚡: ${socket.id} user just connected!`);
 
     function getQueNumber(roomname, username, oldsocket){
-      console.log(roomname)
-      console.log(username)
       let queuePosition;
       
-      if(oldsocket !== undefined){
+      if(oldsocket !== undefined && oldsocket !== null){
         queuePosition = playerlist[roomname].findIndex((object) => oldsocket in object)
         let olddata = playerlist[roomname][queuePosition]
         let newdata = {}
+        let newplayerlist = {}
+        newplayerlist[roomname] = playerlist[roomname]
         newdata[username] = olddata[oldsocket]
-        playerlist[roomname].shift()
-        playerlist[roomname].unshift(newdata)
-        
+        newplayerlist[roomname].shift()
+        newplayerlist[roomname].unshift(newdata)
+        playerlist[roomname] = newplayerlist[roomname]
       } else {
         queuePosition = playerlist[roomname].findIndex((object) => username in object)
       }
-      console.log(queuePosition)
+
       if(queuePosition > 0){
-        console.log("hello" + queuePosition)
         socket.emit('queue_message', {
           message: "full",
           data: `The room is currently full. Your updated queuing number is ${queuePosition + 1}.`
         });
       } else if (queuePosition === 0){
-        console.log("hello")
         socket.emit('queue_message', {
           message: "turn",
           data: "Now it's your turn."
@@ -71,19 +69,23 @@ const socket = io => {
           }
         } else {
           if(!reconnect){
-            let list = {};
+            let list = [];
+            let newItem = {}
             if(Object.keys(playerlist[roomid]).length !== 0){
               list = playerlist[roomid]
             }
             
-            list[socket.id] = {
+            newItem[socket.id] = {
               id: socket.id,
               username,
               playfabid,
               transaction,
             }
-            
-            playerlist[roomid].push(list)
+
+            list.push(newItem)
+
+            // Push the 'listArray' into 'playerlist[roomid]'.
+            playerlist[roomid] = list;
             playerrooms[socket.id] = {room: roomid}
             
           } else {
@@ -142,7 +144,6 @@ const socket = io => {
 
     socket.on("doneTransactionAdmin", (data) => {
       const { room, buyer } = data;
-
       socket.to(Object.keys(playerlist[room][0])[0]).emit("kicked")
 
       playerlist[room].shift()

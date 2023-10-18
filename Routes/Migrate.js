@@ -9,4 +9,5 @@ router.post("/adminfeewallet", Migrate.adminfeewallet)
 router.post("/moncoin", Migrate.monmoncoin)
 router.post("/totaluser", Migrate.totalusers)
 router.post("/commiwallet", Migrate.admincommi)
+router.post("/subs", Migrate.subs)
 module.exports = router;

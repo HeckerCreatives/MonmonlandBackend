@@ -24,16 +24,16 @@ exports.create = (req, res) => {
 
 exports.process = (req, res) => {
     const { id } = req.params
-    const { admin, adminId } = req.body
+    const { admin, adminId, playfabid } = req.body
     const status = "process"
     const playFabUserData = {
-        Username: "monmonland",            
-        Password: "@n048Reg04",           
+        CreateAccount: false,            
+        CustomId: playfabid,           
     };
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending"){
-            PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
+            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
                 if(result){
                     PlayFabClient.ExecuteCloudScript({
                         FunctionName: "ProceessPayout",
@@ -82,16 +82,16 @@ exports.process = (req, res) => {
 
 exports.done = (req, res) => {
     const { id } = req.params
-    const { admin, receipt, adminId } = req.body
+    const { admin, receipt, adminId, playfabid } = req.body
     const status = "done"
     const playFabUserData = {
-        Username: "monmonland",            
-        Password: "@n048Reg04",           
+        CreateAccount: false,            
+        CustomId: playfabid,           
     };
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "process"){
-            PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
+            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
                 if(result){
                     PlayFabClient.ExecuteCloudScript({
                         FunctionName: "ProceessPayout",
@@ -146,11 +146,11 @@ exports.done = (req, res) => {
 
 exports.reprocess = async (req, res) => {
     const { id } = req.params
-    const { admin } = req.body
+    const { admin, playfabid } = req.body
     const status = "pending"
     const playFabUserData = {
-        Username: "monmonland",            
-        Password: "@n048Reg04",           
+        CreateAccount: false,            
+        CustomId: playfabid,           
     };
     const adminId = await User.findOne({userName: admin})
     .then(item => {
@@ -161,7 +161,7 @@ exports.reprocess = async (req, res) => {
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
-            PlayFabClient.LoginWithPlayFab(playFabUserData, (error, result) => {
+            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
                 if(result){
                     PlayFabClient.ExecuteCloudScript({
                         FunctionName: "ProceessPayout",

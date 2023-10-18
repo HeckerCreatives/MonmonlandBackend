@@ -32,12 +32,8 @@ module.exports.migratedata = (request, response) => {
             subscriptionName: "Diamond",
             amount: "FREE"
         },
-        // {
-        //     _id:"629a98a5a881575c013b5324",
-        //     subscriptionName: "Free",
-        //     amount: "FREE"
-        // },
     ];
+
     subscription.map(subs => {
         Subscription.create(subs)
     })
@@ -158,7 +154,8 @@ module.exports.migratedata = (request, response) => {
         "isActive": true,
         "banned": false,
         "balance": 0,
-        "phone": "123456789"
+        "phone": "123456789",
+        "playfabid": "79FDE99C184D93EB"
     }
 
 
@@ -308,4 +305,35 @@ exports.admincommi = (req, res) => {
     Wallets.create(commiwallet)
 
     res.json("admin commi wallet created")
+}
+
+exports.subs = (req, res) => {
+    const subscription = [
+        {
+            _id:"629a98a5a881575c013b5325",
+            subscriptionName: "Pearl",
+            amount: "FREE"
+        },
+        {
+            _id:"629a98a5a881575c013b5326",
+            subscriptionName: "Ruby",
+            amount: "FREE"
+        },
+        {
+            _id:"629a98a5a881575c013b5327",
+            subscriptionName: "Emerald",
+            amount: "FREE"
+        },
+        {
+            _id:"629a98a5a881575c013b5328",
+            subscriptionName: "Diamond",
+            amount: "FREE"
+        },
+    ];
+    
+    subscription.map(subs => {
+        Subscription.create(subs)
+    })
+
+    res.json("subs created")
 }

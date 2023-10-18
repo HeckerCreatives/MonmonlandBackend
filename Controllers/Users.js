@@ -3,68 +3,98 @@ const bcrypt = require('bcrypt')
 const Roles = require('../Models/Roles')
 const TopUpWallet = require("../Models/Topupwallet")
 const PayoutWallet = require("../Models/PayoutWallet")
+var playfab = require('playfab-sdk')
+var PlayFab = playfab.PlayFab
+var PlayFabClient = playfab.PlayFabClient
+PlayFab.settings.titleId = process.env.monmontitleid;
+// const secretKey = process.env.crypto_secret;
 
+function generateRandomString() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomString = '';
+
+  for (let i = 0; i < 12; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    randomString += characters[randomIndex];
+  }
+
+  return randomString;
+}
 
 module.exports.userRegister = async (request, response) => {
     const {firstName,lastName,userName,email,password, roleId, referrerId, phone} = request.body
 
-    try{
-        await User.findOne({email: email})
-        .then(result => {
-            if(result !== null){
-                response.send(false)
-            } else {
-            // Create user
-            const newUser = new User({
-                roleId: roleId,
-                referrerId: referrerId,
-                firstName: firstName,
-                lastName: lastName,
-                userName: userName,
-                email:email,
-                phone: phone,
-                password: password
+    const playFabUserData = {
+      CreateAccount: true,            
+      CustomId: generateRandomString(16),           
+    };
+
+    PlayFabClient.LoginWithCustomID(playFabUserData, async (error, result) =>{
+        if(result){
+          try{
+            await User.findOne({email: email})
+            .then(result => {
+                if(result !== null){
+                    response.send(false)
+                } else {
+                // Create user
+                const newUser = new User({
+                    roleId: roleId,
+                    referrerId: referrerId,
+                    firstName: firstName,
+                    lastName: lastName,
+                    userName: userName,
+                    email:email,
+                    phone: phone,
+                    password: password,
+                    playfabid: playFabUserData.CustomId
+                })
+                
+                // Save new user
+                newUser.save()
+                .then(save => {
+                  
+                  const topupwallet = {
+                    amount: 0,
+                    name: "manual",
+                    user: save._id
+                  }
+    
+                  TopUpWallet.create(topupwallet)
+    
+                  const payoutwalletprocess = [
+                    {
+                    amount: 0,
+                    name: "process",
+                    user: save._id
+                    },
+                    {
+                      amount: 0,
+                      name: "done",
+                      user: save._id
+                    },
+                  ]
+    
+                  PayoutWallet.create(payoutwalletprocess)
+    
+                 
+    
+                 response.send(save)
+                })
+                
+                }
             })
             
-            // Save new user
-            newUser.save()
-            .then(save => {
-              
-              const topupwallet = {
-                amount: 0,
-                name: "manual",
-                user: save._id
-              }
+          }
+            catch (error){
+                return response.send(error)
+          }
+        } else if (error) {
+            return response.send(error)
+        }
+    })
 
-              TopUpWallet.create(topupwallet)
-
-              const payoutwalletprocess = [
-                {
-                amount: 0,
-                name: "process",
-                user: save._id
-                },
-                {
-                  amount: 0,
-                  name: "done",
-                  user: save._id
-                },
-              ]
-
-              PayoutWallet.create(payoutwalletprocess)
-
-             
-
-             response.send(save)
-            })
-            
-            }
-        })
-        
-    }
-    catch (error){
-        return response.send(error)
-    }
+    
 }
 
 module.exports.referral = (request, response) => {
