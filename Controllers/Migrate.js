@@ -10,6 +10,8 @@ const AdminFeeWallet = require("../Models/Adminfeewallet")
 const Monmoncoin = require("../Models/Monmoncoin")
 const Totalusers = require("../Models/Totalusers")
 const Wallets = require("../Models/Wallets")
+const SubsAccumulated = require("../Models/SubsAccumulated")
+const Merchandise = require("../Models/Merchandise")
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -101,17 +103,12 @@ module.exports.migratedata = (request, response) => {
         {
             _id: "629a98a5a881575c013b5337",
             amount: 0,
-            name: "request"
+            name: "manual"
         },
         {
             _id: "629a98a5a881575c013b5338",
             amount: 0,
-            name: "process"
-        },
-        {
-            _id: "629a98a5a881575c013b5339",
-            amount: 0,
-            name: "done"
+            name: "automatic"
         },
 
     ]
@@ -198,6 +195,46 @@ module.exports.migratedata = (request, response) => {
     }
 
     Wallets.create(commiwallet)
+
+    const subsaccudata = [
+        {  
+            _id: "629a98a5a881575c013b5350",
+            subsname: "pearl",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5351",
+            subsname: "ruby",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5352",
+            subsname: "emerald",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5353",
+            subsname: "diamond",
+            amount: 0
+        },
+    ]
+
+    SubsAccumulated.create(subsaccudata )
+
+    const merchandisedata = [
+        {
+            _id: "629a98a5a881575c013b5354",
+            item: "tools",
+            amount: 0,
+        },
+        {
+            _id: "629a98a5a881575c013b5355",
+            item: "clock",
+            amount: 0,
+        },
+    ]
+
+    Merchandise.create(merchandisedata)
 
     response.json('Data migration created')
 

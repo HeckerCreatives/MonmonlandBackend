@@ -29,6 +29,7 @@ const Subsaccu = require("./Routes/SubsAccumulated")
 const Merchandise = require("./Routes/Merchandise")
 const Totalusers = require("./Routes/Totalusers")
 const Monmoncoin = require("./Routes/Monmoncoin")
+const Apk = require("./Routes/Apk")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -88,8 +89,9 @@ app.use("/subsaccu", Subsaccu)
 app.use("/merchandise", Merchandise)
 app.use("/totalusers", Totalusers)
 app.use("/monmoncoin", Monmoncoin)
+app.use("/apk", Apk)
 app.use(BinancePay);
-
+app.use("/uploads", express.static("uploads"))
 const apiUrl = process.env.worldtimeapi
 
 app.get('/phtime', async (req, res) => {

@@ -36,8 +36,17 @@ router.post("/funds", async (req, res) => {
   const {amount} = req.body;
   let randomid = generateRandomString();
   const encryptxt = encryptString(randomid, secretKey);
+  let logo;
   
-  
+  if(amount === 20){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733307/20_t5tqcy.png"
+  } else if(amount === 50){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733307/50_wo8mpy.png"
+  } else if (amount === 100){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733308/100_cmpd73.png"
+  } else if (amount === 200){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733308/200_ziswjx.png"
+  }
   
   let data = new Charge({
       "name": `$${amount} Top up`,
@@ -54,7 +63,7 @@ router.post("/funds", async (req, res) => {
       },
       "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
       "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
-      "logo_url": "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697722966/393774555_850512899855511_651036443217733491_n_u3zonx.png"
+      "logo_url": logo
     });
     
     
@@ -87,12 +96,14 @@ router.post("/bundles", async (req, res) => {
   let logo;
   const encryptxt = encryptString(randomid, secretKey);
   
-  if(subs === "ruby"){
-    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
-  } else if (subs === "emerald"){
-    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414673/ecdrzy1t31uiw7cjjtfa.png"
-  } else if (subs === "diamond"){
-    logo = "https://res.cloudinary.com/commerce/image/upload/v1694414734/n9rci7fftx3ggpzv4sbp.png"
+  if(subs === "ironpack"){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733307/30_qerm0z.png"
+  } else if (subs === "steelpack"){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733307/65_iqxwuk.png"
+  } else if (subs === "mithrilpack"){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733308/120_zjjydy.png"
+  } else if (subs === "adamantpack"){
+    logo = "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697733307/180_ku6vle.png"
   }
   
   let data = new Charge({

@@ -34,42 +34,36 @@ exports.process = (req, res) => {
     .then(async data =>{
         if(data[0].status === "pending"){
             PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.LoginWithCustomID(playFabUserData, (error, result) => {
-                if(result){
-                    PlayFabClient.ExecuteCloudScript({
-                        FunctionName: "ProceessPayout",
-                        FunctionParameter: {
-                            processType: "Processing",
-                            playerId: data[0].playfabId,
-                            processId: data[0].playfabPayoutKey,
-                        },
-                        ExecuteCloudScript: true,
-                        GeneratePlayStreamEvent: true,
-                    }, (error1, result1) => {
-                        if(result1.data.FunctionResult.message === "success"){
-                            Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
+            PlayFabClient.ExecuteCloudScript({
+                FunctionName: "ProceessPayout",
+                FunctionParameter: {
+                    processType: "Processing",
+                    playerId: data[0].playfabId,
+                    processId: data[0].playfabPayoutKey,
+                },
+                ExecuteCloudScript: true,
+                GeneratePlayStreamEvent: true,
+            }, (error1, result1) => {
+                if(result1.data.FunctionResult.message === "success"){
+                    Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
+                    .then(() => {
+                        PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
+                        .then(() => {
+                            PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
+                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
-                                    PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: data[0].amount}})
-                                    .then(() => {
-                                        PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
-                                        .then(() => {
-                                            res.json({message: "success"})
-                                        })
-                                    })
-                                    .catch(error => res.status(400).json({error: error.message}))
+                                    res.json({message: "success"})
                                 })
-                                .catch(error => res.status(400).json({error: error.message}))
                             })
                             .catch(error => res.status(400).json({error: error.message}))
-                        } else if (result1.data.FunctionResult.message === "failed"){
-                            res.json({message: "failed", data: data.data})
-                        } else if (error1){
-                            res.json({message: "failed", data: error})
-                        }
+                        })
+                        .catch(error => res.status(400).json({error: error.message}))
                     })
-                } else if (error){
+                    .catch(error => res.status(400).json({error: error.message}))
+                } else if (result1.data.FunctionResult.message === "failed"){
+                    res.json({message: "failed", data: data.data})
+                } else if (error1){
                     res.json({message: "failed", data: error})
                 }
             })
