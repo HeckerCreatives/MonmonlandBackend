@@ -46,26 +46,30 @@ const socket = io => {
     }
 
     socket.on("joinroom", (data) => {
-      const { roomid, playfabid, username, transaction, reconnect, oldsocket } = data;
+      const { roomid, playfabid, username, transaction, reconnect, oldsocket, isplayer } = data;
       User.findOne({userName: username})
       .then(data => {
-        if(data){
-          if(data.roleId.toString() === process.env.subadminrole || data.roleId.toString() === process.env.csrrole){
-            UpgradeSubscription.find({userId: data._id})
-            .populate({path: "userId"})
-            .then((cashier) => {
-              const item = cashier.filter(item => !item.deletedAt)
-              roomlist[roomid] = {
-                id: socket.id,
-                user: username, 
-                item,
-              }
-              adminroomowner[socket.id] = {roomid: roomid}
-              playerlist[roomid] = []
-              socket.join(roomid);
-              socket.to("lobby").emit("sendroomlist", roomlist)
-            })
-            
+        console.log("hi")
+        console.log(data)
+        if(!isplayer){
+          if(data){
+            if(data.roleId.toString() === process.env.subadminrole || data.roleId.toString() === process.env.csrrole){
+              UpgradeSubscription.find({userId: data._id})
+              .populate({path: "userId"})
+              .then((cashier) => {
+                const item = cashier.filter(item => !item.deletedAt)
+                roomlist[roomid] = {
+                  id: socket.id,
+                  user: username, 
+                  item,
+                }
+                adminroomowner[socket.id] = {roomid: roomid}
+                playerlist[roomid] = []
+                socket.join(roomid);
+                socket.to("lobby").emit("sendroomlist", roomlist)
+              })
+              
+            }
           }
         } else {
           if(!reconnect){
@@ -89,18 +93,20 @@ const socket = io => {
             playerrooms[socket.id] = {room: roomid}
             
           } else {
+            console.log("qwe")
             if(!roomlist.hasOwnProperty(roomid)){
               socket.emit("forcekick")
               return
             }
             
            const queuePosition = playerlist[roomid].findIndex((object) => oldsocket in object)
-
+            console.log(queuePosition)
            if(queuePosition <= -1){
             socket.emit("forcekick")
             return
            }
           }
+          console.log("hello")
           socket.join(roomid)
           getQueNumber(roomid, socket.id, oldsocket);
         }
