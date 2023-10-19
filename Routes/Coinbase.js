@@ -54,7 +54,7 @@ router.post("/funds", async (req, res) => {
       },
       "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
       "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
-      "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
+      "logo_url": "https://res.cloudinary.com/dykvp9i3v/image/upload/v1697722966/393774555_850512899855511_651036443217733491_n_u3zonx.png"
     });
     
     
@@ -137,14 +137,15 @@ router.post("/bundles", async (req, res) => {
 router.post("/ruby", async (req, res) => {
     const name = req.body.name;
     const playfabId = req.body.playfabId;
-    const quantity = req.body.quantity;
+    // const quantity = req.body.quantity;
+    const playfabToken = req.body.playfabToken
     let amount;
     let randomid = generateRandomString();
     const encryptxt = encryptString(randomid, secretKey);
     
     await Subscription.findOne({subscriptionName: "Ruby"})
     .then(data => {
-        amount = data.amount * quantity;
+        amount = data.amount;
     })
     
     let data = new Charge({
@@ -161,7 +162,7 @@ router.post("/ruby", async (req, res) => {
           "receiptId": randomid,
         },
         "redirect_url": `${process.env.API_URL}coin/success?id=${encryptxt}`,
-      "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
+        "cancel_url": `${process.env.API_URL}coin/cancel?id=${encryptxt}`,
         "logo_url": "https://res.cloudinary.com/commerce/image/upload/v1694414488/kriawk9fv7yvdayongng.png"
       });
       
@@ -172,8 +173,9 @@ router.post("/ruby", async (req, res) => {
           orderCode: response.code,
           username: response.metadata.customer_name,
           playerPlayfabId: response.metadata.customer_id,
-          subscriptionType: "1",
+          subscriptionType: "ruby",
           amount: response.pricing.local.amount,
+          playfabToken: playfabToken
         })
 
         if (response && response.id) {
@@ -189,7 +191,7 @@ router.post("/ruby", async (req, res) => {
 router.post("/emerald", async (req, res) => {
   const name = req.body.name;
   const playfabId = req.body.playfabId;
-  const quantity = req.body.quantity;
+  // const quantity = req.body.quantity;
   const playfabToken = req.body.playfabToken
   let amount;
   let randomid = generateRandomString();
@@ -197,7 +199,7 @@ router.post("/emerald", async (req, res) => {
   
   await Subscription.findOne({subscriptionName: "Emerald"})
   .then(data => {
-      amount = data.amount * quantity;
+      amount = data.amount;
   })
   
   let data = new Charge({
@@ -225,7 +227,7 @@ router.post("/emerald", async (req, res) => {
         orderCode: response.code,
         username: response.metadata.customer_name,
         playerPlayfabId: response.metadata.customer_id,
-        subscriptionType: "2",
+        subscriptionType: "emerald",
         amount: response.pricing.local.amount,
         playfabToken: playfabToken
       })
@@ -242,14 +244,15 @@ router.post("/emerald", async (req, res) => {
 router.post("/diamond", async (req, res) => {
   const name = req.body.name;
   const playfabId = req.body.playfabId;
-  const quantity = req.body.quantity;
+  // const quantity = req.body.quantity;
+  const playfabToken = req.body.playfabToken
   let amount;
   let randomid = generateRandomString();
   const encryptxt = encryptString(randomid, secretKey)
   
   await Subscription.findOne({subscriptionName: "Diamond"})
   .then(data => {
-      amount = data.amount * quantity;
+      amount = data.amount;
   })
   
   let data = new Charge({
@@ -279,6 +282,7 @@ router.post("/diamond", async (req, res) => {
         playerPlayfabId: response.metadata.customer_id,
         subscriptionType: "3",
         amount: response.pricing.local.amount,
+        playfabToken: playfabToken
       })
 
       if (response && response.id) {

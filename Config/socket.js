@@ -49,8 +49,6 @@ const socket = io => {
       const { roomid, playfabid, username, transaction, reconnect, oldsocket, isplayer } = data;
       User.findOne({userName: username})
       .then(data => {
-        console.log("hi")
-        console.log(data)
         if(!isplayer){
           if(data){
             if(data.roleId.toString() === process.env.subadminrole || data.roleId.toString() === process.env.csrrole){
@@ -93,20 +91,17 @@ const socket = io => {
             playerrooms[socket.id] = {room: roomid}
             
           } else {
-            console.log("qwe")
             if(!roomlist.hasOwnProperty(roomid)){
               socket.emit("forcekick")
               return
             }
             
            const queuePosition = playerlist[roomid].findIndex((object) => oldsocket in object)
-            console.log(queuePosition)
            if(queuePosition <= -1){
             socket.emit("forcekick")
             return
            }
           }
-          console.log("hello")
           socket.join(roomid)
           getQueNumber(roomid, socket.id, oldsocket);
         }
@@ -116,6 +111,7 @@ const socket = io => {
     });
 
     socket.on("refreshcashierdata", (data) => {
+      console.log(data)
       roomlist[adminroomowner[socket.id]["roomid"]].item[0].numberoftransaction = data.numberoftransaction;
       roomlist[adminroomowner[socket.id]["roomid"]].item[0].paymentcollected = data.paymentcollected;
       socket.to(adminroomowner[socket.id]["roomid"]).emit("admindetails", roomlist[adminroomowner[socket.id]["roomid"]])
@@ -178,8 +174,8 @@ const socket = io => {
     })
 
     socket.on('selectsubs', (data) => {
-      const {id, subs} = data
-      socket.to(id).emit('badge', {item: subs})
+      const {room, subs} = data
+      socket.to(Object.keys(playerlist[room][0])[0]).emit('badge', {item: subs})
     })
 
     socket.on("cancelTransactionAdmin", (data) => {

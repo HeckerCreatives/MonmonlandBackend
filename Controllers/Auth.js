@@ -10,23 +10,32 @@ module.exports.Login = (request, response) => {
         path: "roleId",
         select: "display_name"
     })
-    .then(user => {
-        if (!user){
-            return response.send(false)
-        } else {
-            const isPasswordCorrect = bcrypt.compareSync(password, user.password)
-
-            if(isPasswordCorrect){
-                user.token = GenerateToken(user._id)
-                return response.json(user)
+    .then(async user => {
+        if(user && (await user.matchPassword(password))){
+            if (!user){
+                return response.send({ message: "failed", data: "Account Not Found"})
             } else {
-                return response.send(false)
+                let userdata = await User.findByIdAndUpdate(
+                    {_id: user._id},
+                    {$set: {token: GenerateToken(user._id)}},
+                    {new: true}
+                )
+                .select("-password")
+                .populate({
+                    path: "roleId",
+                    select: "display_name"
+                })
+                
+                return response.json({message: "success", data: userdata})
                 
             }
+        } else {
+            return response.json({ message: "failed", data: "Username/Password does not match! Please try again."})
         }
+        
     })
     .catch(error => {
-        return response.send(error)
+        return response.send({ message: "failed", data: error})
     })
 }
 

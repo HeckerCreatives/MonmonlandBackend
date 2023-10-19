@@ -138,6 +138,7 @@ module.exports.updatebuyer = (request, response) => {
         ExecuteCloudScript: true,
         GeneratePlayStreamEvent: true,
       }, (error, result) => {
+        console.log(result)
       if(result.data.FunctionResult.message === "success"){
         UpgradeSubscription.findByIdAndUpdate(
           cashierId,
@@ -170,8 +171,10 @@ module.exports.updatebuyer = (request, response) => {
       }
       else if (error){
         response.status(500).json({ error: error })
+      } else if (result.data.FunctionResult.message === "failed"){
+        response.status(500).json({ error: result.data.FunctionResult.data })
       }
-      else{
+       else{
         response.status(500).json({ error: "failed" })
       }
     })
