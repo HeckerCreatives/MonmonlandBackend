@@ -20,14 +20,35 @@ const socket = io => {
       
       if(oldsocket !== undefined && oldsocket !== null){
         queuePosition = playerlist[roomname].findIndex((object) => oldsocket in object)
-        let olddata = playerlist[roomname][queuePosition]
-        let newdata = {}
-        let newplayerlist = {}
-        newplayerlist[roomname] = playerlist[roomname]
-        newdata[username] = olddata[oldsocket]
-        newplayerlist[roomname].shift()
-        newplayerlist[roomname].unshift(newdata)
-        playerlist[roomname] = newplayerlist[roomname]
+
+        if(queuePosition === 0){
+          let olddata = playerlist[roomname][queuePosition]
+          let newdata = {}
+          let newplayerlist = {}
+          newplayerlist[roomname] = playerlist[roomname]
+          newdata[username] = olddata[oldsocket]
+          newplayerlist[roomname].shift()
+          newplayerlist[roomname].unshift(newdata)
+          playerlist[roomname] = newplayerlist[roomname]
+        } else {
+          let olddata = playerlist[roomname][queuePosition]
+          let newdata = {}
+          let newplayerlist = {}
+          newplayerlist[roomname] = playerlist[roomname]
+          newdata[username] = olddata[oldsocket]
+          if(queuePosition == -1){
+            playerlist[roomname].splice(queuePosition, 1);
+            socket.emit("forcekick")
+            return
+          }
+           // Use splice to remove the element to delete
+          playerlist[roomname].splice(queuePosition, 1);
+          // Use splice again to add the new element at the specified index
+          playerlist[roomname].splice(queuePosition, 0, newdata);
+          console.log(playerlist[roomname])
+
+        }
+        
       } else {
         queuePosition = playerlist[roomname].findIndex((object) => username in object)
       }
@@ -248,6 +269,15 @@ const socket = io => {
         
       // }
       
+    })
+
+    socket.on("leaveroom", (data) => {
+      const {currentsocket, room} = data
+      queuePosition = playerlist[room].findIndex((object) => currentsocket in object)
+      playerlist[room].splice(queuePosition, 1);
+      socket.to(room).emit("donegetlist")
+      socket.emit("cancelque")
+     
     })
 
   })

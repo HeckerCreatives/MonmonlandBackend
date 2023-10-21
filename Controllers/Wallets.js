@@ -51,3 +51,13 @@ exports.sendcommission = async (req, res) => {
     }
     session.endSession();
 }
+
+exports.find = (req, res) => {
+  const {id} = req.body;
+  Wallets.find({userId: id})
+  .then(data => {
+    res.json({message: "success", data: data})
+  })
+  .catch(error => res.status(400).json({ error: error.message }))
+}
+
