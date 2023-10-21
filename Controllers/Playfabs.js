@@ -15,47 +15,45 @@ exports.registration = (req, res) => {
         Password: password,
         Email: email
     };
-
-    const login = {
-        Username: username,            
-        Password: password,  
-    }
-
+    
     PlayFabClient.RegisterPlayFabUser(playFabUserData, (error, result) => {
         if(result){
-            
-            PlayFabClient.LoginWithPlayFab(login, (error1, result1) => {
-                
-                if(result1){
-                    PlayFabClient.ExecuteCloudScript({
-                        FunctionName: "FinishRegistration",
-                        FunctionParameter: {
-                            sponsor: sponsor,
-                            phone: phone,
-                            email: email,
-                            playerUsername: username,
-                        },
-                        ExecuteCloudScript: true,
-                        GeneratePlayStreamEvent: true,
-                    }, async (error2, result2) => {
-                        if(result2.data.FunctionResult.message !== "success"){
+            PlayFab._internalSettings.sessionTicket = result.data.SessionTicket;
+            PlayFabClient.ExecuteCloudScript({
+                FunctionName: "FinishRegistration",
+                FunctionParameter: {
+                    sponsor: sponsor,
+                    phone: phone,
+                    email: email,
+                    playerUsername: username,
+                },
+                ExecuteCloudScript: true,
+                GeneratePlayStreamEvent: true,
+            }, async (error2, result2) => {
+                if(result2.data.FunctionResult.message !== "success"){
 
-                            PlayFabAdmin.DeleteMasterPlayerAccount({PlayFabId: result.data.PlayFabId}, (error3, result3) => {
-                                if(result3){
-                                    res.json({message: "failed", data: result2.data.FunctionResult.data})
-                                } else if(error3) {
-                                    res.json({message: "Failed", data: error3.errorMessage})
-                                }
-                            })
-
-                        } else if (error2) {
-                            res.json({message: "failed", data: error2.errorMessage})
-                        } else {
-                            res.json({message: "success"})
+                    PlayFabAdmin.DeleteMasterPlayerAccount({PlayFabId: result.data.PlayFabId}, (error3, result3) => {
+                        if(result3){
+                            res.json({message: "failed", data: "There is a problem in registration of your account please try again"})
+                        } else if(error3) {
+                            res.json({message: "Failed", data: error3.errorMessage})
                         }
                     })
-                } else if (error1) {
-                    res.json({message: "failed", data: error1.errorMessage})
+
+                } else if (error2) {
+
+                    PlayFabAdmin.DeleteMasterPlayerAccount({PlayFabId: result.data.PlayFabId}, (error3, result3) => {
+                        if(result3){
+                            res.json({message: "failed", data: "There is a problem in registration of your account please try again"})
+                        } else if(error3) {
+                            res.json({message: "Failed", data: error3.errorMessage})
+                        }
+                    })
+
+                    res.json({message: "failed", data: error2.errorMessage})
+                    
+                } else {
+                    res.json({message: "success"})
                 }
             })
 

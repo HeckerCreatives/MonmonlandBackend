@@ -192,7 +192,7 @@ module.exports.update = (request, response) => {
         .then((data) => response.json(data))
         .catch((error) => response.status(400).json({ error: error.message }));
     }
-  };
+};
   
   
 module.exports.getOneUser = (request, response) => {
