@@ -12,6 +12,7 @@ const Totalusers = require("../Models/Totalusers")
 const Wallets = require("../Models/Wallets")
 const SubsAccumulated = require("../Models/SubsAccumulated")
 const Merchandise = require("../Models/Merchandise")
+const withdrawal = require("../Models/Withdrawalfee")
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -244,6 +245,15 @@ module.exports.migratedata = (request, response) => {
 
     Merchandise.create(merchandisedata)
 
+    const withdrawfee =  {
+        _id: "629a98a5a881575c013b5358",
+        userId: "64672f8f6d8526e7eed1759b",
+        withdrawalfee: 0,
+        
+    }
+       
+    withdrawal.create(withdrawfee)
+
     response.json('Data migration created')
 
 }
@@ -387,4 +397,16 @@ exports.subs = (req, res) => {
     })
 
     res.json("subs created")
+}
+
+exports.withdrawfee = (req, res) => {
+    const withdrawfee =  {
+        _id: "629a98a5a881575c013b5358",
+        userId: "64672f8f6d8526e7eed1759b",
+        withdrawalfee: 0,
+        
+    }
+       
+    withdrawal.create(withdrawfee)
+    res.json("withdrawl fee wallet created")
 }

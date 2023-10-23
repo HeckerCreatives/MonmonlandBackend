@@ -11,4 +11,5 @@ router.post("/moncoin", Migrate.monmoncoin)
 router.post("/totaluser", Migrate.totalusers)
 router.post("/commiwallet", Migrate.admincommi)
 router.post("/subs", Migrate.subs)
+router.post("/withdraw", Migrate.withdrawfee)
 module.exports = router;
