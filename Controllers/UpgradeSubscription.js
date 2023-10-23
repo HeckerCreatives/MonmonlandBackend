@@ -139,52 +139,61 @@ module.exports.updatebuyer = (request, response) => {
         GeneratePlayStreamEvent: true,
       }, (error, result) => {
         console.log(result)
-      if(result.data.FunctionResult.message === "success"){
-        UpgradeSubscription.findByIdAndUpdate(
-          cashierId,
-          { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
-          { new: true }
-        ) 
-        .then((upgradeSubscription) => {
+        
+        if(result){
 
-          let paydata = {
-            cashier: request.body.cashier,
-            image: request.file.path,
-            clientusername: request.body.clientusername,
-            price: request.body.price
+          if(!result.hasOwnProperty("data")){
+            return  response.json({message: "failed", data: result})
           }
 
-          PaymentHistory.findByIdAndUpdate(
-            request.params.id,
-            paydata,
-            { new: true }
-          ).then(history => {
-  
-            TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
-            .then(() => {
-              TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
-              .then(() => {
-                AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
-                .then(()=> {
-                  response.json({userhistory: history, roomdetails: upgradeSubscription})
+          if(result.data.FunctionResult.message === "success"){
+            UpgradeSubscription.findByIdAndUpdate(
+              cashierId,
+              { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
+              { new: true }
+            ) 
+            .then((upgradeSubscription) => {
+    
+              let paydata = {
+                cashier: request.body.cashier,
+                image: request.file.path,
+                clientusername: request.body.clientusername,
+                price: request.body.price
+              }
+    
+              PaymentHistory.findByIdAndUpdate(
+                request.params.id,
+                paydata,
+                { new: true }
+              ).then(history => {
+      
+                TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
+                .then(() => {
+                  TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
+                  .then(() => {
+                    AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
+                    .then(()=> {
+                      response.json({userhistory: history, roomdetails: upgradeSubscription})
+                    })
+                    .catch((error) => response.status(500).json({ error: error.message }));
+                  })
+                  .catch((error) => response.status(500).json({ error: error.message }));
                 })
                 .catch((error) => response.status(500).json({ error: error.message }));
               })
-              .catch((error) => response.status(500).json({ error: error.message }));
             })
             .catch((error) => response.status(500).json({ error: error.message }));
-          })
-        })
-        .catch((error) => response.status(500).json({ error: error.message }));
-      }
-      else if (error){
-        response.status(500).json({ error: error })
-      } else if (result.data.FunctionResult.message === "failed"){
-        response.status(500).json({ error: result.data.FunctionResult.data })
-      }
-       else{
-        response.status(500).json({ error: "failed" })
-      }
+          }
+           else if (result.data.FunctionResult.message === "failed"){
+            response.status(500).json({ error: result.data.FunctionResult.data })
+          }
+           else{
+            response.status(500).json({ error: "failed" })
+          }
+        } else if (error){
+          response.status(500).json({ error: error })
+        }
+      
     })
       
 };
