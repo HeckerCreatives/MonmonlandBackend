@@ -137,10 +137,10 @@ const socket = io => {
 
     });
 
-    socket.on("refreshcashierdata", (data) => {
-      console.log(data)
-      roomlist[adminroomowner[socket.id]["roomid"]].item[0].numberoftransaction = data.numberoftransaction;
-      roomlist[adminroomowner[socket.id]["roomid"]].item[0].paymentcollected = data.paymentcollected;
+    socket.on("refreshcashierdata", () => {
+      // console.log(data)
+      // roomlist[adminroomowner[socket.id]["roomid"]].item[0].numberoftransaction = data.numberoftransaction;
+      // roomlist[adminroomowner[socket.id]["roomid"]].item[0].paymentcollected = data.paymentcollected;
       socket.to(adminroomowner[socket.id]["roomid"]).emit("admindetails", roomlist[adminroomowner[socket.id]["roomid"]])
       socket.to("lobby").emit("sendroomlist", roomlist)
     })
