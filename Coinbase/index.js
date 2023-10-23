@@ -1,5 +1,6 @@
 const AutoReceipt = require("../Models/Receiptautomated.js")
 const TopUpWallet = require("../Models/Topupwallet.js")
+const User = require("../Models/Users.js")
 var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
@@ -68,7 +69,6 @@ module.exports.success = (req, res) => {
         res.header("Location", "https://monmonland.games/")
         return res.send("This Order is already proccessed.")
       }
-
       PlayFab._internalSettings.sessionTicket = item.playfabToken;
       PlayFabClient.ExecuteCloudScript({
         FunctionName: "Topup",
@@ -126,9 +126,51 @@ exports.find = (req,res) => {
 
 exports.findtopup = (req,res) => {
   const {name} = req.body;
-  TopUpWallet.findOne({name: name})
+  TopUpWallet.find({user: process.env.superadminid, name: name})
   .then(item => {
     res.json({message: "success", data: item})
   })
   .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+exports.agentmanualtopupwallet = (req,res) => {
+  const {adminId, name} = req.body;
+  TopUpWallet.find({user: adminId, name: name})
+  .then(item => {
+    res.json({message: "success", data: item})
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+// wallet creation for existing user
+exports.createexsisting = async (req, res) => {
+  try {
+      // Fetch all existing users from your User model
+      const existingUsers = await User.find({})
+  
+      // Loop through each user and create a wallet for them
+      for (const user of existingUsers) {
+
+        if(user.userName !== "superadmin"){
+          const walletData = {
+            amount: 0,
+            name: "manual",
+            user: user._id
+          }
+
+          // Create a new wallet document for the user
+        const wallet = new TopUpWallet(walletData);
+  
+        // Save the wallet document to the database
+        await wallet.save();
+        }
+       
+        
+      }
+  
+      res.status(201).json({ message: 'Topup Manual Wallets created for existing users' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
 }
