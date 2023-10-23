@@ -310,6 +310,6 @@ router.get("/success", Coin.success)
 router.get("/cancel", Coin.cancel)
 router.post("/find", Coin.find)
 router.post("/topupwallet", Coin.findtopup)
-
-
+router.post("/agentmanualwallet", Coin.agentmanualtopupwallet)
+router.post("/createexisting", Coin.createexsisting)
 module.exports = router

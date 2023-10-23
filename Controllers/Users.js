@@ -73,6 +73,11 @@ module.exports.userRegister = async (request, response) => {
                       name: "done",
                       user: save._id
                     },
+                    {
+                      amount: 0,
+                      name: "reject",
+                      user: save._id
+                    },
                   ]
     
                   PayoutWallet.create(payoutwalletprocess)

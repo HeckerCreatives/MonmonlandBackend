@@ -18,3 +18,4 @@ exports.create = (req,res) => {
     .then(() => res.json({message: "success"}))
     .catch(err => res.json({message: "failed", data: err}))
 }
+

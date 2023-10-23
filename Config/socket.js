@@ -94,6 +94,12 @@ const socket = io => {
           if(!reconnect){
             let list = [];
             let newItem = {}
+
+            if(!playerlist.hasOwnProperty(roomid)){
+              socket.emit("forcekick")
+              return
+            }
+
             if(Object.keys(playerlist[roomid]).length !== 0){
               list = playerlist[roomid]
             }

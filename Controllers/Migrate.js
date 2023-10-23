@@ -103,12 +103,14 @@ module.exports.migratedata = (request, response) => {
         {
             _id: "629a98a5a881575c013b5337",
             amount: 0,
-            name: "manual"
+            name: "manual",
+            user: "64672f8f6d8526e7eed1759b"
         },
         {
             _id: "629a98a5a881575c013b5338",
             amount: 0,
-            name: "automatic"
+            name: "automatic",
+            user: "64672f8f6d8526e7eed1759b"
         },
 
     ]
@@ -132,6 +134,12 @@ module.exports.migratedata = (request, response) => {
             _id: "629a98a5a881575c013b5341",
             amount: 0,
             name: "done",
+            user: "64672f8f6d8526e7eed1759b"
+        },
+        {
+            _id: "629a98a5a881575c013b5342",
+            amount: 0,
+            name: "reject",
             user: "64672f8f6d8526e7eed1759b"
         },
 
@@ -245,12 +253,14 @@ exports.topupwallet = (req, response) => {
         {
             _id: "629a98a5a881575c013b5337",
             amount: 0,
-            name: "manual"
+            name: "manual",
+            user: "64672f8f6d8526e7eed1759b"
         },
         {
             _id: "629a98a5a881575c013b5338",
             amount: 0,
-            name: "automatic"
+            name: "automatic",
+            user: "64672f8f6d8526e7eed1759b"
         },
 
     ]
@@ -280,12 +290,16 @@ exports.payoutwallet = (req, response) => {
             name: "done",
             user: "64672f8f6d8526e7eed1759b"
         },
+        {
+            _id: "629a98a5a881575c013b5342",
+            amount: 0,
+            name: "reject",
+            user: "64672f8f6d8526e7eed1759b"
+        },
 
     ]
 
     PayoutWallet.create(topup)
-
-    
 
     response.json("payoutwallet created.")
 }

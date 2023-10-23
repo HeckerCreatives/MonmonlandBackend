@@ -146,9 +146,17 @@ module.exports.updatebuyer = (request, response) => {
           { new: true }
         ) 
         .then((upgradeSubscription) => {
+
+          let paydata = {
+            cashier: request.body.cashier,
+            image: request.file.path,
+            clientusername: request.body.clientusername,
+            price: request.body.price
+          }
+
           PaymentHistory.findByIdAndUpdate(
             request.params.id,
-            request.body,
+            paydata,
             { new: true }
           ).then(history => {
   
