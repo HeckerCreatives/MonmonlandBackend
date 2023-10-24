@@ -1,10 +1,10 @@
 const express =  require("express")
 const router = express.Router();
 const Playfabs = require("../Controllers/Playfabs");
-const { protect, gameprotect } = require("../Middleware");
+// const { protect, gameprotect } = require("../Middleware/index");
 
 
-router.post("/register" , Playfabs.registration)
+router.post("/register", Playfabs.registration)
 
 
 

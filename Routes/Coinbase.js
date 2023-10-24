@@ -10,6 +10,7 @@ const Subscription = require("../Models/Subscription")
 const AutoReceipt = require("../Models/Receiptautomated")
 const crypto = require('crypto');
 const secretKey = process.env.crypto_secret;
+const { protect } = require("../Middleware/index")
 
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -309,7 +310,7 @@ router.post("/diamond", async (req, res) => {
 router.get("/success", Coin.success)
 router.get("/cancel", Coin.cancel)
 router.post("/find", Coin.find)
-router.post("/topupwallet", Coin.findtopup)
-router.post("/agentmanualwallet", Coin.agentmanualtopupwallet)
+router.post("/topupwallet", protect, Coin.findtopup)
+router.post("/agentmanualwallet", protect, Coin.agentmanualtopupwallet)
 router.post("/createexisting", Coin.createexsisting)
 module.exports = router

@@ -3,15 +3,15 @@ User = require("../Models/Users");
 
 exports.protect = (req, res, next) => {
   let token = req.headers.authorization;
-  let headerpart = token.split(' ')[1]
+  let headerpart = token.split(" ")[1]
   if(!token){
       res.status(401).json("You are not authorized")
   } else {
       if (token.startsWith("Bearer")){
           // decode dito
           jwt.verify(
-              token.split(' ')[1],
-              process.env.JWT_SECRET_KEY,
+              token.split(" ")[1],
+              process.env.JWT_SECRET,
               async (err, response) => {
                   if (err && err.name){
                       res.status(401).json({expired: "Your token is expired, you are not authorized"})
@@ -35,7 +35,7 @@ exports.protect = (req, res, next) => {
 
 exports.gameprotect = (req, res, next) => {
   const token = req.headers.authorization;
- 
+  
   if(!token){
     res.status(401).json({message: "Not authorized, fake token"});
   } else {

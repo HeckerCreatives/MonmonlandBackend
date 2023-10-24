@@ -2,17 +2,17 @@ const express = require("express");
 const router = express.Router();
 const UpgradeSubscription = require("../Controllers/UpgradeSubscription")
 const upload = require("../Middleware/receiptupload")
-
+const { protect } = require("../Middleware/index")
 const receiptimg = upload.single("file")
 
-router.post("/add", UpgradeSubscription.add)
+router.post("/add", protect, UpgradeSubscription.add)
 router.post("/addbuyer", UpgradeSubscription.addbuyer)
 router.get("/find", UpgradeSubscription.getAll)
 router.get("/findbuyer", UpgradeSubscription.getAllbuyer)
 router.get('/findone/:id', UpgradeSubscription.getOneUser)
-router.put("/update/:id", UpgradeSubscription.update)
+router.put("/update/:id", protect, UpgradeSubscription.update)
 
-router.put("/updatebuyer/:id", function (req, res, next){
+router.put("/updatebuyer/:id", protect, function (req, res, next){
     receiptimg(req, res, function(err) {
         if (err){
             return res.status(400).send({ message: "failed", data: err.message })
@@ -22,14 +22,14 @@ router.put("/updatebuyer/:id", function (req, res, next){
     })
 }, UpgradeSubscription.updatebuyer)
 
-router.delete("/:id/destroy", UpgradeSubscription.destroy);
-router.delete("/:id/destroybuyer", UpgradeSubscription.destroybuyer);
-router.delete("/destroymultiple", UpgradeSubscription.destroymultiple);
+router.delete("/:id/destroy", protect, UpgradeSubscription.destroy);
+router.delete("/:id/destroybuyer", protect, UpgradeSubscription.destroybuyer);
+router.delete("/destroymultiple", protect, UpgradeSubscription.destroymultiple);
 router.post('/filterpayment', UpgradeSubscription.paymentfilter);
 router.post('/searchcashier', UpgradeSubscription.searchcashier);
-router.post('/autoreceipt', UpgradeSubscription.findcoinbasereceipt);
-router.post("/iscashier", UpgradeSubscription.iscashier)
-router.get("/adminfee", UpgradeSubscription.findadminfee)
+router.post('/autoreceipt', protect, UpgradeSubscription.findcoinbasereceipt);
+router.post("/iscashier", protect, UpgradeSubscription.iscashier)
+router.get("/adminfee", protect, UpgradeSubscription.findadminfee)
 
 
 module.exports = router;

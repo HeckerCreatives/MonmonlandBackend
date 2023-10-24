@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Monmoncoin = require("../Controllers/Monmoncoin")
-
-router.post("/updatemc", Monmoncoin.updatemc)
-router.post("/updatemg", Monmoncoin.updatemg)
+const { gameprotect } = require("../Middleware/index")
+router.post("/updatemc", gameprotect, Monmoncoin.updatemc)
+router.post("/updatemg", gameprotect, Monmoncoin.updatemg)
 router.post("/find", Monmoncoin.find)
 module.exports = router;
