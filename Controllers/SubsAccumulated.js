@@ -48,3 +48,16 @@ exports.find = (req,res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 }
+
+exports.findtotal = (req, res) => {
+
+    SubsAccumulated.find()
+    .then(data => {
+        let total = 0
+        data.forEach(element => {
+            total += element.amount;
+        });
+        // res.json({message: 'success', data: total})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+}
