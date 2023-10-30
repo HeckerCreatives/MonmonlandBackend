@@ -2,6 +2,7 @@ const SubsAccumulated = require("../Models/SubsAccumulated")
 const SubscriptionUser = require ("../Models/SubscriptionUser")
 const Monmoncoin = require("../Models/Monmoncoin")
 const Communityactivity = require("../Models/Communityactivity")
+const Gameactivity = require("../Models/Gameactivity")
 exports.create = (req, res) => {
 
     const data = [
@@ -78,20 +79,24 @@ exports.findtotal = (req, res) => {
             total += element.amount;
         });
         Monmoncoin.findOne({name: "Monster Coin"})
-        .then((mc) => {
+        .then(async (mc) => {
+            await Gameactivity.findOne()
+            .then(header => {
+                let grinding = total * 0.08
+                let quest = total * 0.04
+                let headeramount = header.total
 
-            let grinding = total * 0.08
-            let quest = total * 0.04
-
-            let totalIncome = quest + grinding
-            let mcValue = totalIncome / mc.amount;
-
-            let finalData = {
-                "totalIncome": totalIncome,
-                "totalMC": mc.amount,
-                "mcValue": mcValue
-            }
-            res.json({message: "success", data: finalData})
+                let totalIncome = quest + grinding + headeramount
+                let mcValue = totalIncome / mc.amount;
+    
+                let finalData = {
+                    "totalIncome": totalIncome,
+                    "totalMC": mc.amount,
+                    "mcValue": mcValue
+                }
+                res.json({message: "success", data: finalData})
+            })
+            
         })
         .catch(error => response.status(400).json({ error: error.message }));
     })
