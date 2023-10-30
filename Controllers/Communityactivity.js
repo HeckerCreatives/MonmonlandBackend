@@ -9,13 +9,13 @@ exports.mcvalue= (req, res) => {
 
        await Gameactivity.findOne()
        .then( header => {
-            Communityactivity.find({type: "grinding"})
+            Communityactivity.findOne({type: "grinding"})
             .then(grind => {
-                Communityactivity.find({type: "quest"})
+                Communityactivity.findOne({type: "quest"})
                 .then(quest => {
                     const value = grind.amount + quest.amount + header.total
                     const fnal = value / mc.amount
-
+                    console.log(grind)
                     res.json({message: "success", data: fnal})
                 })
                 .catch((error) => res.status(500).json({ error: error.message }));
