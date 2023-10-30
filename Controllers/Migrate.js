@@ -13,6 +13,10 @@ const Wallets = require("../Models/Wallets")
 const SubsAccumulated = require("../Models/SubsAccumulated")
 const Merchandise = require("../Models/Merchandise")
 const withdrawal = require("../Models/Withdrawalfee")
+const Ads = require("../Models/Ads")
+const Leaderboard = require("../Models/Leaderboard")
+const Communityactivity = require("../Models/Communityactivity")
+
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -254,6 +258,41 @@ module.exports.migratedata = (request, response) => {
        
     withdrawal.create(withdrawfee)
 
+    const ads = {
+        _id: "629a98a5a881575c013b5368",
+        amount: 0
+    }
+
+    Ads.create(ads)
+
+    const leaderboard = {
+        _id: "629a98a5a881575c013b5369",
+        amount: 0
+    }
+
+    Leaderboard.create(leaderboard)
+
+    const communityactivity = [
+        {
+            _id: "629a98a5a881575c013b5461",
+            type: "leaderboard",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5462",
+            type: "grinding",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5463",
+            type: "quest",
+            amount: 0
+        },
+
+    ]
+
+    Communityactivity.create(communityactivity)
+
     response.json('Data migration created')
 
 }
@@ -409,4 +448,45 @@ exports.withdrawfee = (req, res) => {
        
     withdrawal.create(withdrawfee)
     res.json("withdrawl fee wallet created")
+}
+
+exports.adsandleaderboard = (req, res) => {
+    const ads = {
+        _id: "629a98a5a881575c013b5368",
+        amount: 0
+    }
+
+    Ads.create(ads)
+
+    const leaderboard = {
+        _id: "629a98a5a881575c013b5369",
+        amount: 0
+    }
+
+    Leaderboard.create(leaderboard)
+
+    res.json("ads and leaderboard created")
+}
+
+exports.communityactivity = (req, res) => {
+    const communityactivity = [
+        {
+            _id: "629a98a5a881575c013b5461",
+            type: "leaderboard",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5462",
+            type: "grinding",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5463",
+            type: "quest",
+            amount: 0
+        },
+
+    ]
+
+    Communityactivity.create(communityactivity)
 }

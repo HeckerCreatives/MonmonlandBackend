@@ -39,22 +39,7 @@ module.exports.update = (request, response) => {
       createdby: createdby
     };
 
-    const playFabUserData = {
-      CreateAccount: false,            
-      CustomId: playfabid,           
-    };
-    
-    PlayFab._internalSettings.sessionTicket = playfabToken;
-    PlayFabClient.ExecuteCloudScript({
-      FunctionName: "SetTotalIncome",
-      FunctionParameter: {
-          totalIncome: enteredamount
-      },
-      ExecuteCloudScript: true,
-      GeneratePlayStreamEvent: true,
-    }, (error1, result1) => {
-      if(result1.data.FunctionResult.message === "success"){
-        Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
+    Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
         .then((updatedData) => {
           // Check if the Gameactivity was successfully updated
           if (updatedData) {
@@ -67,10 +52,6 @@ module.exports.update = (request, response) => {
           }
         })
         .catch((error) => response.status(400).json({ error: error.message }));
-      } else {
-        response.json({message: "failed", data: result1.data.FunctionResult.data})
-      }
-    })
 
     
   };

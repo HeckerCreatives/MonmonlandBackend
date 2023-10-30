@@ -1,5 +1,7 @@
 const SubsAccumulated = require("../Models/SubsAccumulated")
 const SubscriptionUser = require ("../Models/SubscriptionUser")
+const Monmoncoin = require("../Models/Monmoncoin")
+const Communityactivity = require("../Models/Communityactivity")
 exports.create = (req, res) => {
 
     const data = [
@@ -32,9 +34,27 @@ exports.create = (req, res) => {
 exports.update = (req, res) => {
     const {subsname, amount, playfabid,} = req.body;
     SubsAccumulated.findOneAndUpdate({subsname: subsname}, {$inc: {amount: amount}})
-    .then(data => {
+    .then(data1 => {
         SubscriptionUser.findOneAndUpdate({playfabid: playfabid}, {name: subsname}, {new: true})
-        .then(data => res.json({message: "success"}))
+        .then(async data2 => {
+            let total = 0
+            await SubsAccumulated.find()
+            .then(data => {
+                data.forEach(element => {
+                    total += element.amount;
+                });
+            })
+            
+            const leaderboards = total * 0.05
+            const grinding = total * 0.08
+            const quest= total * 0.04
+
+            await Communityactivity.findByIdAndUpdate(process.env.leaderboardsca,{amount: leaderboards})
+            await Communityactivity.findByIdAndUpdate(process.env.grindingca,{amount: grinding})
+            await Communityactivity.findByIdAndUpdate(process.env.questca,{amount: quest})
+
+            res.json({message: "success"})
+        })
         .catch((error) => response.status(500).json({ error: error.message }));
     })
     .catch((error) => res.status(500).json({ error: error.message }));
@@ -57,7 +77,24 @@ exports.findtotal = (req, res) => {
         data.forEach(element => {
             total += element.amount;
         });
-        // res.json({message: 'success', data: total})
+        Monmoncoin.findOne({name: "Monster Coin"})
+        .then((mc) => {
+
+            let grinding = total * 0.08
+            let quest = total * 0.04
+
+            let totalIncome = quest + grinding
+            let mcValue = totalIncome / mc.amount;
+
+            let finalData = {
+                "totalIncome": totalIncome,
+                "totalMC": mc.amount,
+                "mcValue": mcValue
+            }
+            res.json({message: "success", data: finalData})
+        })
+        .catch(error => response.status(400).json({ error: error.message }));
     })
     .catch((error) => res.status(500).json({ error: error.message }));
+
 }

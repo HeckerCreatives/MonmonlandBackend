@@ -33,6 +33,9 @@ const Apk = require("./Routes/Apk")
 const Upload = require("./Routes/Upload")
 const Withdraw = require("./Routes/Withdrawal")
 const Topupresolve = require("./Routes/Topupresolver")
+const Ads = require("./Routes/Ads")
+const Leaderboard = require("./Routes/Leaderboard")
+const Communityactivity = require("./Routes/Communityactivity")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -96,6 +99,9 @@ app.use("/apk", Apk)
 app.use("/upload", Upload)
 app.use("/withdrawfee", Withdraw)
 app.use("/topupresolver", Topupresolve)
+app.use("/ads", Ads)
+app.use("/leaderboard", Leaderboard)
+app.use("/communityactivy", Communityactivity)
 app.use(BinancePay);
 app.use("/uploads", express.static("uploads"))
 app.use("/tempuploads", express.static("tempuploads"))
