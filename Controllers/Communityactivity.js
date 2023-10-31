@@ -16,8 +16,8 @@ exports.mcvalue = (req, res) => {
                 .then(quest => {
                     const value = grind.amount + quest.amount + header.total
                     const fnal = value / mc.amount
-                    console.log(grind)
-                    res.json({message: "success", data: fnal})
+                    
+                    res.json({message: "success", data: fnal, totalmc: mc.amount, totalincome: value})
                 })
                 .catch((error) => res.status(500).json({ error: error.message }));
             })
