@@ -173,12 +173,18 @@ const socket = io => {
     socket.on("admin_send_message", (data) => {
       const { image, message, username, room, _createdtime_, usersocket } = data;
       socket.emit("receive_message", data)
-      socket.to(Object.keys(playerlist[room][0])[0]).emit("receive_message", data)
+      
+      if(Object.keys(playerlist[room][0])[0] !== null || Object.keys(playerlist[room][0])[0] !== undefined){
+        socket.to(Object.keys(playerlist[room][0])[0]).emit("receive_message", data)
+      }
     })
 
     socket.on("doneTransactionAdmin", (data) => {
       const { room, buyer } = data;
-      socket.to(Object.keys(playerlist[room][0])[0]).emit("kicked")
+      if(Object.keys(playerlist[room][0])[0]){
+        socket.to(Object.keys(playerlist[room][0])[0]).emit("kicked")
+      }
+      
 
       playerlist[room].shift()
       delete playerrooms[buyer]
