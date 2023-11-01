@@ -98,8 +98,38 @@ module.exports.userRegister = async (request, response) => {
             return response.send(error)
         }
     })
+}
 
-    
+exports.marketingarmregister = (req, res) => {
+  const {firstName,lastName,userName,email,password, roleId, referrerId, phone} = req.body
+  
+  User.findOne({email: email})
+  .then(result => {
+    if(result){
+      res.json({message: "failed", data: "email address already registered"})
+    } else {
+
+      const newUser = new User({
+        roleId: roleId,
+        referrerId: referrerId,
+        firstName: firstName,
+        lastName: lastName,
+        userName: userName,
+        email:email,
+        phone: phone,
+        password: password,
+      })
+
+      newUser.save()
+      .then(data => {
+        res.json({message: "success", data: data})
+      })
+      .catch(error => response.status(400).json({error: error.message}));
+
+    }
+  })
+  .catch(error => response.status(400).json({error: error.message}));
+  
 }
 
 module.exports.referral = (request, response) => {
