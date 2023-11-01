@@ -14,4 +14,5 @@ router.post("/subs", Migrate.subs)
 router.post("/withdraw", Migrate.withdrawfee)
 router.post("/adsleaderboard", Migrate.adsandleaderboard)
 router.post("/communityacivity", Migrate.communityactivity)
+router.post("/communityactivityaccumulated", Migrate.communityactivityaccumulated)
 module.exports = router;

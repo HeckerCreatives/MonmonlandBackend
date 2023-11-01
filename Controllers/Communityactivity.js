@@ -2,7 +2,7 @@ const Communityactivity = require("../Models/Communityactivity")
 const Monmoncoin = require("../Models/Monmoncoin")
 const Gameactivity = require("../Models/Gameactivity")
 const Mchistory = require("../Models/Mcconversionhistory")
-
+const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 exports.mcvalue = (req, res) => {
 
     Monmoncoin.findOne({name: "Monster Coin"})
@@ -51,6 +51,8 @@ exports.resetmonthly = (req, res) => {
                                 .then(data => {
                                     return data.amount
                                 })
+                
+                await Communityactivityaccumulated.findByIdAndUpdate(process.env.communityaccumulated, {$inc: {leaderboardamount: leaderboard, grindingamount: grinding, questamount: quest}})
 
                 const history = {
                     amount: mcvalue,

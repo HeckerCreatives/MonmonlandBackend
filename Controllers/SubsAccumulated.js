@@ -3,6 +3,7 @@ const SubscriptionUser = require ("../Models/SubscriptionUser")
 const Monmoncoin = require("../Models/Monmoncoin")
 const Communityactivity = require("../Models/Communityactivity")
 const Gameactivity = require("../Models/Gameactivity")
+const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 exports.create = (req, res) => {
 
     const data = [
@@ -39,22 +40,33 @@ exports.update = (req, res) => {
         SubscriptionUser.findOneAndUpdate({playfabid: playfabid}, {name: subsname}, {new: true})
         .then(async data2 => {
             let total = 0
+            let totalaccu = 0;
+
             await SubsAccumulated.find()
             .then(data => {
                 data.forEach(element => {
                     total += element.amount;
                 });
             })
+
+            await Communityactivityaccumulated.findOne({})
+            .then(async data => {
+
+
+                
+                const leaderboards = (total * 0.05) - data.leaderboardamount
+                const grinding = (total * 0.08) - data.grindingamount
+                const quest = (total * 0.04) - data.questamount
+    
+                await Communityactivity.findByIdAndUpdate(process.env.leaderboardsca,{amount: leaderboards})
+                await Communityactivity.findByIdAndUpdate(process.env.grindingca,{amount: grinding})
+                await Communityactivity.findByIdAndUpdate(process.env.questca,{amount: quest})
+    
+                res.json({message: "success"})
+
+            })
+
             
-            const leaderboards = total * 0.05
-            const grinding = total * 0.08
-            const quest= total * 0.04
-
-            await Communityactivity.findByIdAndUpdate(process.env.leaderboardsca,{amount: leaderboards})
-            await Communityactivity.findByIdAndUpdate(process.env.grindingca,{amount: grinding})
-            await Communityactivity.findByIdAndUpdate(process.env.questca,{amount: quest})
-
-            res.json({message: "success"})
         })
         .catch((error) => response.status(500).json({ error: error.message }));
     })

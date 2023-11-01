@@ -16,6 +16,7 @@ const withdrawal = require("../Models/Withdrawalfee")
 const Ads = require("../Models/Ads")
 const Leaderboard = require("../Models/Leaderboard")
 const Communityactivity = require("../Models/Communityactivity")
+const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 
 module.exports.migratedata = (request, response) => {
     const subscription = [
@@ -293,6 +294,15 @@ module.exports.migratedata = (request, response) => {
 
     Communityactivity.create(communityactivity)
 
+    const communityactivityaccumulated = {
+        _id: "629a98a5a881575c013b5561",
+        leaderboardamount: 0,
+        grindingamount: 0 ,
+        questamount: 0 ,
+    }
+
+    Communityactivityaccumulated.create(communityactivityaccumulated)
+
     response.json('Data migration created')
 
 }
@@ -489,4 +499,20 @@ exports.communityactivity = (req, res) => {
     ]
 
     Communityactivity.create(communityactivity)
+
+    res.json("communityactivity created")
+}
+
+exports.communityactivityaccumulated = (req, res) => {
+
+    const communityactivityaccumulated = {
+        _id: "629a98a5a881575c013b5561",
+        leaderboardamount: 0,
+        grindingamount: 0 ,
+        questamount: 0 ,
+    }
+
+    Communityactivityaccumulated.create(communityactivityaccumulated)
+
+    res.json("communityactivity accumulated created")
 }
