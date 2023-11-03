@@ -123,11 +123,34 @@ exports.verifypayments = (request, response) => {
                         response.statusCode = 400;
                         response.end(error_msg);
                     }
-
+                    
                     if(item.status !== 'pending'){
                         response.statusCode = 400;
                         response.end(error_msg);
                     }
+                    
+                    if(request_data.payment_status !== "partially_paid" && request_data.payment_status !== "finished" && request_data.payment_status !== "failed" && request_data.payment_status !== "expired"){
+                        response.statusCode = 400;
+                        response.end(error_msg);
+                    }
+
+                    if(request_data.payment_status === "partially_paid"){
+                        item.amount = request_data.actually_paid
+                    }
+
+                    if(request_data.payment_status === "failed" || request_data.payment_status === "expired" ){
+                        AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel"})
+                       .then(()=> {
+                            response.statusCode = 200;
+                            response.end('OK');
+                        })
+                        .catch(err => {
+                            response.statusCode = 400;
+                            response.end(error_msg);
+                        })
+                        return
+                    }
+
                     PlayFab._internalSettings.sessionTicket = item.playfabToken;
                     PlayFabClient.ExecuteCloudScript({
                         FunctionName: "Topup",
