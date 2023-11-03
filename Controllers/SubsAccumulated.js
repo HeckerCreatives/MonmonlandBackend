@@ -97,7 +97,7 @@ exports.findtotal = (req, res) => {
                 let grinding = total * 0.08
                 let quest = total * 0.04
                 let headeramount = header.total
-
+                // let diamondpool = total * 0.03
                 let totalIncome = quest + grinding + headeramount
                 let mcValue = totalIncome / mc.amount;
     

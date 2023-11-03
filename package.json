@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@nowpaymentsio/nowpayments-api-js": "^1.0.5",
     "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "cloudinary": "^1.37.0",
@@ -27,5 +28,8 @@
     "nodemon": "^3.0.1",
     "playfab-sdk": "^2.139.231013",
     "socket.io": "^4.7.1"
+  },
+  "engines": {
+      "node": ">=14.20.1"
   }
 }

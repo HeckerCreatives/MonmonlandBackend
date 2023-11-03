@@ -1,0 +1,178 @@
+const AutoReceipt = require("../Models/Receiptautomated")
+const TopUpWallet = require("../Models/Topupwallet")
+const NowPaymentsApi = require("@nowpaymentsio/nowpayments-api-js")
+const NPApi = new NowPaymentsApi ({apiKey: process.env.npapikey})
+const http = require('http');
+const crypto = require('crypto');
+
+function generateRandomString() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomString = '';
+  
+    for (let i = 0; i < 12; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      randomString += characters[randomIndex];
+    }
+    return randomString;
+}
+
+exports.createinvoicefunds = (req, res) => {
+    let randomid = generateRandomString()
+    const { amount, playfabToken, username, playerPlayfabId,} = req.body
+
+    const data = {
+        price_amount: amount,
+        price_currency: "usd",
+        order_id: randomid,
+        order_description: `Top Up $${amount}`,
+        ipn_callback_url: "https://nowpayments.io",
+        success_url: `${process.env.API_URL}coin/success?id=${randomid}`,
+        cancel_url: `${process.env.API_URL}coin/cancel?id=${randomid}`,
+        is_fixed_rate: true,
+        is_fee_paid_by_user: true
+    }
+
+    NPApi.createInvoice(data)
+    .then(async item => {
+        await AutoReceipt.create({
+            receiptId: item.order_id,
+            orderCode: item.id,
+            username: username,
+            playerPlayfabId: playerPlayfabId,
+            subscriptionType: `Top Up $${item.price_amount}`,
+            amount: item.price_amount,
+            playfabToken: playfabToken
+        })
+        
+        res.json({message: "success", data: item})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+}
+
+exports.createinvoicebundles = (req, res) => {
+    let randomid = generateRandomString()
+    const { amount, playfabToken, username, playerPlayfabId, bundle, bundledescription, subs} = req.body
+
+    const data = {
+        price_amount: amount,
+        price_currency: "usd",
+        order_id: randomid,
+        order_description: bundledescription,
+        ipn_callback_url: "https://nowpayments.io",
+        success_url: `${process.env.API_URL}coin/success?id=${randomid}`,
+        cancel_url: `${process.env.API_URL}coin/cancel?id=${randomid}`,
+        is_fixed_rate: true,
+        is_fee_paid_by_user: true
+    }
+
+    NPApi.createInvoice(data)
+    .then(async item => {
+        await AutoReceipt.create({
+            receiptId: item.order_id,
+            orderCode: item.id,
+            username: username,
+            playerPlayfabId: playerPlayfabId,
+            subscriptionType: bundle,
+            amount: item.price_amount,
+            playfabToken: playfabToken
+        })
+        
+        res.json({message: "success", data: item})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+}
+
+exports.verifypayments = (request, response) => {
+    let error_msg = "Unknown error";
+    let auth_ok = false;
+    let received_hmac = request.headers['x-nowpayments-sig'];
+    let request_data = null;
+
+    if (received_hmac) {
+        let body = '';
+        request.on('data', (chunk) => {
+            body += chunk.toString();
+        });
+
+        request.on('end', () => {
+            try {
+                request_data = JSON.parse(body);
+                const sorted_request_data = JSON.stringify(request_data, null, 0);
+                const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
+                    .update(sorted_request_data)
+                    .digest('hex');
+
+                if (hmac === received_hmac) {
+                    auth_ok = true;
+                } else {
+                    error_msg = 'HMAC signature does not match';
+                }
+            } catch (err) {
+                error_msg = 'Error parsing JSON data';
+            }
+
+            // Respond based on authentication result
+            if (auth_ok) {
+                
+
+                AutoReceipt.findOne({receiptId: request_data.order_id})
+                .then(item => {
+                    if(!item){
+                        response.statusCode = 400;
+                        response.end(error_msg);
+                    }
+
+                    if(item.status !== 'pending'){
+                        response.statusCode = 400;
+                        response.end(error_msg);
+                    }
+                    PlayFab._internalSettings.sessionTicket = item.playfabToken;
+                    PlayFabClient.ExecuteCloudScript({
+                        FunctionName: "Topup",
+                        FunctionParameter: {
+                        playerId: item.playerPlayfabId,
+                        topupAmount: item.amount,
+                        },
+                        ExecuteCloudScript: true,
+                        GeneratePlayStreamEvent: true,
+                    }, (error1, result1) => {
+                        if(result1.data.FunctionResult.message === "success"){
+                        AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
+                        .then(data => {
+                            TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                            .then(()=> {
+                                response.statusCode = 200;
+                                response.end('OK');
+                            })
+                            .catch(err => {
+                                response.statusCode = 400;
+                                response.end(error_msg);
+                            })
+                        })
+                        .catch(err => {
+                            response.statusCode = 400;
+                            response.end(error_msg);
+                        })
+                        } else {
+                            response.statusCode = 400;
+                            response.end(error_msg);
+                        }
+                    })
+                })
+                .catch(err => {
+                    response.statusCode = 400;
+                    response.end(error_msg);
+                })
+
+            } else {
+                response.statusCode = 400;
+                response.end(error_msg);
+            }
+        });
+    } else {
+        response.statusCode = 400;
+        response.end('No HMAC signature sent.');
+    }
+}

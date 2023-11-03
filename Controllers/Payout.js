@@ -279,7 +279,7 @@ exports.agentfind = (req, res) => {
     .then(user => {
         Payout.countDocuments({status: status, admin: admin})
         .then(count => {
-            const totalPages = Math.ceil(count / 10)
+            const totalPages = Math.ceil(count / pageOptions.limit)
             res.json({ message: "success", data: user, pages: totalPages })
         })
         .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
