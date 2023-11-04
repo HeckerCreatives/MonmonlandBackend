@@ -5,6 +5,10 @@ const NPApi = new NowPaymentsApi ({apiKey: process.env.npapikey})
 const http = require('http');
 const crypto = require('crypto');
 var axios = require('axios');
+var playfab = require('playfab-sdk')
+var PlayFab = playfab.PlayFab
+var PlayFabClient = playfab.PlayFabClient
+PlayFab.settings.titleId = process.env.monmontitleid;
 
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
