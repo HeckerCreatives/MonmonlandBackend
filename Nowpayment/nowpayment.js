@@ -315,7 +315,8 @@ exports.verifypayments = (request, response) => {
                     response.end(error_msg);
                 }
                 console.log(body.payment_status)
-                if(body.payment_status !== "partially_paid" && body.payment_status !== "finished" && body.payment_status !== "failed" && body.payment_status !== "expired"){
+                if(body.payment_status !== "partially_paid" || body.payment_status !== "finished" || body.payment_status !== "failed" || body.payment_status !== "expired"){
+                    console.log("jabadurb")
                     response.statusCode = 400;
                     response.end(error_msg);
                 }
