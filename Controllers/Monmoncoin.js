@@ -26,3 +26,12 @@ exports.find = (req, res) => {
     })
     .catch(error => response.status(400).json({ error: error.message }));
 }
+
+exports.decmonstercoin = (req, res) => {
+    const {amount} = req.body
+    Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: -amount}})
+    .then(() => {
+        res.json({message: "success"})
+    })
+    .catch(error => response.status(400).json({ error: error.message }));
+}
