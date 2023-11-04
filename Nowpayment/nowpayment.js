@@ -273,11 +273,11 @@ exports.verifypayments = (request, response) => {
     console.log(received_hmac)
     if (received_hmac) {
         let body = '';
-        console.log(request)
+        console.log(request.data)
         request.on('data', (chunk) => {
             body += chunk.toString();
         });
-
+        console.log(request.end)
         request.on('end', () => {
             console.log("hello2")
             try {
