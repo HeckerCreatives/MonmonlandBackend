@@ -270,7 +270,7 @@ exports.verifypayments = (request, response) => {
     let auth_ok = false;
     let received_hmac = request.headers['x-nowpayments-sig'];
     let request_data = null;
-
+    console.log(received_hmac)
     if (received_hmac) {
         let body = '';
         request.on('data', (chunk) => {
@@ -278,13 +278,14 @@ exports.verifypayments = (request, response) => {
         });
 
         request.on('end', () => {
+            console.log("hello2")
             try {
                 request_data = JSON.parse(body);
                 const sorted_request_data = JSON.stringify(request_data, null, 0);
                 const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
                     .update(sorted_request_data)
                     .digest('hex');
-
+                console.log(hmac === received_hmac)
                 if (hmac === received_hmac) {
                     auth_ok = true;
                 } else {
@@ -293,10 +294,10 @@ exports.verifypayments = (request, response) => {
             } catch (err) {
                 error_msg = 'Error parsing JSON data';
             }
-
+            console.log(auth_ok)
             // Respond based on authentication result
             if (auth_ok) {
-                
+                console.log(request_data.order_id)
 
                 AutoReceipt.findOne({receiptId: request_data.order_id})
                 .then(item => {
@@ -309,7 +310,7 @@ exports.verifypayments = (request, response) => {
                         response.statusCode = 400;
                         response.end(error_msg);
                     }
-                    
+                    console.log(request_data.payment_status)
                     if(request_data.payment_status !== "partially_paid" && request_data.payment_status !== "finished" && request_data.payment_status !== "failed" && request_data.payment_status !== "expired"){
                         response.statusCode = 400;
                         response.end(error_msg);
