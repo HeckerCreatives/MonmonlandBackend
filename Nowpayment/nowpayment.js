@@ -295,7 +295,7 @@ exports.verifypayments = (request, response) => {
             const sorted_request_data = JSON.stringify(body);
             
             const hmac = crypto.createHmac('sha512', process.env.ipnkey)
-            hmac.update(JSON.stringify(request, Object.keys(request).sort()))
+            hmac.update(sorted_request_data)
             const wew = hmac.digest('hex');
 
             console.log("hmac: ", wew)
@@ -309,7 +309,7 @@ exports.verifypayments = (request, response) => {
             error_msg = 'Error parsing JSON data';
             console.log(err)
         }
-        console.log(auth_ok)
+        console.log(auth_ok) // THIS IS FALSE
         // Respond based on authentication result
         if (auth_ok) {
             // console.log(body.order_id)
