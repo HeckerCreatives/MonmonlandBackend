@@ -342,7 +342,7 @@ exports.verifypayments = (request, response) => {
                 if(body.payment_status === "partially_paid"){
                     item.amount = body.actually_paid
                 }
-
+                console.log(item.playfabToken)
                 PlayFab._internalSettings.sessionTicket = item.playfabToken;
                 PlayFabClient.ExecuteCloudScript({
                     FunctionName: "Topup",
@@ -353,6 +353,8 @@ exports.verifypayments = (request, response) => {
                     ExecuteCloudScript: true,
                     GeneratePlayStreamEvent: true,
                 }, (error1, result1) => {
+                    console.log(result1)
+                    console.log(error1)
                     if(result1.data.FunctionResult.message === "success"){
                     AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
                     .then(data => {
