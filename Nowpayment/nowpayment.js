@@ -287,34 +287,7 @@ exports.verifypayments = (request, response) => {
 
         console.log("bodyvalue: ", body)
 
-        try {
-            // request_data = JSON.parse(body);
-            // const hmac1 = crypto.createHmac('sha512', process.env.ipnkey)
-            //     .update(JSON.stringify(request.body))
-            //     .digest('hex');
-            const sorted_request_data = JSON.stringify(body);
-            
-            const hmac = crypto.createHmac('sha512', process.env.ipnkey)
-            hmac.update(sorted_request_data)
-            const wew = hmac.digest('hex');
-
-            console.log("hmac: ", wew)
-            // console.log("wew: ", wew)
-            if (wew === received_hmac) {
-                auth_ok = true;
-            } else {
-                error_msg = 'HMAC signature does not match';
-            }
-        } catch (err) {
-            error_msg = 'Error parsing JSON data';
-            console.log(err)
-        }
-        console.log(auth_ok) // THIS IS NOW TRUE
-        // Respond based on authentication result
-        if (auth_ok) {
-            // console.log(body.order_id)
-
-            AutoReceipt.findOne({receiptId: body.order_id})
+        AutoReceipt.findOne({receiptId: body.order_id})
             .then(item => {
                 if(!item){
                     response.statusCode = 400;
@@ -399,11 +372,40 @@ exports.verifypayments = (request, response) => {
                 return
             })
 
-        } else {
-            response.statusCode = 400;
-            response.end(error_msg);
-            return
-        }
+        // try {
+        //     // request_data = JSON.parse(body);
+        //     // const hmac1 = crypto.createHmac('sha512', process.env.ipnkey)
+        //     //     .update(JSON.stringify(request.body))
+        //     //     .digest('hex');
+        //     const sorted_request_data = JSON.stringify(body);
+            
+        //     const hmac = crypto.createHmac('sha512', process.env.ipnkey)
+        //     hmac.update(sorted_request_data)
+        //     const wew = hmac.digest('hex');
+
+        //     console.log("hmac: ", wew)
+        //     // console.log("wew: ", wew)
+        //     if (wew === received_hmac) {
+        //         auth_ok = true;
+        //     } else {
+        //         error_msg = 'HMAC signature does not match';
+        //     }
+        // } catch (err) {
+        //     error_msg = 'Error parsing JSON data';
+        //     console.log(err)
+        // }
+        // console.log(auth_ok) // THIS IS NOW TRUE
+        // // Respond based on authentication result
+        // if (auth_ok) {
+        //     // console.log(body.order_id)
+
+            
+
+        // } else {
+        //     response.statusCode = 400;
+        //     response.end(error_msg);
+        //     return
+        // }
     } else {
         response.statusCode = 400;
         response.end('No HMAC signature sent.');
