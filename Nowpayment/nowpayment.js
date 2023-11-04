@@ -91,7 +91,7 @@ function generateRandomString() {
 //     let error_msg = "Unknown error";
 //     let auth_ok = false;
 //     let received_hmac = request.headers['x-nowpayments-sig'];
-//     let request_data = null;
+//     let body = null;
 
 //     if (received_hmac) {
 //         let body = '';
@@ -101,10 +101,10 @@ function generateRandomString() {
 
 //         request.on('end', () => {
 //             try {
-//                 request_data = JSON.parse(body);
-//                 const sorted_request_data = JSON.stringify(request_data, null, 0);
+//                 body = JSON.parse(body);
+//                 const sorted_body = JSON.stringify(body, null, 0);
 //                 const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
-//                     .update(sorted_request_data)
+//                     .update(sorted_body)
 //                     .digest('hex');
 
 //                 if (hmac === received_hmac) {
@@ -120,7 +120,7 @@ function generateRandomString() {
 //             if (auth_ok) {
                 
 
-//                 AutoReceipt.findOne({receiptId: request_data.order_id})
+//                 AutoReceipt.findOne({receiptId: body.order_id})
 //                 .then(item => {
 //                     if(!item){
 //                         response.statusCode = 400;
@@ -283,10 +283,10 @@ exports.verifypayments = (request, response) => {
         console.log("bodyvalue: ", body)
 
         try {
-            request_data = JSON.parse(body);
-            const sorted_request_data = JSON.stringify(request_data, null, 0);
+            // request_data = JSON.parse(body);
+            // const sorted_request_data = JSON.stringify(request_data, null, 0);
             const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
-                .update(sorted_request_data)
+                .update(body)
                 .digest('hex');
             console.log("hmac: ",hmac)
             if (hmac === received_hmac) {
@@ -301,9 +301,9 @@ exports.verifypayments = (request, response) => {
         console.log(auth_ok)
         // Respond based on authentication result
         if (auth_ok) {
-            console.log(request_data.order_id)
+            console.log(body.order_id)
 
-            AutoReceipt.findOne({receiptId: request_data.order_id})
+            AutoReceipt.findOne({receiptId: body.order_id})
             .then(item => {
                 if(!item){
                     response.statusCode = 400;
@@ -314,17 +314,17 @@ exports.verifypayments = (request, response) => {
                     response.statusCode = 400;
                     response.end(error_msg);
                 }
-                console.log(request_data.payment_status)
-                if(request_data.payment_status !== "partially_paid" && request_data.payment_status !== "finished" && request_data.payment_status !== "failed" && request_data.payment_status !== "expired"){
+                console.log(body.payment_status)
+                if(body.payment_status !== "partially_paid" && body.payment_status !== "finished" && body.payment_status !== "failed" && body.payment_status !== "expired"){
                     response.statusCode = 400;
                     response.end(error_msg);
                 }
 
-                if(request_data.payment_status === "partially_paid"){
-                    item.amount = request_data.actually_paid
+                if(body.payment_status === "partially_paid"){
+                    item.amount = body.actually_paid
                 }
 
-                if(request_data.payment_status === "failed" || request_data.payment_status === "expired" ){
+                if(body.payment_status === "failed" || body.payment_status === "expired" ){
                     AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel"})
                    .then(()=> {
                         response.statusCode = 200;
