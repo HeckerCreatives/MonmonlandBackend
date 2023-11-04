@@ -284,7 +284,7 @@ exports.verifypayments = (request, response) => {
             const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
                 .update(sorted_request_data)
                 .digest('hex');
-            console.log(hmac === received_hmac)
+            console.log(hmac)
             if (hmac === received_hmac) {
                 auth_ok = true;
             } else {
