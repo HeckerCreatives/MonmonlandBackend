@@ -281,7 +281,7 @@ exports.verifypayments = (request, response) => {
         }
 
         console.log("bodyvalue: ", body)
-        
+
         try {
             request_data = JSON.parse(body);
             const sorted_request_data = JSON.stringify(request_data, null, 0);
@@ -296,6 +296,7 @@ exports.verifypayments = (request, response) => {
             }
         } catch (err) {
             error_msg = 'Error parsing JSON data';
+            console.log(err)
         }
         console.log(auth_ok)
         // Respond based on authentication result
