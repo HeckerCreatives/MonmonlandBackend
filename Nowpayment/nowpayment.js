@@ -295,7 +295,7 @@ exports.verifypayments = (request, response) => {
             const sorted_request_data = JSON.stringify(body);
             
             const hmac = crypto.createHmac('sha512', process.env.ipnkey)
-            hmac.update(JSON.stringify(body))
+            hmac.update(JSON.stringify(request, Object.keys(request).sort()))
             const wew = hmac.digest('hex');
 
             console.log("hmac: ", wew)
