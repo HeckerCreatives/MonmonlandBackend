@@ -277,7 +277,7 @@ exports.verifypayments = (request, response) => {
         request.on('body', (chunk) => {
             body += chunk.toString();
         });
-        console.log(request.end)
+        console.log(body)
         try {
             request_data = JSON.parse(body);
             const sorted_request_data = JSON.stringify(request_data, null, 0);
