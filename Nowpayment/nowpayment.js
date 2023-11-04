@@ -274,56 +274,79 @@ exports.verifypayments = (request, response) => {
     if (received_hmac) {
         let body = '';
         console.log(request.data)
-        request.on('data', (chunk) => {
+        request.on('body', (chunk) => {
             body += chunk.toString();
         });
         console.log(request.end)
-        request.on('end', () => {
-            console.log("hello2")
-            try {
-                request_data = JSON.parse(body);
-                const sorted_request_data = JSON.stringify(request_data, null, 0);
-                const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
-                    .update(sorted_request_data)
-                    .digest('hex');
-                console.log(hmac === received_hmac)
-                if (hmac === received_hmac) {
-                    auth_ok = true;
-                } else {
-                    error_msg = 'HMAC signature does not match';
-                }
-            } catch (err) {
-                error_msg = 'Error parsing JSON data';
+        try {
+            request_data = JSON.parse(body);
+            const sorted_request_data = JSON.stringify(request_data, null, 0);
+            const hmac = crypto.createHmac('sha512', process.env.ipnkey) // Replace 'yourIpnSecret' with your actual IPN secret
+                .update(sorted_request_data)
+                .digest('hex');
+            console.log(hmac === received_hmac)
+            if (hmac === received_hmac) {
+                auth_ok = true;
+            } else {
+                error_msg = 'HMAC signature does not match';
             }
-            console.log(auth_ok)
-            // Respond based on authentication result
-            if (auth_ok) {
-                console.log(request_data.order_id)
+        } catch (err) {
+            error_msg = 'Error parsing JSON data';
+        }
+        console.log(auth_ok)
+        // Respond based on authentication result
+        if (auth_ok) {
+            console.log(request_data.order_id)
 
-                AutoReceipt.findOne({receiptId: request_data.order_id})
-                .then(item => {
-                    if(!item){
+            AutoReceipt.findOne({receiptId: request_data.order_id})
+            .then(item => {
+                if(!item){
+                    response.statusCode = 400;
+                    response.end(error_msg);
+                }
+                
+                if(item.status !== 'pending'){
+                    response.statusCode = 400;
+                    response.end(error_msg);
+                }
+                console.log(request_data.payment_status)
+                if(request_data.payment_status !== "partially_paid" && request_data.payment_status !== "finished" && request_data.payment_status !== "failed" && request_data.payment_status !== "expired"){
+                    response.statusCode = 400;
+                    response.end(error_msg);
+                }
+
+                if(request_data.payment_status === "partially_paid"){
+                    item.amount = request_data.actually_paid
+                }
+
+                if(request_data.payment_status === "failed" || request_data.payment_status === "expired" ){
+                    AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel"})
+                   .then(()=> {
+                        response.statusCode = 200;
+                        response.end('OK');
+                    })
+                    .catch(err => {
                         response.statusCode = 400;
                         response.end(error_msg);
-                    }
-                    
-                    if(item.status !== 'pending'){
-                        response.statusCode = 400;
-                        response.end(error_msg);
-                    }
-                    console.log(request_data.payment_status)
-                    if(request_data.payment_status !== "partially_paid" && request_data.payment_status !== "finished" && request_data.payment_status !== "failed" && request_data.payment_status !== "expired"){
-                        response.statusCode = 400;
-                        response.end(error_msg);
-                    }
+                    })
+                    return
+                }
 
-                    if(request_data.payment_status === "partially_paid"){
-                        item.amount = request_data.actually_paid
-                    }
-
-                    if(request_data.payment_status === "failed" || request_data.payment_status === "expired" ){
-                        AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel"})
-                       .then(()=> {
+                PlayFab._internalSettings.sessionTicket = item.playfabToken;
+                PlayFabClient.ExecuteCloudScript({
+                    FunctionName: "Topup",
+                    FunctionParameter: {
+                    playerId: item.playerPlayfabId,
+                    topupAmount: item.amount,
+                    },
+                    ExecuteCloudScript: true,
+                    GeneratePlayStreamEvent: true,
+                }, (error1, result1) => {
+                    if(result1.data.FunctionResult.message === "success"){
+                    AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
+                    .then(data => {
+                        TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                        .then(()=> {
                             response.statusCode = 200;
                             response.end('OK');
                         })
@@ -331,52 +354,26 @@ exports.verifypayments = (request, response) => {
                             response.statusCode = 400;
                             response.end(error_msg);
                         })
-                        return
-                    }
-
-                    PlayFab._internalSettings.sessionTicket = item.playfabToken;
-                    PlayFabClient.ExecuteCloudScript({
-                        FunctionName: "Topup",
-                        FunctionParameter: {
-                        playerId: item.playerPlayfabId,
-                        topupAmount: item.amount,
-                        },
-                        ExecuteCloudScript: true,
-                        GeneratePlayStreamEvent: true,
-                    }, (error1, result1) => {
-                        if(result1.data.FunctionResult.message === "success"){
-                        AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
-                        .then(data => {
-                            TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
-                            .then(()=> {
-                                response.statusCode = 200;
-                                response.end('OK');
-                            })
-                            .catch(err => {
-                                response.statusCode = 400;
-                                response.end(error_msg);
-                            })
-                        })
-                        .catch(err => {
-                            response.statusCode = 400;
-                            response.end(error_msg);
-                        })
-                        } else {
-                            response.statusCode = 400;
-                            response.end(error_msg);
-                        }
                     })
+                    .catch(err => {
+                        response.statusCode = 400;
+                        response.end(error_msg);
+                    })
+                    } else {
+                        response.statusCode = 400;
+                        response.end(error_msg);
+                    }
                 })
-                .catch(err => {
-                    response.statusCode = 400;
-                    response.end(error_msg);
-                })
-
-            } else {
+            })
+            .catch(err => {
                 response.statusCode = 400;
                 response.end(error_msg);
-            }
-        });
+            })
+
+        } else {
+            response.statusCode = 400;
+            response.end(error_msg);
+        }
     } else {
         response.statusCode = 400;
         response.end('No HMAC signature sent.');
