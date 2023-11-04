@@ -265,6 +265,7 @@ exports.createinvoicefunds = (req, res) => {
 }
 
 exports.verifypayments = (request, response) => {
+    console.log("hello")
     let error_msg = "Unknown error";
     let auth_ok = false;
     let received_hmac = request.headers['x-nowpayments-sig'];
