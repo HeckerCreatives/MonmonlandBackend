@@ -212,7 +212,7 @@ exports.createinvoicefunds = (req, res) => {
         price_currency: "usd",
         order_id: randomid,
         order_description: `Top Up $${amount}`,
-        ipn_callback_url: "https://mml-test-api.onrender.com/coin/verify",
+        ipn_callback_url: "https://mml-test-api.onrender.com/nowpay/verify",
         success_url: `https://monmonland.games/`,
         cancel_url: `https://monmonland.games/`,
         is_fixed_rate: true,
