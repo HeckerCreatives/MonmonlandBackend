@@ -23,39 +23,39 @@ function generateRandomString() {
 
 
 
-// exports.createinvoicefunds = (req, res) => {
-//     let randomid = generateRandomString()
-//     const { amount, playfabToken, username, playerPlayfabId,} = req.body
+exports.createinvoicefunds = (req, res) => {
+    let randomid = generateRandomString()
+    const { amount, playfabToken, username, playerPlayfabId,} = req.body
 
-//     const data = {
-//         price_amount: amount,
-//         price_currency: "usd",
-//         order_id: randomid,
-//         order_description: `Top Up $${amount}`,
-//         ipn_callback_url: "https://mml-test-api.onrender.com/coin/verify",
-//         success_url: `https://monmonland.games/`,
-//         cancel_url: `https://monmonland.games/`,
-//         is_fixed_rate: true,
-//         is_fee_paid_by_user: true
-//     }
+    const data = {
+        price_amount: amount,
+        price_currency: "usd",
+        order_id: randomid,
+        order_description: `Top Up $${amount}`,
+        ipn_callback_url: "https://mml-test-api.onrender.com/nowpay/verify",
+        success_url: `https://monmonland.games/`,
+        cancel_url: `https://monmonland.games/`,
+        is_fixed_rate: true,
+        is_fee_paid_by_user: true
+    }
 
-//     NPApi.createInvoice(data)
-//     .then(async item => {
-//         await AutoReceipt.create({
-//             receiptId: item.order_id,
-//             orderCode: item.id,
-//             username: username,
-//             playerPlayfabId: playerPlayfabId,
-//             subscriptionType: `Top Up $${item.price_amount}`,
-//             amount: item.price_amount,
-//             playfabToken: playfabToken
-//         })
+    NPApi.createInvoice(data)
+    .then(async item => {
+        await AutoReceipt.create({
+            receiptId: item.order_id,
+            orderCode: item.id,
+            username: username,
+            playerPlayfabId: playerPlayfabId,
+            subscriptionType: `Top Up $${item.price_amount}`,
+            amount: item.price_amount,
+            playfabToken: playfabToken
+        })
         
-//         res.json({message: "success", data: item})
-//     })
-//     .catch((error) => res.status(500).json({ error: error.message }));
+        res.json({message: "success", data: item})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
 
-// }
+}
 
 // exports.createinvoicebundles = (req, res) => {
 //     let randomid = generateRandomString()
@@ -207,66 +207,66 @@ function generateRandomString() {
 //     }
 // }
 
-exports.createinvoicefunds = (req, res) => {
-    let randomid = generateRandomString()
-    const { amount, playfabToken, username, playerPlayfabId,} = req.body
+// exports.createinvoicefunds = (req, res) => {
+//     let randomid = generateRandomString()
+//     const { amount, playfabToken, username, playerPlayfabId,} = req.body
 
-    const data = JSON.stringify({
-        price_amount: amount,
-        price_currency: "usd",
-        order_id: randomid,
-        order_description: `Top Up $${amount}`,
-        ipn_callback_url: "https://mml-test-api.onrender.com/nowpay/verify",
-        success_url: `https://monmonland.games/`,
-        cancel_url: `https://monmonland.games/`,
-        is_fixed_rate: true,
-        is_fee_paid_by_user: true
-    })
+//     const data = JSON.stringify({
+//         price_amount: amount,
+//         price_currency: "usd",
+//         order_id: randomid,
+//         order_description: `Top Up $${amount}`,
+//         ipn_callback_url: "https://mml-test-api.onrender.com/nowpay/verify",
+//         success_url: `https://monmonland.games/`,
+//         cancel_url: `https://monmonland.games/`,
+//         is_fixed_rate: true,
+//         is_fee_paid_by_user: true
+//     })
 
-    var config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: 'https://api-sandbox.nowpayments.io/v1/invoice',
-        headers: { 
-          'x-api-key': process.env.npapikey, 
-          'Content-Type': 'application/json'
-        },
-        data : data
-    };
+//     var config = {
+//         method: 'post',
+//         maxBodyLength: Infinity,
+//         url: 'https://api-sandbox.nowpayments.io/v1/invoice',
+//         headers: { 
+//           'x-api-key': process.env.npapikey, 
+//           'Content-Type': 'application/json'
+//         },
+//         data : data
+//     };
 
-    axios(config)
-    .then(async item => {
-        await AutoReceipt.create({
-            receiptId: item.data.order_id,
-            orderCode: item.data.id,
-            username: username,
-            playerPlayfabId: playerPlayfabId,
-            subscriptionType: `Top Up $${item.data.price_amount}`,
-            amount: item.data.price_amount,
-            playfabToken: playfabToken
-        })
-        // console.log(item)
-        res.json({message: "success", data: item.data})
-    })
-    .catch((error) => res.status(500).json({ error: error.message }));
+//     axios(config)
+//     .then(async item => {
+//         await AutoReceipt.create({
+//             receiptId: item.data.order_id,
+//             orderCode: item.data.id,
+//             username: username,
+//             playerPlayfabId: playerPlayfabId,
+//             subscriptionType: `Top Up $${item.data.price_amount}`,
+//             amount: item.data.price_amount,
+//             playfabToken: playfabToken
+//         })
+//         // console.log(item)
+//         res.json({message: "success", data: item.data})
+//     })
+//     .catch((error) => res.status(500).json({ error: error.message }));
 
-    // NPApi.createInvoice(data)
-    // .then(async item => {
-    //     await AutoReceipt.create({
-    //         receiptId: item.order_id,
-    //         orderCode: item.id,
-    //         username: username,
-    //         playerPlayfabId: playerPlayfabId,
-    //         subscriptionType: `Top Up $${item.price_amount}`,
-    //         amount: item.price_amount,
-    //         playfabToken: playfabToken
-    //     })
+//     // NPApi.createInvoice(data)
+//     // .then(async item => {
+//     //     await AutoReceipt.create({
+//     //         receiptId: item.order_id,
+//     //         orderCode: item.id,
+//     //         username: username,
+//     //         playerPlayfabId: playerPlayfabId,
+//     //         subscriptionType: `Top Up $${item.price_amount}`,
+//     //         amount: item.price_amount,
+//     //         playfabToken: playfabToken
+//     //     })
         
-    //     res.json({message: "success", data: item})
-    // })
-    // .catch((error) => res.status(500).json({ error: error.message }));
+//     //     res.json({message: "success", data: item})
+//     // })
+//     // .catch((error) => res.status(500).json({ error: error.message }));
 
-}
+// }
 
 exports.verifypayments = (request, response) => {
     console.log("hello")
@@ -282,9 +282,7 @@ exports.verifypayments = (request, response) => {
         const sortedkey = Object.keys(request.body).sort()
 
         for(const key of sortedkey){
-            if(key !== "fee" && key !== "updated_at"){
-                body[key] = request.body[key]
-            }
+            body[key] = request.body[key]
         }
 
         console.log("bodyvalue: ", body)
