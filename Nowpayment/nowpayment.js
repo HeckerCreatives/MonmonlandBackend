@@ -308,21 +308,20 @@ exports.verifypayments = (request, response) => {
                 if(!item){
                     response.statusCode = 400;
                     response.end(error_msg);
+                    return
                 }
                 
                 if(item.status !== 'pending'){
                     response.statusCode = 400;
                     response.end(error_msg);
+                    return
                 }
                 console.log(body.payment_status)
-                if(body.payment_status !== "partially_paid" || body.payment_status !== "finished" || body.payment_status !== "failed" || body.payment_status !== "expired"){
+                if(body.payment_status !== "partially_paid" && body.payment_status !== "finished" && body.payment_status !== "failed" && body.payment_status !== "expired"){
                     console.log("jabadurb")
                     response.statusCode = 400;
                     response.end(error_msg);
-                }
-
-                if(body.payment_status === "partially_paid"){
-                    item.amount = body.actually_paid
+                    return
                 }
 
                 if(body.payment_status === "failed" || body.payment_status === "expired" ){
@@ -330,12 +329,18 @@ exports.verifypayments = (request, response) => {
                    .then(()=> {
                         response.statusCode = 200;
                         response.end('OK');
+                        return
                     })
                     .catch(err => {
                         response.statusCode = 400;
                         response.end(error_msg);
+                        return
                     })
                     return
+                }
+
+                if(body.payment_status === "partially_paid"){
+                    item.amount = body.actually_paid
                 }
 
                 PlayFab._internalSettings.sessionTicket = item.playfabToken;
@@ -355,33 +360,40 @@ exports.verifypayments = (request, response) => {
                         .then(()=> {
                             response.statusCode = 200;
                             response.end('OK');
+                            return
                         })
                         .catch(err => {
                             response.statusCode = 400;
                             response.end(error_msg);
+                            return
                         })
                     })
                     .catch(err => {
                         response.statusCode = 400;
                         response.end(error_msg);
+                        return
                     })
                     } else {
                         response.statusCode = 400;
                         response.end(error_msg);
+                        return
                     }
                 })
             })
             .catch(err => {
                 response.statusCode = 400;
                 response.end(error_msg);
+                return
             })
 
         } else {
             response.statusCode = 400;
             response.end(error_msg);
+            return
         }
     } else {
         response.statusCode = 400;
         response.end('No HMAC signature sent.');
+        return
     }
 }
