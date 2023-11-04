@@ -288,18 +288,18 @@ exports.verifypayments = (request, response) => {
 
         try {
             // request_data = JSON.parse(body);
-            const hmac1 = crypto.createHmac('sha512', process.env.ipnkey)
-                .update(JSON.stringify(request.body))
-                .digest('hex');
+            // const hmac1 = crypto.createHmac('sha512', process.env.ipnkey)
+            //     .update(JSON.stringify(request.body))
+            //     .digest('hex');
             const sorted_request_data = JSON.stringify(body);
             
             const hmac = crypto.createHmac('sha512', process.env.ipnkey)
-                .update(sorted_request_data)
-                .digest('hex');
+            hmac.update(sorted_request_data)
+            const wew = hmac.digest('hex');
 
-            console.log("hmac: ",hmac)
-            console.log("hmac1: ",hmac1)
-            if (hmac === received_hmac) {
+            console.log("hmac: ", hmac)
+            console.log("wew: ", wew)
+            if (wew === received_hmac) {
                 auth_ok = true;
             } else {
                 error_msg = 'HMAC signature does not match';
