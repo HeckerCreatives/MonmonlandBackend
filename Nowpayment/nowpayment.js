@@ -277,14 +277,14 @@ exports.verifypayments = (request, response) => {
     console.log(received_hmac)
     if (received_hmac) {
         let body = {};
-        console.log("body: ", request.body)
+        // console.log("body: ", request.body)
         const sortedkey = Object.keys(request.body).sort()
 
         for(const key of sortedkey){
             body[key] = request.body[key]
         }
 
-        console.log("bodyvalue: ", body)
+        // console.log("bodyvalue: ", body)
 
         try {
             // request_data = JSON.parse(body);
@@ -305,7 +305,7 @@ exports.verifypayments = (request, response) => {
         console.log(auth_ok)
         // Respond based on authentication result
         if (auth_ok) {
-            console.log(body.order_id)
+            // console.log(body.order_id)
 
             AutoReceipt.findOne({receiptId: body.order_id})
             .then(item => {
@@ -320,7 +320,7 @@ exports.verifypayments = (request, response) => {
                     response.end(error_msg);
                     return
                 }
-                console.log(body.payment_status)
+                // console.log(body.payment_status)
                 if(body.payment_status !== "partially_paid" && body.payment_status !== "finished" && body.payment_status !== "failed" && body.payment_status !== "expired"){
                     console.log("jabadurb")
                     response.statusCode = 400;
