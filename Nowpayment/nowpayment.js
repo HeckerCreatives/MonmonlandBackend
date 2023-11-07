@@ -190,8 +190,8 @@ exports.verifypayments = (request, response) => {
         for(const key of sortedkey){
             body[key] = request.body[key]
         }
-        // const sorted_request_data = JSON.stringify(body);
-        console.log("bodyvalue: ", body)
+        const sorted_request_data = JSON.stringify(body);
+        console.log("bodyvalue: ", sorted_request_data)
        
         
 
