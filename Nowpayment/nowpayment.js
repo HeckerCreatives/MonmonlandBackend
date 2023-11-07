@@ -76,7 +76,7 @@ exports.createinvoicebundles = (req, res) => {
         price_currency: "usd",
         order_id: randomid,
         order_description: bundledescription,
-        ipn_callback_url: "https://mml-test-api.onrender.com/nowpay/verify",
+        ipn_callback_url: "https://api.monmonland.games/nowpay/verify",
         success_url: `https://monmonland.games/`,
         cancel_url: `https://monmonland.games/`,
         is_fixed_rate: true,
@@ -175,7 +175,7 @@ exports.createinvoicebundles = (req, res) => {
 // }
 
 exports.verifypayments = (request, response) => {
-    console.log("hello")
+    // console.log("hello")
     let error_msg = "Unknown error";
     let auth_ok = false;
     let received_hmac = request.headers['x-nowpayments-sig'];
@@ -204,9 +204,9 @@ exports.verifypayments = (request, response) => {
                 response.end(error_msg);
                 return
             }
-            console.log(body.payment_status)
+            // console.log(body.payment_status)
             if(body.payment_status !== "partially_paid" && body.payment_status !== "finished" && body.payment_status !== "failed" && body.payment_status !== "expired"){
-                console.log("jabadurb")
+                // console.log("jabadurb")
                 response.statusCode = 400;
                 response.end(error_msg);
                 return
@@ -230,7 +230,7 @@ exports.verifypayments = (request, response) => {
             if(body.payment_status === "partially_paid"){
                 item.amount = body.actually_paid
             }
-            console.log(item.playfabToken)
+            // console.log(item.playfabToken)
             PlayFab._internalSettings.sessionTicket = item.playfabToken;
             PlayFabClient.ExecuteCloudScript({
                 FunctionName: "Topup",
@@ -241,8 +241,8 @@ exports.verifypayments = (request, response) => {
                 ExecuteCloudScript: true,
                 GeneratePlayStreamEvent: true,
             }, (error1, result1) => {
-                console.log(result1)
-                console.log(error1)
+                // console.log(result1)
+                // console.log(error1)
                 if(result1.data.FunctionResult.message === "success"){
                 AutoReceipt.findByIdAndUpdate(item._id, {status: "success"}, {new: true})
                 .then(data => {
