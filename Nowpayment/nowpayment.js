@@ -166,7 +166,10 @@ exports.verifypayments = (request, response) => {
         const sortedkey = Object.keys(request.body).sort()
 
         for(const key of sortedkey){
-            body[key] = request.body[key]
+            if(key !== "fee" && key !== "updated_at"){
+                body[key] = request.body[key]
+            }
+            
         }
 
         console.log("bodyvalue: ", body)
