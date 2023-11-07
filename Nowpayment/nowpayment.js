@@ -162,7 +162,7 @@ exports.verifypayments = (request, response) => {
     if (received_hmac) {
         let body = {};
         console.log("headers ", request.headers)
-        // console.log("body: ", request.body)
+        console.log("body: ", request)
         const sortedkey = Object.keys(request.body).sort()
 
         for(const key of sortedkey){
