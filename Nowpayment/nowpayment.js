@@ -196,13 +196,12 @@ exports.verifypayments = (request, response) => {
         
 
         try {
-            const hmac = crypto.createHmac('sha512', process.env.ipnkey)
-            hmac.update(JSON.stringify(request.body, Object.keys(request.body).sort()));
-            const wew = hmac.digest('hex');
+            const hmac = crypto.createHmac('sha512', process.env.ipnkey).update(sorted_request_data).digest('hex')
+            // hmac;
+            // const wew = hmac;
 
-            console.log("hmac: ", wew)
-            // console.log("wew: ", wew)
-            if (wew === received_hmac) {
+            console.log("hmac: ", hmac)
+            if (hmac === received_hmac) {
                 auth_ok = true;
             } else {
                 error_msg = 'HMAC signature does not match';
