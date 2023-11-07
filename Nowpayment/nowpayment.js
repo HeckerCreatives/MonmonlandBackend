@@ -192,13 +192,10 @@ exports.verifypayments = (request, response) => {
         }
         const sorted_request_data = JSON.stringify(body);
         console.log("bodyvalue: ", sorted_request_data)
-       
         
 
         try {
-            const hmac = crypto.createHmac('sha512', process.env.ipnkey).update(sorted_request_data).digest('hex')
-            // hmac;
-            // const wew = hmac;
+            const hmac = crypto.createHmac('sha512', process.env.ipnkey).update(JSON.stringify(body, Object.keys(body).sort())).digest('hex')
 
             console.log("hmac: ", hmac)
             if (hmac === received_hmac) {
