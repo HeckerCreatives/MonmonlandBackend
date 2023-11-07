@@ -37,20 +37,31 @@ exports.createinvoicefunds = (req, res) => {
         is_fixed_rate: true,
         is_fee_paid_by_user: true
     })
+    
+        var config = {
+        method: 'post',
+        maxBodyLength: Infinity,
+        url: 'https://api.nowpayments.io/v1/invoice',
+        headers: { 
+          'x-api-key': process.env.npapikey, 
+          'Content-Type': 'application/json'
+        },
+        data : data
+    };
 
-    NPApi.createInvoice(data)
+    axios(config)
     .then(async item => {
         await AutoReceipt.create({
-            receiptId: item.order_id,
-            orderCode: item.id,
+            receiptId: item.data.order_id,
+            orderCode: item.data.id,
             username: username,
             playerPlayfabId: playerPlayfabId,
-            subscriptionType: `Top Up $${item.price_amount}`,
-            amount: item.price_amount,
+            subscriptionType: `Top Up $${item.data.price_amount}`,
+            amount: item.data.price_amount,
             playfabToken: playfabToken
         })
-        
-        res.json({message: "success", data: item})
+        // console.log(item)
+        res.json({message: "success", data: item.data})
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
