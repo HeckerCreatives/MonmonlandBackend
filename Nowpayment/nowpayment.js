@@ -172,22 +172,6 @@ exports.createinvoicefunds = (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
-    // NPApi.createInvoice(data)
-    // .then(async item => {
-    //     await AutoReceipt.create({
-    //         receiptId: item.order_id,
-    //         orderCode: item.id,
-    //         username: username,
-    //         playerPlayfabId: playerPlayfabId,
-    //         subscriptionType: `Top Up $${item.price_amount}`,
-    //         amount: item.price_amount,
-    //         playfabToken: playfabToken
-    //     })
-        
-    //     res.json({message: "success", data: item})
-    // })
-    // .catch((error) => res.status(500).json({ error: error.message }));
-
 }
 
 exports.verifypayments = (request, response) => {
