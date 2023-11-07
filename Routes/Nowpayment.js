@@ -42,7 +42,7 @@ router.post('/funds', async (req, res) => {
       };
   
       // Make an API request to create the invoice
-      const response = await axios.post('https://api-sandbox.nowpayments.io/v1/invoice', invoiceData, {
+      const response = await axios.post('https://api.nowpayments.io/v1/invoice', invoiceData, {
         headers: {
           'x-api-key': process.env.npapikey,
           'Content-Type': 'application/json',
@@ -69,6 +69,7 @@ router.post('/funds', async (req, res) => {
       console.error(error);
       res.status(500).json({ error: 'An error occurred while creating the invoice.' });
     }
-  });
+});
+
 module.exports = router
 
