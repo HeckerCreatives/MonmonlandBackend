@@ -163,10 +163,10 @@ exports.verifypayments = (request, response) => {
         let body = {};
         console.log("headers ", request.headers)
         console.log("body: ", request)
-        const sortedkey = Object.keys(request.body).sort()
+        const sortedkey = Object.keys(request.params).sort()
 
         for(const key of sortedkey){
-            body[key] = request.body[key]
+            body[key] = request.params[key]
         }
 
         // console.log("bodyvalue: ", body)
@@ -174,10 +174,6 @@ exports.verifypayments = (request, response) => {
         
 
         try {
-            // request_data = JSON.parse(body);
-            // const hmac1 = crypto.createHmac('sha512', process.env.ipnkey)
-            //     .update(JSON.stringify(request.body))
-            //     .digest('hex');
             const sorted_request_data = JSON.stringify(body);
             
             const hmac = crypto.createHmac('sha512', process.env.ipnkey)
