@@ -147,7 +147,7 @@ exports.done = (req, res) => {
                 GeneratePlayStreamEvent: true,
             },(error1, result1) => {
                 if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: receipt}, {new: true})
+                    Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: req.file.path}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {
@@ -171,7 +171,7 @@ exports.done = (req, res) => {
                 } else if (result1.data.FunctionResult.message === "failed"){
                     res.json({message: "failed", data: data.data})
                 } else if (error1){
-                    res.json({message: "failed", data: error})
+                    res.json({message: "failed", data: error1})
                 }
             })
 
@@ -193,10 +193,8 @@ exports.reprocess = async (req, res) => {
     };
     const adminId = await User.findOne({userName: admin})
     .then(item => {
-        // console.log(item)
         return item._id
     })
-    console.log(adminId)
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
@@ -232,7 +230,7 @@ exports.reprocess = async (req, res) => {
                 } else if (result1.data.FunctionResult.message === "failed"){
                     res.json({message: "failed", data: data.data})
                 } else if (error1){
-                    res.json({message: "failed", data: error})
+                    res.json({message: "failed", data: error1})
                 }
             })
             

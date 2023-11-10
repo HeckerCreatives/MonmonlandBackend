@@ -28,7 +28,7 @@ exports.find = (req, res) => {
 }
 
 exports.decmonstercoin = (req, res) => {
-    const {amount} = req.body
+    const { amount } = req.body
     Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: -amount}})
     .then(() => {
         res.json({message: "success"})

@@ -495,7 +495,36 @@ exports.communityactivity = (req, res) => {
             type: "quest",
             amount: 0
         },
-
+        {
+            _id: "629a98a5a881575c013b5464",
+            type: "diamondpools",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5465",
+            type: "devsshare",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5466",
+            type: "companyshare",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5467",
+            type: "officers",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5468",
+            type: "marketing",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5469",
+            type: "incentives",
+            amount: 0
+        },
     ]
 
     Communityactivity.create(communityactivity)

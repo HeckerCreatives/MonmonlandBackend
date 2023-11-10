@@ -39,20 +39,20 @@ exports.resetmonthly = (req, res) => {
 
             if(mcreset){
                 const leaderboard =  await Communityactivity.findOne({_id: process.env.leaderboardsca})
-                                    .then(data => {
-                                        return data.amount
-                                    })
+                .then(data => {
+                    return data.amount
+                })
 
                 const grinding =   await Communityactivity.findOne({_id: process.env.grindingca})
-                                .then(data => {
-                                    return data.amount
-                                })
+                .then(data => {
+                    return data.amount
+                })
                 const quest =  await Communityactivity.findOne({_id: process.env.questca})
-                                .then(data => {
-                                    return data.amount
-                                })
+                .then(data => {
+                    return data.amount
+                })
                 
-                await Communityactivityaccumulated.findByIdAndUpdate(process.env.communityaccumulated, {$inc: {leaderboardamount: leaderboard, grindingamount: grinding, questamount: quest}})
+                // await Communityactivityaccumulated.findByIdAndUpdate(process.env.communityaccumulated, {$inc: {leaderboardamount: leaderboard, grindingamount: grinding, questamount: quest}})
 
                 const history = {
                     amount: mcvalue,
@@ -105,10 +105,52 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const diamondpools = await Communityactivity.findOne({_id: process.env.diamondpoolsca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const devsshare = await Communityactivity.findOne({_id: process.env.devsshareca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const companyshare = await Communityactivity.findOne({_id: process.env.companyshareca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const officers = await Communityactivity.findOne({_id: process.env.officersca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const marketing = await Communityactivity.findOne({_id: process.env.marketingca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const incentives = await Communityactivity.findOne({_id: process.env.incentivesca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
-        "quest": quest
+        "quest": quest,
+        "diamondpools": diamondpools,
+        "devsshare": devsshare,
+        "companyshare": companyshare,
+        "officers": officers,
+        "marketing": marketing,
+        "incentives": incentives
     }
 
     res.json({message: "success", data: summary})
