@@ -2,13 +2,28 @@
 const Games = require("../Models/Games")
 
 module.exports.create = (request, response) => {
-    Games.create(request.body)
+    const game = {
+      gametitle: request.body.gametitle,
+      description: request.body.description,
+      image: request.file?.path,
+      selectsubscription: [request.body.selectsubscription]
+    }
+
+    Games.create(game)
     .then(item => response.json(item))
     .catch(error => response.status(400).json({ error: error.message }));
 }
 
 module.exports.update = (request, response) => {
-    Games.findByIdAndUpdate(request.params.id, request.body, { new: true })
+
+  const game = {
+    gametitle: request.body.gametitle,
+    description: request.body.description,
+    image: request.file?.path,
+    selectsubscription: request.body.selectsubscription
+  }
+
+    Games.findByIdAndUpdate(request.params.id, game, { new: true })
     .then(item => response.json(item))
     .catch(error => response.status(400).json({ error: error.message }));
 }

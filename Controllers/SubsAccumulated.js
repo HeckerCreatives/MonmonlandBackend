@@ -57,13 +57,13 @@ exports.update = (req, res) => {
                 // const grinding = (total * 0.08) - data.grindingamount
                 // const quest = (total * 0.04) - data.questamount
                 
-                const leaderboards = (amount * 0.02)
-                const grinding = (amount * 0.12)
+                const leaderboards = (amount * 0.01)
+                const grinding = (amount * 0.22)
                 const quest = (amount * 0.05)
-                const diamondpools = (amount * 0.01)
+                const diamondpools = (amount * 0.02)
                 const devsshare = (amount * 0.05)
                 const companyshare = (amount * 0.05)
-                const officers = (amount * 0.40)
+                const officers = (amount * 0.30)
                 const marketing = (amount * 0.03)
                 const incentives = (amount * 0.02)
 

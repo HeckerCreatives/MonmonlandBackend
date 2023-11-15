@@ -23,7 +23,12 @@ module.exports.getOne = (request, response) => {
 }
 
 module.exports.update = (request, response) => {
-    Roadmap.findByIdAndUpdate(request.params.id, request.body, {new: true})
+    const roadmap = {
+        title: request.body.title,
+        description: request.body.description,
+        image: request.file?.path
+    }
+    Roadmap.findByIdAndUpdate(request.params.id, roadmap, {new: true})
     .then(data => response.json(data))
     .catch(error => response.status(400).json({error: error.message}))
 }

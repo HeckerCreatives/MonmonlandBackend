@@ -1,19 +1,19 @@
-const Ads = require("../Models/Ads")
-const AdsHistory = require("../Models/Adsinhistory")
+const Investorfunds = require("../Models/Investorfunds")
+const InvestorfundsHistory = require("../Models/Investorfundshistory")
 
 exports.update = (req, res) => {
     const { amount, createdby } = req.body
-  
-    const history = {
-      adsId: process.env.adsid,
-      enteredamount: amount,
-      createdby: createdby
-    }
 
-    Ads.findByIdAndUpdate(process.env.adsid, {amount: amount}, {new : true})
+    const history = {
+        adsId: process.env.investorfundid,
+        enteredamount: amount,
+        createdby: createdby
+      }
+
+    Investorfunds.findByIdAndUpdate(process.env.investorfundid, {amount: amount}, {new : true})
     .then((data) => {
         if(data){
-            AdsHistory.create(history)
+            InvestorfundsHistory.create(history)
             res.json({message: "success", data: data})
         }
     })
@@ -21,7 +21,7 @@ exports.update = (req, res) => {
 }
 
 exports.find = (req, res) => {
-    Ads.findOne()
+    Investorfunds.findOne()
     .then(data => {
         if(data){
             res.json({message: "success", data: data.amount})
@@ -31,7 +31,7 @@ exports.find = (req, res) => {
 }
 
 exports.findhistory = (req, res) => {
-    AdsHistory.find()
+    InvestorfundsHistory.find()
     .sort({ 'createdAt': -1 })
     .then(data => {
         res.json({message: "success", data: data})

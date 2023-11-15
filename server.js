@@ -37,6 +37,7 @@ const Ads = require("./Routes/Ads")
 const Leaderboard = require("./Routes/Leaderboard")
 const Communityactivity = require("./Routes/Communityactivity")
 const Nowpayment = require("./Routes/Nowpayment")
+const Investorfund = require("./Routes/Investorfunds")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -104,10 +105,12 @@ app.use("/ads", Ads)
 app.use("/leaderboard", Leaderboard)
 app.use("/communityactivy", Communityactivity)
 app.use("/nowpay", Nowpayment)
+app.use("/investor", Investorfund)
 app.use(BinancePay);
 app.use("/uploads", express.static("uploads"))
 app.use("/tempuploads", express.static("tempuploads"))
 app.use("/receiptuploads", express.static("receiptuploads"))
+app.use('/etcuploads', express.static('etcuploads'));
 const apiUrl = process.env.worldtimeapi
 
 app.get('/phtime', async (req, res) => {

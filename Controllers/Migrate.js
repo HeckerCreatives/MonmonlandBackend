@@ -17,7 +17,7 @@ const Ads = require("../Models/Ads")
 const Leaderboard = require("../Models/Leaderboard")
 const Communityactivity = require("../Models/Communityactivity")
 const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
-
+const Investorfunds = require("../Models/Investorfunds")
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -303,8 +303,26 @@ module.exports.migratedata = (request, response) => {
 
     Communityactivityaccumulated.create(communityactivityaccumulated)
 
+    const investorfunds = {
+        _id: "629a98a5a881575c013b5600",
+        amount: 0
+    }
+
+    Investorfunds.create(investorfunds)
+    
     response.json('Data migration created')
 
+}
+
+exports.investorfund = (req, res) => {
+    const investorfunds = {
+        _id: "629a98a5a881575c013b5600",
+        amount: 0
+    }
+
+    Investorfunds.create(investorfunds)
+
+    res.json("investorfund wallet created")
 }
 
 exports.topupwallet = (req, response) => {
