@@ -2,9 +2,15 @@ const Monmoncoin = require("../Models/Monmoncoin")
 const Ads = require("../Models/Ads")
 const Communityactivity = require("../Models/Communityactivity")
 const Investorfunds = require("../Models/Investorfunds")
+const Gameactivity = require("../Models/Gameactivity")
 
 exports.updatemc = async (req, res) => {
     const {amount} = req.body
+
+    const additional = await Gameactivity.findOne()
+    .then(data => {
+        return data.total
+    })
 
     const ads = await Ads.findOne()
     .then(data => {
@@ -26,7 +32,7 @@ exports.updatemc = async (req, res) => {
         return data.amount
     })
 
-    const total = ( ads + grinding + quest + investor ) * 1000
+    const total = ( ads + grinding + quest + investor + additional ) * 1000
 
     const mc = await Monmoncoin.findOne({name: "Monster Coin"})
     .then((data) => {
