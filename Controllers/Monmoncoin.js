@@ -5,7 +5,7 @@ const Investorfunds = require("../Models/Investorfunds")
 const Gameactivity = require("../Models/Gameactivity")
 
 exports.updatemc = async (req, res) => {
-    const {amount} = req.body
+    const {amount, islimit} = req.body
 
     const additional = await Gameactivity.findOne()
     .then(data => {
@@ -40,20 +40,28 @@ exports.updatemc = async (req, res) => {
     })
 
     if(mc < total ){
-       await Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: amount}})
-        .then(() => {
-            res.json({message: "success"})
-        })
-        .catch(error => response.status(400).json({ error: error.message }));
+        if(islimit === false){
+            await Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: amount}})
+            .then(() => {
+                res.json({message: "success"})
+            })
+            .catch(error => response.status(400).json({ error: error.message }));
+        } else {
+           return res.json({message: "success"})
+        }
     } else {
         const finalvalue = total - mc
         
         if(finalvalue > 0){
-            await Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: finalvalue}})
-            .then(() => {
-              return  res.json({message: "limit", data: finalvalue})
-            })
-            .catch(error => response.status(400).json({ error: error.message }));
+            if(islimit === false){
+                await Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: finalvalue}})
+                .then(() => {
+                  return  res.json({message: "limit", data: finalvalue})
+                })
+                .catch(error => response.status(400).json({ error: error.message }));
+            } else {
+                return  res.json({message: "limit"})
+            }
         }
 
         return res.json({message: "limit"})
