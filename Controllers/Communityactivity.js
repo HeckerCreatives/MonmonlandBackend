@@ -158,3 +158,14 @@ exports.find = async (req, res) => {
     
 }
 
+exports.unilevelmonstergem = (req, res) => {
+    const { amount } = req.body;
+
+    Communityactivity.findOneAndUpdate({type: "unilevelmonstergem"}, {$inc: {amount: amount}})
+    .then((data) => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+}
