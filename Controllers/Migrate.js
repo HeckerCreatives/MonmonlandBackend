@@ -543,6 +543,11 @@ exports.communityactivity = (req, res) => {
             type: "incentives",
             amount: 0
         },
+        {
+            _id: "629a98a5a881575c013b5470",
+            type: "monstergem",
+            amount: 0
+        },
     ]
 
     Communityactivity.create(communityactivity)

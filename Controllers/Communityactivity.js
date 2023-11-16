@@ -3,6 +3,7 @@ const Monmoncoin = require("../Models/Monmoncoin")
 const Gameactivity = require("../Models/Gameactivity")
 const Mchistory = require("../Models/Mcconversionhistory")
 const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
+const Merchandise = require("../Models/Merchandise")
 exports.mcvalue = (req, res) => {
 
     Monmoncoin.findOne({name: "Monster Coin"})
@@ -156,3 +157,4 @@ exports.find = async (req, res) => {
     res.json({message: "success", data: summary})
     
 }
+
