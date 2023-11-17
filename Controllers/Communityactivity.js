@@ -4,10 +4,20 @@ const Gameactivity = require("../Models/Gameactivity")
 const Mchistory = require("../Models/Mcconversionhistory")
 const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 const Merchandise = require("../Models/Merchandise")
+
 exports.mcvalue = (req, res) => {
 
     Monmoncoin.findOne({name: "Monster Coin"})
     .then(async mc => {
+        const ads = await Ads.findOne()
+        .then(data => {
+            return data.amount
+        })
+
+        const investor = await Investorfunds.findOne()
+        .then(data => {
+            return data.amount
+        })
 
        await Gameactivity.findOne()
        .then( header => {
@@ -15,7 +25,7 @@ exports.mcvalue = (req, res) => {
             .then(grind => {
                 Communityactivity.findOne({type: "quest"})
                 .then(quest => {
-                    const value = grind.amount + quest.amount + header.total
+                    const value = grind.amount + quest.amount + header.total + ads + investor
                     const fnal = value / mc.amount
                     
                     res.json({message: "success", data: fnal, totalmc: mc.amount, totalincome: value})
