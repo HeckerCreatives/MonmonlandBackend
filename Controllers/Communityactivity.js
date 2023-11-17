@@ -142,6 +142,18 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const monstergem = await Communityactivity.findOne({_id: process.env.monstergemca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const unilevelmonstergem = await Communityactivity.findOne({_id: process.env.unilevelmonstergemca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -151,7 +163,9 @@ exports.find = async (req, res) => {
         "companyshare": companyshare,
         "officers": officers,
         "marketing": marketing,
-        "incentives": incentives
+        "incentives": incentives,
+        "monstergem": monstergem,
+        "unilevelmonstergem": unilevelmonstergem
     }
 
     res.json({message: "success", data: summary})
