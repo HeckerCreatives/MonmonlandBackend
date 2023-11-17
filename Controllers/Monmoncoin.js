@@ -69,13 +69,50 @@ exports.updatemc = async (req, res) => {
     
 }
 
-exports.updatemg = (req, res) => {
-    const {amount} = req.body
-    Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: amount}})
-    .then(() => {
-        res.json({message: "success"})
+exports.updatemg = async (req, res) => {
+    const {amount, islimit} = req.body
+
+    const additionalmg = await Gameactivity.findOne()
+    .then(data => {
+        return data.initial
     })
-    .catch(error => response.status(400).json({ error: error.message }));
+
+    const mgca = await Communityactivity.findOne({type: "monstergem"})
+    .then(data => {
+        return data.amount
+    })
+
+    const mg = Monmoncoin.findOne({name: "Monster Gem"})
+
+    const total = (additionalmg + mgca)
+
+    if(mg < total){
+        if(islimit === false){
+            Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: amount}})
+            .then(() => {
+                res.json({message: "success"})
+            })
+            .catch(error => response.status(400).json({ error: error.message }));
+        } else {
+            return res.json({message: "success"})
+        }
+       
+    } else {
+        const finalvalue = total - mg
+
+        if(islimit === false){
+            Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: finalvalue}})
+            .then(() => {
+                return res.json({message: "limit", data: finalvalue})
+            })
+            .catch(error => response.status(400).json({ error: error.message }));
+        } else {
+            return  res.json({message: "limit"})
+        }
+        return  res.json({message: "limit"})
+    }
+
+    
 }
 
 exports.find = (req, res) => {
