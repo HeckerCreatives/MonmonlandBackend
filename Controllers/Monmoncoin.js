@@ -91,7 +91,7 @@ exports.updatemg = async (req, res) => {
 
     if(mg < total){
         if(islimit === false){
-            Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: amount}})
+            await Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: amount}})
             .then(() => {
                 res.json({message: "success"})
             })
@@ -104,7 +104,7 @@ exports.updatemg = async (req, res) => {
         const finalvalue = total - mg
 
         if(islimit === false){
-            Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: finalvalue}})
+            await Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: finalvalue}})
             .then(() => {
                 return res.json({message: "limit", data: finalvalue})
             })
