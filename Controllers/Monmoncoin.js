@@ -95,7 +95,7 @@ exports.updatemg = async (req, res) => {
             .then(() => {
                 res.json({message: "success"})
             })
-            .catch(error => response.status(400).json({ error: error.message }));
+            .catch(error => res.status(400).json({ error: error.message }));
         } else {
             return res.json({message: "success"})
         }
