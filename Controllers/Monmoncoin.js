@@ -39,7 +39,9 @@ exports.updatemc = async (req, res) => {
         return data.amount
     })
 
-    if(mc < total ){
+   const finaladd = mc + amount
+
+    if(finaladd < total ){
         if(islimit === false){
             await Monmoncoin.findOneAndUpdate({name: "Monster Coin"}, {$inc: {amount: amount}})
             .then(() => {
@@ -88,8 +90,9 @@ exports.updatemg = async (req, res) => {
     })
 
     const total = (additionalmg + mgca)
-
-    if(mg < total){
+    const finaladd = mg + amount
+    
+    if(finaladd < total){
         if(islimit === false){
             await Monmoncoin.findOneAndUpdate({name: "Monster Gem"}, {$inc: {amount: amount}})
             .then(() => {
@@ -108,11 +111,13 @@ exports.updatemg = async (req, res) => {
             .then(() => {
                 return res.json({message: "limit", data: finalvalue})
             })
-            .catch(error => res.status(400).json({ error: error.message }));
+            .catch(error => {
+                return res.status(400).json({ error: error.message })
+            });
         } else {
             return  res.json({message: "limit"})
         }
-        return  res.json({message: "limit"})
+        // return  res.json({message: "limit"})    
     }
 
     
