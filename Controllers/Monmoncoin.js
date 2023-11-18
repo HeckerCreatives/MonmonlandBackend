@@ -82,7 +82,10 @@ exports.updatemg = async (req, res) => {
         return data.amount
     })
 
-    const mg = Monmoncoin.findOne({name: "Monster Gem"})
+    const mg = await Monmoncoin.findOne({name: "Monster Gem"})
+    .then((data)=> {
+        return data.amount
+    })
 
     const total = (additionalmg + mgca)
 
@@ -105,7 +108,7 @@ exports.updatemg = async (req, res) => {
             .then(() => {
                 return res.json({message: "limit", data: finalvalue})
             })
-            .catch(error => response.status(400).json({ error: error.message }));
+            .catch(error => res.status(400).json({ error: error.message }));
         } else {
             return  res.json({message: "limit"})
         }

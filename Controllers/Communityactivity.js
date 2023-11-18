@@ -4,7 +4,8 @@ const Gameactivity = require("../Models/Gameactivity")
 const Mchistory = require("../Models/Mcconversionhistory")
 const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 const Merchandise = require("../Models/Merchandise")
-
+const Ads = require("../Models/Ads")
+const Investorfunds = require("../Models/Investorfunds")
 exports.mcvalue = (req, res) => {
 
     Monmoncoin.findOne({name: "Monster Coin"})
