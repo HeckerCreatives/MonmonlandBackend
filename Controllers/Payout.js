@@ -347,3 +347,17 @@ exports.createexsisting = async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
       }
 }
+
+exports.pangreject = (req, res) => {
+    
+    Payout.find({$or:[{"status":{"$in":["process","pending"]}}]})
+    .then((data) => {
+        const item = data.map(e => e._id)
+
+        Payout.updateMany({ _id: { $in: item } }, {status: "reject"})
+        .then((data) => {
+            res.json({message: "success"})
+        })
+    })
+    .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+}

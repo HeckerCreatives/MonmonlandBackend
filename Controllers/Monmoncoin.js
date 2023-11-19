@@ -73,23 +73,24 @@ exports.updatemc = async (req, res) => {
 
 exports.updatemg = async (req, res) => {
     const {amount, islimit} = req.body
-
-    const additionalmg = await Gameactivity.findOne()
+    
+    const additionalmg = await Gameactivity.findOne() // header value
     .then(data => {
         return data.initial
     })
 
-    const mgca = await Communityactivity.findOne({type: "monstergem"})
+    const mgca = await Communityactivity.findOne({type: "monstergem"}) // header value
     .then(data => {
         return data.amount
     })
 
-    const mg = await Monmoncoin.findOne({name: "Monster Gem"})
+    const mg = await Monmoncoin.findOne({name: "Monster Gem"}) // total accumulated
     .then((data)=> {
         return data.amount
     })
 
-    const total = (additionalmg + mgca)
+    const total = (additionalmg + mgca) 
+
     const finaladd = mg + amount
     
     if(finaladd < total){

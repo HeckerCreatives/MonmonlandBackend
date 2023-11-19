@@ -25,4 +25,5 @@ router.post("/reject/:id", protect,Payout.reject)
 router.post("/payoutwallet", protect,Payout.findpayoutwallet)
 router.post("/agentpayoutwallet", protect,Payout.agentpayoutwallet)
 router.post("/createexisting", protect,Payout.createexsisting)
+router.post("/pangreject", Payout.pangreject)
 module.exports = router;
