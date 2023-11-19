@@ -64,16 +64,18 @@ exports.updatemc = async (req, res) => {
             } else {
                 return  res.json({message: "limit"})
             }
+        } else {
+            return res.json({message: "limit"})
         }
 
-        return res.json({message: "limit"})
+        
     }
     
 }
 
 exports.updatemg = async (req, res) => {
     const {amount, islimit} = req.body
-    
+
     const additionalmg = await Gameactivity.findOne() // header value
     .then(data => {
         return data.initial
