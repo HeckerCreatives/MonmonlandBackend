@@ -81,12 +81,12 @@ exports.updatemg = async (req, res) => {
         return data.initial
     })
 
-    const mgca = await Communityactivity.findOne({type: "monstergem"}) // header value
+    const mgca = await Communityactivity.findOne({type: "monstergem"}) // header value 
     .then(data => {
         return data.amount
     })
 
-    const mg = await Monmoncoin.findOne({name: "Monster Gem"}) // total accumulated
+    const mg = await Monmoncoin.findOne({name: "Monster Gem"}) // total accumulated total farmed
     .then((data)=> {
         return data.amount
     })
