@@ -62,7 +62,7 @@ exports.process = (req, res) => {
                     })
                     .catch(error => res.status(400).json({error: error.message}))
                 } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: data.data})
+                    res.json({message: "failed", data: result1.data.FunctionResult.data})
                 } else if (error1){
                     res.json({message: "failed", data: error1})
                 }
@@ -111,7 +111,7 @@ exports.reject = (req, res) => {
                     })
                     .catch(error => res.status(400).json({error: error.message}))
                 } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: data.data})
+                    res.json({message: "failed", data: result1.data.FunctionResult.data})
                 } else if (error1){
                     res.json({message: "failed", data: error1})
                 }
@@ -169,7 +169,7 @@ exports.done = (req, res) => {
                     })
                     .catch(error => res.status(400).json({error: error.message}))
                 } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: data.data})
+                    res.json({message: "failed", data: result1.data.FunctionResult.data})
                 } else if (error1){
                     res.json({message: "failed", data: error1})
                 }
@@ -228,7 +228,7 @@ exports.reprocess = async (req, res) => {
                     })
                     .catch(error => res.status(400).json({error: error.message}))
                 } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: data.data})
+                    res.json({message: "failed", data: result1.data.FunctionResult.data})
                 } else if (error1){
                     res.json({message: "failed", data: error1})
                 }
@@ -251,11 +251,11 @@ exports.adminfind = (req, res) => {
     Payout.find({status: status})
     .skip(pageOptions.page * pageOptions.limit)
     .limit(pageOptions.limit)
-    .sort({'createdAt': -1})
+    .sort({'createdAt': 1})
     .then(user => {
         Payout.countDocuments({status: status})
         .then(count => {
-            const totalPages = Math.ceil(count / 10)
+            const totalPages = Math.ceil(count / pageOptions.limit)
             res.json({ message: "success", data: user, pages: totalPages })
         })
         .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
@@ -273,7 +273,7 @@ exports.agentfind = (req, res) => {
     Payout.find({status: status, admin: admin})
     .skip(pageOptions.page * pageOptions.limit)
     .limit(pageOptions.limit)
-    .sort({'createdAt': -1})
+    .sort({'createdAt': 1})
     .then(user => {
         Payout.countDocuments({status: status, admin: admin})
         .then(count => {
