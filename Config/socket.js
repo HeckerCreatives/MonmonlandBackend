@@ -46,7 +46,7 @@ const socket = io => {
           // Use splice again to add the new element at the specified index
           playerlist[roomname].splice(queuePosition, 0, newdata);
           console.log(playerlist[roomname])
-
+          
         }
         
       } else {
@@ -116,7 +116,7 @@ const socket = io => {
             // Push the 'listArray' into 'playerlist[roomid]'.
             playerlist[roomid] = list;
             playerrooms[socket.id] = {room: roomid}
-            
+            socket.to(roomlist[roomid].id).emit("playersinline", playerlist[roomid])
           } else {
             if(!roomlist.hasOwnProperty(roomid)){
               socket.emit("forcekick")
@@ -136,6 +136,13 @@ const socket = io => {
       })
 
     });
+
+    socket.on("usersinline", (data) => {
+      const { room } = data;
+      socket.to(roomlist[room].id).emit("playersinline", playerlist[room])
+      console.log(playerlist[room])
+    })
+
 
     socket.on("refreshcashierdata", () => {
       // console.log(data)
@@ -204,6 +211,7 @@ const socket = io => {
     socket.on("refreshque", (data) => {
       const {room } = data
       getQueNumber(room, socket.id);
+      socket.to(roomlist[room].id).emit("playersinline", playerlist[room])
     })
 
     socket.on('selectsubs', (data) => {

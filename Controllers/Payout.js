@@ -81,41 +81,45 @@ exports.reject = (req, res) => {
     const status = "reject"
     Payout.find({_id: id})
     .then(async data =>{
-        if(data[0].status === "pending"){
-            PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.ExecuteCloudScript({
-                FunctionName: "ProceessPayout",
-                FunctionParameter: {
-                    processType: "Reject",
-                    playerId: data[0].playfabId,
-                    processId: data[0].playfabPayoutKey,
-                },
-                ExecuteCloudScript: true,
-                GeneratePlayStreamEvent: true,
-            }, (error1, result1) => {
-                if(result1.data.FunctionResult.message === "success"){
+        if(data[0].status === "pending" || data[0].status === "process"){
+            // PlayFab._internalSettings.sessionTicket = playfabToken;
+            // PlayFabClient.ExecuteCloudScript({
+            //     FunctionName: "ProceessPayout",
+            //     FunctionParameter: {
+            //         processType: "Reject",
+            //         playerId: data[0].playfabId,
+            //         processId: data[0].playfabPayoutKey,
+            //     },
+            //     ExecuteCloudScript: true,
+            //     GeneratePlayStreamEvent: true,
+            // }, (error1, result1) => {
+                // if(result1.data.FunctionResult.message === "success"){
                     Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
                     .then(() => {
-                        PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
-                        .then(() => {
+                        PayoutWallet.findOneAndUpdate({_id: data[0].status === "pending" ? process.env.requestid : process.env.processid}, {$inc: {amount: -data[0].amount}})
+                        .then(() => {   
                             PayoutWallet.findOneAndUpdate({_id: process.env.rejectid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: adminId, name: "reject"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
+                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) 
                                 .then(() => {
+                                    PayoutWallet.findOneAndUpdate({user: adminId, name: "reject"}, {$inc: {amount: data[0].amount}})
+                                    .then(() => {
                                     res.json({message: "success"})
                                 })
+                                })
+                                
                             })
                             .catch(error => res.status(400).json({error: error.message}))
                         })
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: result1.data.FunctionResult.data})
-                } else if (error1){
-                    res.json({message: "failed", data: error1})
-                }
-            })
+                // } else if (result1.data.FunctionResult.message === "failed"){
+                //     res.json({message: "failed", data: result1.data.FunctionResult.data})
+                // } else if (error1){
+                //     res.json({message: "failed", data: error1})
+                // }
+            // })
         } else {
             res.json({message: "failed", data: "This payout is already reject"})
         }

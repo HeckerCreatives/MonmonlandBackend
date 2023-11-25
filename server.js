@@ -38,6 +38,7 @@ const Leaderboard = require("./Routes/Leaderboard")
 const Communityactivity = require("./Routes/Communityactivity")
 const Nowpayment = require("./Routes/Nowpayment")
 const Investorfund = require("./Routes/Investorfunds")
+const Dragonpay = require("./Routes/Dragonpay")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -78,6 +79,7 @@ const io = new Server(server, {
 
 require('./Config/socket')(io)
 // [Routing]
+app.use("/dragonpay", Dragonpay)
 app.use("/gameactivity", Gameactivity);
 app.use("/subscription", Subscription);
 app.use("/news", News);
