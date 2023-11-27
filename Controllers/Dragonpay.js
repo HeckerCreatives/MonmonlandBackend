@@ -64,12 +64,12 @@ exports.create = (req, res) => {
 exports.verifypayments = (request, response) => {
     console.log(request)
   // Assuming Request and Application objects are available in your context
-  const txnid = request.query.txnid; // Adjust this according to your actual object structure
-  const refno = request.query.refno; // Adjust this according to your actual object structure
-  const status = request.query.status; // Adjust this according to your actual object structure
-  const message = request.query.message; // Adjust this according to your actual object structure
-  const receivedDigest = request.query.digest; // Adjust this according to your actual object structure
-  const secretKey = "your_secret_key"; // Replace with your actual secret key
+  const txnid = request.body.txnid; // Adjust this according to your actual object structure
+  const refno = request.body.refno; // Adjust this according to your actual object structure
+  const status = request.body.status; // Adjust this according to your actual object structure
+  const message = request.body.message; // Adjust this according to your actual object structure
+  const receivedDigest = request.body.digest; // Adjust this according to your actual object structure
+  const secretKey = request.body.digest; // Replace with your actual secret key
 
   // Function to calculate SHA-1 hash
   function getSHA1Digest(data) {
@@ -96,7 +96,7 @@ exports.verifypayments = (request, response) => {
             return
         }
         
-        if(item.status !== 'P'){
+        if(item.status !== 'pending'){
             response.statusCode = 400;
             response.end(error_msg);
             return
