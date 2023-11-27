@@ -26,7 +26,7 @@ exports.create = (req, res) => {
     const password = process.env.merchantpass
     const data = {
         "Amount": amount,
-        "Currency": "USD",
+        "Currency": "PHP",
         "Description": description,
         "Email": email
     }
