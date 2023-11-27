@@ -62,14 +62,14 @@ exports.create = (req, res) => {
 
 
 exports.verifypayments = (request, response) => {
-    console.log(request)
+    console.log(request.body)
   // Assuming Request and Application objects are available in your context
   const txnid = request.body.txnid; // Adjust this according to your actual object structure
   const refno = request.body.refno; // Adjust this according to your actual object structure
   const status = request.body.status; // Adjust this according to your actual object structure
   const message = request.body.message; // Adjust this according to your actual object structure
   const receivedDigest = request.body.digest; // Adjust this according to your actual object structure
-  const secretKey = request.body.digest; // Replace with your actual secret key
+  const secretKey = process.env.merchantpass; // Replace with your actual secret key
 
   // Function to calculate SHA-1 hash
   function getSHA1Digest(data) {
@@ -78,7 +78,8 @@ exports.verifypayments = (request, response) => {
 
   // Calculate the SHA-1 digest for the received message
   const calculatedDigest = getSHA1Digest(`${txnid}:${refno}:${status}:${message}:${secretKey}`);
-
+  console.log(receivedDigest)
+  console.log(calculatedDigest)
   // Check if the received digest matches the calculated one
   if (calculatedDigest !== receivedDigest) {
     // Display an error message and send a response
