@@ -228,9 +228,15 @@ exports.createpayout = (req, res) => {
     axios(config)
     .then(async response => {
         if (response.status === 200) {
-            await Dragonpayout.create(data);
-            console.log(response.data);
-            res.json({ message: "success", data: response.data });
+            await Dragonpayout.create(data)
+            .then(item => {
+                Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message})
+                .then((data) => {
+                    res.json({ message: "success", data: data });
+                })
+                
+            })
+            
         } else {
             // Handle other status codes
             console.error(`Request failed with status code ${response.status}`);
@@ -266,7 +272,7 @@ exports.verifypayout = (request, response) => {
       // Check if status is 'SUCCESS'
       if (status === 'S') {
         // Process customer order for shipment
-      AutoReceipt.findOne({receiptId: txnid})
+       Dragonpayout.findOne({TxnId: txnid})
       .then(item => {
           if(!item){
               response.statusCode = 400;
@@ -274,7 +280,7 @@ exports.verifypayout = (request, response) => {
               return
           }
           
-          if(item.status !== 'pending'){
+          if(item.Status !== 'pending'){
               response.statusCode = 400;
               response.end(error_msg);
               return
@@ -288,7 +294,7 @@ exports.verifypayout = (request, response) => {
           // }
   
           if(status === "F" || status === 'V'){
-              AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno})
+               Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
               .then(()=> {
                   response.statusCode = 200;
                   response.end('OK');
@@ -319,9 +325,9 @@ exports.verifypayout = (request, response) => {
     //           console.log(result1)
     //           console.log(error1)
     //           if(result1.data.FunctionResult.message === "success"){
-              AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno}, {new: true})
+        Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
               .then(data => {
-                  TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                  TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.Amount}})
                   .then(()=> {
                       response.statusCode = 200;
                       response.end('OK');

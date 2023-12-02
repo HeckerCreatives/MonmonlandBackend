@@ -4,7 +4,14 @@ const DragonpayoutSchema = new mongoose.Schema(
     { 
         TxnId: {
             type: String
+        },
+        Refno: {
+            type: String
         }, 
+        Status: {
+            type: String,
+            default: "pending"
+        },
         FirstName: {
             type: String
         },
