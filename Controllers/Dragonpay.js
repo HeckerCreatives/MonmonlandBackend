@@ -227,12 +227,13 @@ exports.createpayout = (req, res) => {
     // console.log("Dragonpay API Request:", config);
     axios(config)
     .then(async response => {
+        console.log(response)
         if (response.status === 200) {
             await Dragonpayout.create(data)
             .then(item => {
                 Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message})
                 .then((data) => {
-                    res.json({ message: "success", data: data });
+                    res.json({ message: "success", data: response.data });
                 })
                 
             })
