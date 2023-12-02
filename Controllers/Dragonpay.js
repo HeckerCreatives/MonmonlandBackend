@@ -4,9 +4,10 @@ var PlayFabClient = playfab.PlayFabClient
 PlayFab.settings.titleId = process.env.monmontitleid;
 const AutoReceipt = require("../Models/Receiptautomated")
 const TopUpWallet = require("../Models/Topupwallet")
+const Dragonpayout = require("../Models/Dragonpayout")
 var axios = require('axios');
 const crypto = require('crypto');
-const { stat } = require('fs');
+const fs = require('fs');
 
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -181,3 +182,64 @@ exports.verifypayments = (request, response) => {
     }
   }
 };
+
+exports.createpayout = (req, res) => {
+    const { Amount, Description, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail } = req.body
+    const uniqueId = generateRandomString()
+    const merchantId = process.env.merchantid
+    const password = process.env.merchantpass
+    const apiKey = process.env.merchantapi
+    const currentDate = new Date();
+    const dateString = currentDate.toDateString();
+
+    const data = { 
+        TxnId: uniqueId, 
+        FirstName: FirstName,
+        MiddleName: MiddleName,
+        LastName: LastName,
+        Amount: Amount,
+        Currency: "PHP", 
+        Description: Description,
+        ProcId: "CEBL", 
+        ProcDetail: ProcDetail, // Account or mobile no of payout channel
+        RunDate: dateString, 
+        Email: Email, 
+        MobileNo: MobileNo, 
+        BirthDate: "1970-11-17", 
+        Nationality: "Philippines", 
+        Address:
+        { Street1: "123 Sesame Street", 
+        Street2: "Childrens Television Workshop", 
+        Barangay: "Ugong", 
+        City : "Pasig", 
+        Province: "Metro Manila", 
+        Country: "PH"
+        }
+    }
+
+
+    const config = {
+        method: 'post',
+        url: `https://test.dragonpay.ph/api/payout/merchant/v1/${merchantId}/post`,
+        headers: { 
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+        data : data
+    }
+    // console.log("Dragonpay API Request:", config);
+    axios(config)
+    .then(async response => {
+        if (response.status === 200) {
+            await Dragonpayout.create(data);
+            console.log(response.data);
+            res.json({ message: "success", data: response.data });
+        } else {
+            // Handle other status codes
+            console.error(`Request failed with status code ${response.status}`);
+            res.status(response.status).json({ error: response.statusText });
+        }
+    })
+    .catch(error => res.status(500).json({ error: error }));
+
+}
