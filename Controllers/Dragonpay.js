@@ -63,7 +63,6 @@ exports.create = (req, res) => {
 
 
 exports.verifypayments = (request, response) => {
-    console.log(request.body)
   // Assuming Request and Application objects are available in your context
   const txnid = request.body.txnid; // Adjust this according to your actual object structure
   const refno = request.body.refno; // Adjust this according to your actual object structure
@@ -79,8 +78,6 @@ exports.verifypayments = (request, response) => {
 
   // Calculate the SHA-1 digest for the received message
   const calculatedDigest = getSHA1Digest(`${txnid}:${refno}:${status}:${message}:${secretKey}`);
-  console.log(receivedDigest)
-  console.log(calculatedDigest)
   // Check if the received digest matches the calculated one
   if (calculatedDigest !== receivedDigest) {
     // Display an error message and send a response
@@ -200,7 +197,7 @@ exports.createpayout = (req, res) => {
         Amount: Amount,
         Currency: "PHP", 
         Description: Description,
-        ProcId: "CEBL", 
+        // ProcId: "CEBL", 
         ProcDetail: ProcDetail, // Account or mobile no of payout channel
         RunDate: dateString, 
         Email: Email, 
@@ -243,3 +240,121 @@ exports.createpayout = (req, res) => {
     .catch(error => res.status(500).json({ error: error }));
 
 }
+
+exports.verifypayout = (request, response) => {
+    // Assuming Request and Application objects are available in your context
+    const txnid = request.body.txnid; // Adjust this according to your actual object structure
+    const refno = request.body.refno; // Adjust this according to your actual object structure
+    const status = request.body.status; // Adjust this according to your actual object structure
+    const message = request.body.message; // Adjust this according to your actual object structure
+    const receivedDigest = request.body.digest; // Adjust this according to your actual object structure
+    const secretKey = process.env.merchantpass; // Replace with your actual secret key
+  
+    // Function to calculate SHA-1 hash
+    function getSHA1Digest(data) {
+      return crypto.createHash('sha1').update(data).digest('hex');
+    }
+  
+    // Calculate the SHA-1 digest for the received message
+    const calculatedDigest = getSHA1Digest(`${txnid}:${refno}:${status}:${message}:${secretKey}`);
+    // Check if the received digest matches the calculated one
+    if (calculatedDigest !== receivedDigest) {
+      // Display an error message and send a response
+      console.error("Error: Digest mismatch. Aborting processing.");
+      response.status(400).send("Error: Digest mismatch. Aborting processing.");
+    } else {
+      // Check if status is 'SUCCESS'
+      if (status === 'S') {
+        // Process customer order for shipment
+      AutoReceipt.findOne({receiptId: txnid})
+      .then(item => {
+          if(!item){
+              response.statusCode = 400;
+              response.end(error_msg);
+              return
+          }
+          
+          if(item.status !== 'pending'){
+              response.statusCode = 400;
+              response.end(error_msg);
+              return
+          }
+  
+          // if(status !== "partially_paid" && status !== "finished" && status !== "failed" && status !== "expired"){
+             
+          //     response.statusCode = 400;
+          //     response.end(error_msg);
+          //     return
+          // }
+  
+          if(status === "F" || status === 'V'){
+              AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno})
+              .then(()=> {
+                  response.statusCode = 200;
+                  response.end('OK');
+                  return
+              })
+              .catch(err => {
+                  response.statusCode = 400;
+                  response.end(err);
+                  return
+              })
+              return
+          }
+  
+          // if(body.payment_status === "partially_paid"){
+          //     item.amount = body.actually_paid
+          // }
+  
+    //       PlayFab._internalSettings.sessionTicket = item.playfabToken;
+    //       PlayFabClient.ExecuteCloudScript({
+    //           FunctionName: "Topup",
+    //           FunctionParameter: {
+    //           playerId: item.playerPlayfabId,
+    //           topupAmount: item.amount,
+    //           },
+    //           ExecuteCloudScript: true,
+    //           GeneratePlayStreamEvent: true,
+    //       }, (error1, result1) => {
+    //           console.log(result1)
+    //           console.log(error1)
+    //           if(result1.data.FunctionResult.message === "success"){
+              AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno}, {new: true})
+              .then(data => {
+                  TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                  .then(()=> {
+                      response.statusCode = 200;
+                      response.end('OK');
+                      return
+                  })
+                  .catch(err => {
+                      response.statusCode = 400;
+                      response.end(error_msg);
+                      return
+                  })
+              })
+              .catch(err => {
+                  response.statusCode = 400;
+                  response.end(error_msg);
+                  return
+              })
+    //           } else {
+    //               response.statusCode = 400;
+    //               response.end(error_msg);
+    //               return
+    //           }
+    //       })
+    //   })
+    //   .catch(err => {
+    //       response.statusCode = 400;
+    //       response.end(error_msg);
+    //       return
+      })
+        
+      } else {
+        // Handle other cases as needed
+        console.log("Status is not 'SUCCESS'. Handle accordingly.");
+        response.status(200).send("Payment verification successful. Status is not 'SUCCESS'.");
+      }
+    }
+  };
