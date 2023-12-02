@@ -197,7 +197,7 @@ exports.createpayout = (req, res) => {
         Amount: Amount,
         Currency: "PHP", 
         Description: Description,
-        // ProcId: "CEBL", 
+        ProcId: "CEBL", 
         ProcDetail: ProcDetail, // Account or mobile no of payout channel
         RunDate: dateString, 
         Email: Email, 
