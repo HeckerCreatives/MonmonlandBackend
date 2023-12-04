@@ -252,7 +252,6 @@ exports.verifypayout = (request, response) => {
     console.log(request.query)
     console.log(request.headers)
     
-    // Assuming Request and Application objects are available in your context
     const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
     const refno = request.query.refNo; // Adjust this according to your actual object structure
     const status = request.query.status; // Adjust this according to your actual object structure
@@ -261,11 +260,8 @@ exports.verifypayout = (request, response) => {
     const secretKey = process.env.merchantpass; // Replace with your actual secret key
   
     // Function to calculate SHA-1 hash
-    function getSHA1Digest(message) {
-        const data = Buffer.from(message, 'ascii');
-        const sha1 = crypto.createHash('sha1');
-        const result = sha1.update(data).digest('hex');
-        return result;
+    function getSHA1Digest(data) {
+        return crypto.createHash('sha1').update(data).digest('hex');
     }
   
     // Calculate the SHA-1 digest for the received message
