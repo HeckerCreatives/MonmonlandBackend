@@ -250,11 +250,11 @@ exports.createpayout = (req, res) => {
 exports.verifypayout = (request, response) => {
     console.log(request)
     // Assuming Request and Application objects are available in your context
-    const txnid = request.body.txnid; // Adjust this according to your actual object structure
-    const refno = request.body.refno; // Adjust this according to your actual object structure
-    const status = request.body.status; // Adjust this according to your actual object structure
-    const message = request.body.message; // Adjust this according to your actual object structure
-    const receivedDigest = request.body.digest; // Adjust this according to your actual object structure
+    const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
+    const refno = request.query.refNo; // Adjust this according to your actual object structure
+    const status = request.query.status; // Adjust this according to your actual object structure
+    const message = request.query.message; // Adjust this according to your actual object structure
+    const receivedDigest = request.query.digest; // Adjust this according to your actual object structure
     const secretKey = process.env.merchantpass; // Replace with your actual secret key
   
     // Function to calculate SHA-1 hash
