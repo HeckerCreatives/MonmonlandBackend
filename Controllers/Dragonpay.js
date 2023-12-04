@@ -320,8 +320,8 @@ exports.verifypayout = (request, response) => {
           }
           
             if(item.Status !== 'pending'){
-              response.status(400).send("status is not pending");
-              console.error("status is not pending");
+              response.status(200).send("this is already process");
+              console.error("this is already process");
               return
             }
   
