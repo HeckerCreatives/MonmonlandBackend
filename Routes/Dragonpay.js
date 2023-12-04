@@ -5,5 +5,5 @@ const Dragonpay = require("../Controllers/Dragonpay")
 router.post("/funds", Dragonpay.create)
 router.post("/verify", Dragonpay.verifypayments)
 router.post("/createpayout", Dragonpay.createpayout)
-router.post("/verifypayout", Dragonpay.verifypayout)
+router.get("/verifypayout", Dragonpay.verifypayout)
 module.exports = router

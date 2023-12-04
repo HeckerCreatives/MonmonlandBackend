@@ -21,14 +21,14 @@ function generateRandomString() {
 }
 
 exports.create = (req, res) => {
-    const { amount, description, email, playfabToken, username, playerPlayfabId } = req.body
+    const { amount, email, playfabToken, username, playerPlayfabId } = req.body
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
     const data = {
         "Amount": amount,
         "Currency": "PHP",
-        "Description": description,
+        "Description": `Top Up $${amount}`,
         "Email": email
     }
 
