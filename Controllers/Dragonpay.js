@@ -20,7 +20,7 @@ function generateRandomString() {
     return randomString;
 }
 
-exports.create = (req, res) => {
+exports.createfunds = (req, res) => {
     const { amount, email, playfabToken, username, playerPlayfabId } = req.body
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
@@ -50,6 +50,47 @@ exports.create = (req, res) => {
             username: username,
             playerPlayfabId: playerPlayfabId,
             subscriptionType: `Top Up $${amount}`,
+            amount: amount,
+            playfabToken: playfabToken
+        })
+        // console.log(item)
+        res.json({message: "success", data: item.data})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+}
+
+exports.createbundles = (req, res) => {
+    const uniqueId = generateRandomString()
+    const { amount, playfabToken, username, playerPlayfabId, bundle, bundledescription, subs, email} = req.body
+    const merchantId = process.env.merchantid
+    const password = process.env.merchantpass
+
+    const data = {
+        "Amount": amount,
+        "Currency": "PHP",
+        "Description": bundledescription,
+        "Email": email
+    }
+
+    const config = {
+        method: 'post',
+        url: `https://test.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        headers: { 
+            'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
+            'Content-Type': 'application/json'
+        },
+        data : data
+    };
+
+    axios(config)
+    .then(async item => {
+        await AutoReceipt.create({
+            receiptId: uniqueId,
+            orderCode: item.data.RefNo,
+            username: username,
+            playerPlayfabId: playerPlayfabId,
+            subscriptionType: bundle,
             amount: amount,
             playfabToken: playfabToken
         })
@@ -278,11 +319,11 @@ exports.verifypayout = (request, response) => {
               return
           }
           
-          if(item.Status !== 'pending'){
+            if(item.Status !== 'pending'){
               response.status(400).send("status is not pending");
               console.error("status is not pending");
               return
-          }
+            }
   
           if(status === "F" || status === 'V'){
                Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
@@ -298,17 +339,16 @@ exports.verifypayout = (request, response) => {
               return
           }
 
-        Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
-              .then(() => {
-                response.statusCode = 200;
-                response.end('OK');
+            Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
+            .then(() => {
+                response.status(200).send('OK');
                 return
-              })
-              .catch(err => {
-                  response.status(400).send(err);
-                  console.error(err);
-                  return
-              })
+            })
+            .catch(err => {
+                response.status(400).send(err);
+                console.error(err);
+                return
+            })
       })
         
       } else {
