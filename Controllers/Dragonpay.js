@@ -227,7 +227,6 @@ exports.createpayout = (req, res) => {
     // console.log("Dragonpay API Request:", config);
     axios(config)
     .then(async response => {
-        console.log(response)
         if (response.status === 200) {
             await Dragonpayout.create(data)
             .then(item => {
@@ -249,6 +248,7 @@ exports.createpayout = (req, res) => {
 }
 
 exports.verifypayout = (request, response) => {
+    console.log(request)
     // Assuming Request and Application objects are available in your context
     const txnid = request.body.txnid; // Adjust this according to your actual object structure
     const refno = request.body.refno; // Adjust this according to your actual object structure
@@ -276,14 +276,14 @@ exports.verifypayout = (request, response) => {
        Dragonpayout.findOne({TxnId: txnid})
       .then(item => {
           if(!item){
-              response.statusCode = 400;
-              response.end("item not found");
+              response.status(400).send("Error: item not found");
+              console.error("item not found");
               return
           }
           
           if(item.Status !== 'pending'){
-              response.statusCode = 400;
-              response.end("status is not pending");
+              response.status(400).send("status is not pending");
+              console.error("status is not pending");
               return
           }
   
@@ -297,13 +297,12 @@ exports.verifypayout = (request, response) => {
           if(status === "F" || status === 'V'){
                Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
               .then(()=> {
-                  response.statusCode = 200;
-                  response.end('OK');
+                  response.status(200).send('OK');
                   return
               })
               .catch(err => {
-                  response.statusCode = 400;
-                  response.end(err);
+                  response.status(400).send(err);
+                  console.error(err);
                   return
               })
               return
@@ -333,8 +332,8 @@ exports.verifypayout = (request, response) => {
                 return
               })
               .catch(err => {
-                  response.statusCode = 400;
-                  response.end(err);
+                  response.status(400).send(err);
+                  console.error(err);
                   return
               })
     //           } else {
