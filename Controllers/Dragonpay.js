@@ -248,7 +248,10 @@ exports.createpayout = (req, res) => {
 }
 
 exports.verifypayout = (request, response) => {
-    console.log(request)
+    console.log(request.body)
+    console.log(request.query)
+    console.log(request.headers)
+    
     // Assuming Request and Application objects are available in your context
     const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
     const refno = request.query.refNo; // Adjust this according to your actual object structure
@@ -319,7 +322,7 @@ exports.verifypayout = (request, response) => {
         
       } else {
         // Handle other cases as needed
-        console.log("Status is not 'SUCCESS'. Handle accordingly.");
+        console.log(`Status is not 'SUCCESS'. Handle accordingly. ${status}`);
         response.status(200).send("Payment verification successful. Status is not 'SUCCESS'.");
       }
     }
