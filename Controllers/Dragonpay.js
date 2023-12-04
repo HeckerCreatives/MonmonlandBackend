@@ -49,7 +49,7 @@ exports.create = (req, res) => {
             orderCode: item.data.RefNo,
             username: username,
             playerPlayfabId: playerPlayfabId,
-            subscriptionType: description,
+            subscriptionType: `Top Up $${amount}`,
             amount: amount,
             playfabToken: playfabToken
         })
@@ -59,8 +59,6 @@ exports.create = (req, res) => {
     .catch((error) => res.status(500).json({ error: error.message }));
 
 }
-
-
 
 exports.verifypayments = (request, response) => {
   // Assuming Request and Application objects are available in your context
@@ -248,9 +246,6 @@ exports.createpayout = (req, res) => {
 }
 
 exports.verifypayout = (request, response) => {
-    console.log(request.body)
-    console.log(request.query)
-    console.log(request.headers)
     
     const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
     const refno = request.query.refNo; // Adjust this according to your actual object structure
