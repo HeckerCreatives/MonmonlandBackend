@@ -328,17 +328,18 @@ exports.verifypayout = (request, response) => {
     //           if(result1.data.FunctionResult.message === "success"){
         Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
               .then(data => {
-                  TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.Amount}})
-                  .then(()=> {
-                      response.statusCode = 200;
-                      response.end('OK');
-                      return
-                  })
-                  .catch(err => {
-                      response.statusCode = 400;
-                      response.end(error_msg);
-                      return
-                  })
+                response.statusCode = 200;
+                response.end('OK');
+                return
+                //   TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.Amount}})
+                //   .then(()=> {
+                     
+                //   })
+                //   .catch(err => {
+                //       response.statusCode = 400;
+                //       response.end(error_msg);
+                //       return
+                //   })
               })
               .catch(err => {
                   response.statusCode = 400;
