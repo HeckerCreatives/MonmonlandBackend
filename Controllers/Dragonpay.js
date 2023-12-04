@@ -258,8 +258,11 @@ exports.verifypayout = (request, response) => {
     const secretKey = process.env.merchantpass; // Replace with your actual secret key
   
     // Function to calculate SHA-1 hash
-    function getSHA1Digest(data) {
-      return crypto.createHash('sha1').update(data).digest('hex');
+    function getSHA1Digest(message) {
+        const data = Buffer.from(message, 'ascii');
+        const sha1 = crypto.createHash('sha1');
+        const result = sha1.update(data).digest('hex');
+        return result;
     }
   
     // Calculate the SHA-1 digest for the received message
@@ -287,13 +290,6 @@ exports.verifypayout = (request, response) => {
               return
           }
   
-          // if(status !== "partially_paid" && status !== "finished" && status !== "failed" && status !== "expired"){
-             
-          //     response.statusCode = 400;
-          //     response.end(error_msg);
-          //     return
-          // }
-  
           if(status === "F" || status === 'V'){
                Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
               .then(()=> {
@@ -307,24 +303,7 @@ exports.verifypayout = (request, response) => {
               })
               return
           }
-  
-          // if(body.payment_status === "partially_paid"){
-          //     item.amount = body.actually_paid
-          // }
-  
-    //       PlayFab._internalSettings.sessionTicket = item.playfabToken;
-    //       PlayFabClient.ExecuteCloudScript({
-    //           FunctionName: "Topup",
-    //           FunctionParameter: {
-    //           playerId: item.playerPlayfabId,
-    //           topupAmount: item.amount,
-    //           },
-    //           ExecuteCloudScript: true,
-    //           GeneratePlayStreamEvent: true,
-    //       }, (error1, result1) => {
-    //           console.log(result1)
-    //           console.log(error1)
-    //           if(result1.data.FunctionResult.message === "success"){
+
         Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
               .then(() => {
                 response.statusCode = 200;
@@ -336,17 +315,6 @@ exports.verifypayout = (request, response) => {
                   console.error(err);
                   return
               })
-    //           } else {
-    //               response.statusCode = 400;
-    //               response.end(error_msg);
-    //               return
-    //           }
-    //       })
-    //   })
-    //   .catch(err => {
-    //       response.statusCode = 400;
-    //       response.end(error_msg);
-    //       return
       })
         
       } else {
