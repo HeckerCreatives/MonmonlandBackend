@@ -8,6 +8,8 @@ const Dragonpayout = require("../Models/Dragonpayout")
 var axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
+const Subscription = require("../Models/Subscription")
+const Exchangerate = require("../Models/Exchangerate");
 
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -28,7 +30,7 @@ exports.createfunds = (req, res) => {
     const data = {
         "Amount": amount,
         "Currency": "PHP",
-        "Description": `Top Up $${amount}`,
+        "Description": `Top Up ${amount}`,
         "Email": email
     }
 
@@ -358,3 +360,55 @@ exports.verifypayout = (request, response) => {
       }
     }
   };
+
+exports.subscribe = async (req, res) => {
+    const { username, playfabId, playfabToken, subsname, email } = req.body
+    const uniqueId = generateRandomString()
+    const merchantId = process.env.merchantid
+    const password = process.env.merchantpass
+
+    let amount
+
+    const usdrate = await Exchangerate.findOne({_id: process.env.exchangerate})
+    .then(data => {
+        return data.amount
+    })
+
+    await Subscription.findOne({subscriptionName: subsname})
+    .then(data => {
+        amount = data.amount * usdrate
+    })
+    
+    const data = {
+        "Amount": amount,
+        "Currency": "PHP",
+        "Description": `${subsname} Subcription`,
+        "Email": email
+    }
+
+    const config = {
+        method: 'post',
+        url: `https://test.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        headers: { 
+            'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
+            'Content-Type': 'application/json'
+        },
+        data : data
+    }
+
+    axios(config)
+    .then(async item => {
+        await AutoReceipt.create({
+            receiptId: uniqueId,
+            orderCode: item.data.RefNo,
+            username: username,
+            playerPlayfabId: playfabId,
+            subscriptionType: `${subsname} Subcription`,
+            amount: amount,
+            playfabToken: playfabToken
+        })
+        // console.log(item)
+        res.json({message: "success", data: item.data})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+}

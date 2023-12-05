@@ -8,7 +8,7 @@ exports.update = (req, res) => {
         adsId: process.env.investorfundid,
         enteredamount: amount,
         createdby: createdby
-      }
+    }
 
     Investorfunds.findByIdAndUpdate(process.env.investorfundid, {amount: amount}, {new : true})
     .then((data) => {

@@ -18,6 +18,7 @@ const Leaderboard = require("../Models/Leaderboard")
 const Communityactivity = require("../Models/Communityactivity")
 const Communityactivityaccumulated = require("../Models/Communityactivyaccumulated")
 const Investorfunds = require("../Models/Investorfunds")
+const Exchangerate = require("../Models/Exchangerate");
 module.exports.migratedata = (request, response) => {
     const subscription = [
         {
@@ -309,9 +310,26 @@ module.exports.migratedata = (request, response) => {
     }
 
     Investorfunds.create(investorfunds)
+
+    const exchangerate = {
+        _id: '629a98a5a881575c013b5601',
+        amount: 55
+    }
     
+    Exchangerate.create(exchangerate)
+
     response.json('Data migration created')
 
+}
+
+exports.exchangerate = (req,res) => {
+    const exchangerate = {
+        _id: '629a98a5a881575c013b5601',
+        amount: 55
+    }
+    
+    Exchangerate.create(exchangerate)
+    res.json("exchangerate created")
 }
 
 exports.investorfund = (req, res) => {

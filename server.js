@@ -38,7 +38,8 @@ const Leaderboard = require("./Routes/Leaderboard")
 const Communityactivity = require("./Routes/Communityactivity")
 const Nowpayment = require("./Routes/Nowpayment")
 const Investorfund = require("./Routes/Investorfunds")
-const Dragonpay = require("./Routes/Dragonpay")
+const Dragonpay = require("./Routes/Dragonpay");
+const Exchangerate = require("./Routes/Exchangerate");
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -108,6 +109,7 @@ app.use("/leaderboard", Leaderboard)
 app.use("/communityactivy", Communityactivity)
 app.use("/nowpay", Nowpayment)
 app.use("/investor", Investorfund)
+app.use("/usdrate", Exchangerate)
 app.use(BinancePay);
 app.use("/uploads", express.static("uploads"))
 app.use("/tempuploads", express.static("tempuploads"))

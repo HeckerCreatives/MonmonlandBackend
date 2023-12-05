@@ -7,4 +7,5 @@ router.post("/bundles", Dragonpay.createbundles)
 router.post("/verify", Dragonpay.verifypayments)
 router.post("/createpayout", Dragonpay.createpayout)
 router.get("/verifypayout", Dragonpay.verifypayout)
+router.post("/subscribe", Dragonpay.subscribe)
 module.exports = router
