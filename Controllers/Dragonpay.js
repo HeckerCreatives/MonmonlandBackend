@@ -103,7 +103,7 @@ exports.createbundles = (req, res) => {
 
 }
 
-exports.verifypayments = (request, response) => {
+exports.verifypayments = async (request, response) => {
   // Assuming Request and Application objects are available in your context
   const txnid = request.body.txnid; // Adjust this according to your actual object structure
   const refno = request.body.refno; // Adjust this according to your actual object structure
@@ -116,6 +116,11 @@ exports.verifypayments = (request, response) => {
   function getSHA1Digest(data) {
     return crypto.createHash('sha1').update(data).digest('hex');
   }
+
+  const usdrate = await Exchangerate.findOne({_id: process.env.exchangerate})
+    .then(data => {
+        return data.amount
+    })
 
   // Calculate the SHA-1 digest for the received message
   const calculatedDigest = getSHA1Digest(`${txnid}:${refno}:${status}:${message}:${secretKey}`);
@@ -167,13 +172,14 @@ exports.verifypayments = (request, response) => {
         // if(body.payment_status === "partially_paid"){
         //     item.amount = body.actually_paid
         // }
+        const finalamount = (item.amount / usdrate)
 
         PlayFab._internalSettings.sessionTicket = item.playfabToken;
         PlayFabClient.ExecuteCloudScript({
             FunctionName: "Topup",
             FunctionParameter: {
             playerId: item.playerPlayfabId,
-            topupAmount: item.amount,
+            topupAmount: finalamount,
             },
             ExecuteCloudScript: true,
             GeneratePlayStreamEvent: true,
@@ -183,7 +189,7 @@ exports.verifypayments = (request, response) => {
             if(result1.data.FunctionResult.message === "success"){
             AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno}, {new: true})
             .then(data => {
-                TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: item.amount}})
+                TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: finalamount}})
                 .then(()=> {
                     response.statusCode = 200;
                     response.end('OK');
@@ -378,7 +384,7 @@ exports.subscribe = async (req, res) => {
     .then(data => {
         amount = data.amount * usdrate
     })
-    
+
     const data = {
         "Amount": amount,
         "Currency": "PHP",
