@@ -154,7 +154,7 @@ exports.verifypayments = async (request, response) => {
         // }
 
         if(status === "F" || status === 'V'){
-            AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno, ProcId: procid})
+            AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno, procId: procid})
             .then(()=> {
                 response.statusCode = 200;
                 response.end('OK');
@@ -185,7 +185,7 @@ exports.verifypayments = async (request, response) => {
             console.log(result1)
             console.log(error1)
             if(result1.data.FunctionResult.message === "success"){
-            AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, ProcId: procid}, {new: true})
+            AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, procId: procid}, {new: true})
             .then(data => {
                 TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: finalamount}})
                 .then(()=> {

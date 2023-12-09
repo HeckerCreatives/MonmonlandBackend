@@ -20,6 +20,9 @@ const AutoReceiptSchema = new mongoose.Schema(
         playerPlayfabId: {
             type: String,
         },
+        procId: {
+            type: String
+        },
         status: {
             type: String,
             default: "pending"
