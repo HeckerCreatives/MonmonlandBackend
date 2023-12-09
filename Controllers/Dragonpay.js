@@ -109,6 +109,7 @@ exports.verifypayments = async (request, response) => {
   const refno = request.body.refno; // Adjust this according to your actual object structure
   const status = request.body.status; // Adjust this according to your actual object structure
   const message = request.body.message; // Adjust this according to your actual object structure
+  const procid = request.body.procid; // Adjust this according to your actual object structure
   const receivedDigest = request.body.digest; // Adjust this according to your actual object structure
   const secretKey = process.env.merchantpass; // Replace with your actual secret key
 
@@ -136,14 +137,12 @@ exports.verifypayments = async (request, response) => {
     AutoReceipt.findOne({receiptId: txnid})
     .then(item => {
         if(!item){
-            response.statusCode = 400;
-            response.end(error_msg);
+            response.status(400).send("Error: item not found");
             return
         }
         
         if(item.status !== 'pending'){
-            response.statusCode = 400;
-            response.end(error_msg);
+            response.status(400).send("Error: item alrady process");
             return
         }
 
@@ -155,15 +154,14 @@ exports.verifypayments = async (request, response) => {
         // }
 
         if(status === "F" || status === 'V'){
-            AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno})
+            AutoReceipt.findByIdAndUpdate(item._id, {status: "cancel", orderCode: refno, ProcId: procid})
             .then(()=> {
                 response.statusCode = 200;
                 response.end('OK');
                 return
             })
             .catch(err => {
-                response.statusCode = 400;
-                response.end(err);
+                response.status(400).send(err);
                 return
             })
             return
@@ -187,7 +185,7 @@ exports.verifypayments = async (request, response) => {
             console.log(result1)
             console.log(error1)
             if(result1.data.FunctionResult.message === "success"){
-            AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno}, {new: true})
+            AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, ProcId: procid}, {new: true})
             .then(data => {
                 TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: finalamount}})
                 .then(()=> {
@@ -196,26 +194,22 @@ exports.verifypayments = async (request, response) => {
                     return
                 })
                 .catch(err => {
-                    response.statusCode = 400;
-                    response.end(error_msg);
+                    response.status(400).send(err);
                     return
                 })
             })
             .catch(err => {
-                response.statusCode = 400;
-                response.end(error_msg);
+                response.status(400).send(err);
                 return
             })
             } else {
-                response.statusCode = 400;
-                response.end(error_msg);
+                response.status(400).send("Error: Please Contact Admin");
                 return
             }
         })
     })
     .catch(err => {
-        response.statusCode = 400;
-        response.end(error_msg);
+        response.status(400).send(err);
         return
     })
       
