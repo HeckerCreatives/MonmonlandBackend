@@ -165,6 +165,18 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const tradepayin = await Communityactivity.findOne({_id: process.env.tradepayin})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const trademerchandise = await Communityactivity.findOne({_id: process.env.trademerchandise})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -176,7 +188,9 @@ exports.find = async (req, res) => {
         "marketing": marketing,
         "incentives": incentives,
         "monstergem": monstergem,
-        "unilevelmonstergem": unilevelmonstergem
+        "unilevelmonstergem": unilevelmonstergem,
+        "trademerchandise": trademerchandise,
+        "tradepayin": tradepayin
     }
 
     res.json({message: "success", data: summary})

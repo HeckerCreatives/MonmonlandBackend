@@ -40,6 +40,8 @@ const Nowpayment = require("./Routes/Nowpayment")
 const Investorfund = require("./Routes/Investorfunds")
 const Dragonpay = require("./Routes/Dragonpay");
 const Exchangerate = require("./Routes/Exchangerate");
+const Trade = require("./Routes/Trade")
+const Unilevel = require("./Routes/Unilevel")
 // [MongoDB connection]
 mongoose.set('strictQuery', true);
 mongoose.connect(process.env.MONGOOSE_URL,{
@@ -80,6 +82,8 @@ const io = new Server(server, {
 
 require('./Config/socket')(io)
 // [Routing]
+app.use('/unilevel', Unilevel)
+app.use('/trade', Trade)
 app.use("/dragonpay", Dragonpay)
 app.use("/gameactivity", Gameactivity);
 app.use("/subscription", Subscription);

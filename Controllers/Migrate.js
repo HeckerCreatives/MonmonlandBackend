@@ -62,6 +62,10 @@ module.exports.migratedata = (request, response) => {
         },
         {
             _id:"629a98a5a881575c013b5331",
+            display_name: "Marketing"
+        },
+        {
+            _id:"629a98a5a881575c013b5332",
             display_name: "Player"
         },
     ];
@@ -569,6 +573,16 @@ exports.communityactivity = (req, res) => {
         {
             _id: "629a98a5a881575c013b5471",
             type: "unilevelmonstergem",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5472",
+            type: "tradepayin",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5473",
+            type: "trademerchandise",
             amount: 0
         },
     ]

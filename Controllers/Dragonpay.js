@@ -182,8 +182,6 @@ exports.verifypayments = async (request, response) => {
             ExecuteCloudScript: true,
             GeneratePlayStreamEvent: true,
         }, (error1, result1) => {
-            console.log(result1)
-            console.log(error1)
             if(result1.data.FunctionResult.message === "success"){
             AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, procId: procid}, {new: true})
             .then(data => {
