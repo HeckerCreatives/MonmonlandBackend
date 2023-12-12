@@ -585,6 +585,16 @@ exports.communityactivity = (req, res) => {
             type: "trademerchandise",
             amount: 0
         },
+        {
+            _id: "629a98a5a881575c013b5474",
+            type: "complanpayin",
+            amount: 0
+        },
+        {
+            _id: "629a98a5a881575c013b5475",
+            type: "complanmerchandise",
+            amount: 0
+        },
     ]
 
     Communityactivity.create(communityactivity)

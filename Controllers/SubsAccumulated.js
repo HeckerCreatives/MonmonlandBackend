@@ -58,6 +58,7 @@ exports.update = (req, res) => {
                 // const quest = (total * 0.04) - data.questamount
                 
                 // const leaderboards = (amount * 0.01)
+                const complan = (amount * 0.25)
                 const grinding = (amount * 0.15)
                 // const quest = (amount * 0.05)
                 // const diamondpools = (amount * 0.02)
@@ -80,7 +81,7 @@ exports.update = (req, res) => {
                 // await Communityactivity.findByIdAndUpdate(process.env.incentivesca, {$inc: {amount: incentives}})
                 await Communityactivity.findByIdAndUpdate(process.env.monstergemca, {$inc: {amount: monstergem}})
                 await Communityactivity.findByIdAndUpdate(process.env.tradepayin, {$inc: {amount: tradepayin}})
-
+                await Communityactivity.findByIdAndUpdate(process.env.complanpayin, {$inc: {amount: complan}})
 
                 res.json({message: "success"})
 

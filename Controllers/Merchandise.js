@@ -41,6 +41,7 @@ exports.merchandise =  (req, res) => {
         if(data){
 
             // const leaderboards = (amount * 0.02)
+            const complan = (amount * 0.17)
             const grinding = (amount * 0.20)
             // const quest = (amount * 0.05)
             // const diamondpools = (amount * 0.03)
@@ -63,7 +64,8 @@ exports.merchandise =  (req, res) => {
             // await Communityactivity.findByIdAndUpdate(process.env.incentivesca, {$inc: {amount: incentives}})
             await Communityactivity.findByIdAndUpdate(process.env.monstergemca, {$inc: {amount: monstergem}})
             await Communityactivity.findByIdAndUpdate(process.env.trademerchandise, {$inc: {amount: trademerchandise}})
-
+            await Communityactivity.findByIdAndUpdate(process.env.complanmerchandise, {$inc: {amount: complan}})
+            
             res.json({message: "success"})
         } else {
             res.json({message: "failed"})

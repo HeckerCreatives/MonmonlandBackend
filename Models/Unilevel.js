@@ -5,7 +5,7 @@ const UnilevelSchema = new mongoose.Schema(
             type: String
         },
         referrer: {
-            type: String
+            type: mongoose.Schema.Types.ObjectId,
         },
     },
     {
