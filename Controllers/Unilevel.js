@@ -1,5 +1,5 @@
 const Unilevel = require("../Models/Unilevel")
-
+const mongoose = require("mongoose");
 exports.find = async  (req,res) => {
     // const db = Unilevel;
     // const aggregationPipeline = [
@@ -30,47 +30,38 @@ exports.find = async  (req,res) => {
     //         },
     //     },
     // ]
-
-    const aggregationPipeline = [
-      { 
-          $match: { username: "jim0"} 
+    const playerId = '65771798e2e22519aa78d4c1'
+    const downline = await Unilevel.aggregate([
+      {
+          $match: {
+              _id: new mongoose.Types.ObjectId(playerId),
+          },
       },
       {
           $graphLookup: {
-              from: 'unilevels',
-              startWith: '$_id',
-              connectFromField: '_id',
-              connectToField: 'referrer',
-              maxDepth: 5,
-              as: 'downline',
+              from: "unilevels",
+              startWith: "$_id",
+              connectFromField: "_id",
+              connectToField: "referrer",
+              as: "ancestors",
+              depthField: "level",
           },
+      },
+      {
+          $unwind: "$ancestors",
+      },
+      {
+          $replaceRoot: { newRoot: "$ancestors" },
       },
       {
           $addFields: {
-              level: {
-                  $max: {
-                      $map: {
-                          input: '$downline',
-                          as: 'd',
-                          in: '$$d.level',
-                      },
-                  },
-              },
+              level: { $add: ["$level", 1] },
           },
       },
-      {
-          $group: {
-              _id: '$level',
-              downline: { $push: '$downline' },
-          },
-      },
-      {
-          $sort: { _id: 1 },
-      },
-  ];
-  
-  const result = await Unilevel.aggregate(aggregationPipeline).then(data => data);
-  return res.json(result)
+  ]);
+
+  // const result = await Unilevel.aggregate(aggregationPipeline).then(data => data);
+  return res.json(downline)
 }
 
 exports.create = (req, res) => {
