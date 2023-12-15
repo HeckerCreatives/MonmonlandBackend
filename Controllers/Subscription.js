@@ -104,7 +104,14 @@ module.exports.updateDesc = async (request, response) => {
 }
 
 module.exports.update = (request, response) => {
-  Subscription.findByIdAndUpdate(request.params.id, request.body, {new: true})
+  
+  const data = {
+    subscriptionName: request.body?.subscriptionName,
+    amount: request.body?.amount,
+    image: request.file?.path
+  }
+
+  Subscription.findByIdAndUpdate(request.params.id, data, {new: true})
   .then(data => response.json(data))
   .catch(error => response.status(400).json({error: error.message}))
 }

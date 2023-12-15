@@ -292,7 +292,10 @@ exports.agentfind = (req, res) => {
 exports.findpayoutwallet = (req, res) => {
     const {name} = req.body;
     PayoutWallet.find({user: process.env.superadminid, name: name})
-    .populate({path: "user"})
+    .populate({
+        path: "user",
+        select: "-password -token"
+    })
     .then(item => {
         res.json({message: "success", data: item})
     })
@@ -302,7 +305,10 @@ exports.findpayoutwallet = (req, res) => {
 exports.agentpayoutwallet = (req, res) => {
     const {adminId, item} = req.body;
     PayoutWallet.find({user: adminId, name: item})
-    .populate({path: "user"})
+    .populate({
+        path: "user",
+        select: "-password -token"
+    })
     .then(item => {
         res.json({message: "success", data: item})
     })

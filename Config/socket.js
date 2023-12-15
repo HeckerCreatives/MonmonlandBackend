@@ -74,7 +74,10 @@ const socket = io => {
           if(data){
             if(data.roleId.toString() === process.env.subadminrole || data.roleId.toString() === process.env.csrrole){
               UpgradeSubscription.find({userId: data._id})
-              .populate({path: "userId"})
+              .populate({
+                path: "userId",
+                select: "-password -token"
+              })
               .then((cashier) => {
                 const item = cashier.filter(item => !item.deletedAt)
                 roomlist[roomid] = {

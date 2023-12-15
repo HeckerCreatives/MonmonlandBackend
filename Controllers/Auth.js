@@ -1,6 +1,10 @@
 const GenerateToken = require('../Config/GenerateToken');
 const User = require('../Models/Users');
 const bcrypt = require('bcrypt');
+const fs = require('fs')
+const path = require('path')
+const privateKey = fs.readFileSync(path.resolve(__dirname, "../private-key.pem"), 'utf-8');
+const jsonwebtokenPromisified = require('jsonwebtoken-promisified')
 
 module.exports.Login = (request, response) => {
     const {email, password} = request.body
@@ -15,17 +19,29 @@ module.exports.Login = (request, response) => {
             if (!user){
                 return response.send({ message: "failed", data: "Account Not Found"})
             } else {
+
+                let token = ''
+
+                const payload = { _id: user._id, username: email, role: user.roleId.display_name }
+
+                try {
+                    token = await jsonwebtokenPromisified.sign(payload, privateKey, { algorithm: 'RS256' } )
+                } catch (error) {
+                    return response.status(500).json({error: error})
+                }
+
                 let userdata = await User.findByIdAndUpdate(
                     {_id: user._id},
-                    {$set: {token: GenerateToken(user._id)}},
+                    {$set: {token: token}},
                     {new: true}
                 )
-                .select("-password")
+                .select("-password -token")
                 .populate({
                     path: "roleId",
                     select: "display_name"
                 })
-                
+                response.cookie('sessionToken', token, { httpOnly: true })
+                response.cookie('auth', JSON.stringify(userdata))
                 return response.json({message: "success", data: userdata})
                 
             }

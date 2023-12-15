@@ -7,7 +7,7 @@ const app = express();
 const cors = require("cors")
 require('dotenv').config();
 const axios = require('axios');
-
+const cookieParser = require('cookie-parser');
 
 const Gameactivity = require("./Routes/Gameactivity");
 const Subscription = require("./Routes/Subscription");
@@ -74,6 +74,7 @@ const corsConfig = {
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors(corsConfig))
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -119,6 +120,7 @@ app.use("/uploads", express.static("uploads"))
 app.use("/tempuploads", express.static("tempuploads"))
 app.use("/receiptuploads", express.static("receiptuploads"))
 app.use('/etcuploads', express.static('etcuploads'));
+app.use(cookieParser())
 const apiUrl = process.env.worldtimeapi
 
 app.get('/phtime', async (req, res) => {
@@ -131,5 +133,8 @@ app.get('/phtime', async (req, res) => {
     res.status(500).json({ error: 'Something went wrong', data: error });
   }
 });
+
+// Game Route
+require('./Gameroutes')(app)
 
 server.listen(port, ()=> console.log(`Server is running at port ${port}`));

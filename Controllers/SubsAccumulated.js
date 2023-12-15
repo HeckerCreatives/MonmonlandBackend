@@ -73,11 +73,6 @@ exports.update = (req, res) => {
                 
                 
                 
-                
-                
-                
-                
-                
                 await Communityactivity.findByIdAndUpdate(process.env.leaderboardsca, {$inc: {amount: leaderboards}})
 
                 await Communityactivity.findByIdAndUpdate(process.env.grindingca, {$inc: {amount: grinding}} )

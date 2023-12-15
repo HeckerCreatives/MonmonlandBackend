@@ -135,7 +135,7 @@ exports.marketingarmregister = (req, res) => {
 module.exports.referral = (request, response) => {
     User.find()
     .byRefferal(request.params.userId)
-    .select("-password")
+    .select("-password -token")
     .populate({
         path:"roleId",
         select:"display_name"
@@ -147,7 +147,7 @@ module.exports.referral = (request, response) => {
 
 module.exports.getParentReferrer = (request, response) =>
   User.findById(request.params.id)
-    .select("-password")
+    .select("-password -token")
     .populate({
       path: "roleId",
       select: "display_name",
@@ -232,7 +232,7 @@ module.exports.update = (request, response) => {
   
 module.exports.getOneUser = (request, response) => {
     User.findById(request.params.id)
-    .select("-password")
+    .select("-password -token")
     .populate({
         path: "roleId",
         select: "display_name"
@@ -247,6 +247,7 @@ module.exports.getOneUser = (request, response) => {
   
 module.exports.getAll = (request, response) => {
     User.find()
+    .select("-password -token")
     .populate({
         path: "roleId",
         select: "display_name"

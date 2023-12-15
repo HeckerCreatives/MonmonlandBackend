@@ -23,7 +23,10 @@ module.exports.update = (request, response) => {
 
 module.exports.getAll = (request, response) => {
     UpgradeSubscription.find()
-    .populate('userId')    
+    .populate({
+      path: 'userId',
+      select: "-password -token"
+    })    
     .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
 }
@@ -32,12 +35,18 @@ module.exports.paymentfilter = (req, res ) => {
   const { method } = req.body;
   if(method === "All") {
     UpgradeSubscription.find()
-    .populate('userId')
+    .populate({
+      path: 'userId',
+      select: "-password -token"
+    })
     .then(data => res.send({message: "success" , data: data.filter(item => !item.deletedAt)}))
     .catch(error => res.send(error))
   } else {
     UpgradeSubscription.find({paymentmethod: method})
-    .populate('userId')
+    .populate({
+      path: 'userId',
+      select: "-password -token"
+    })
     .then(data => res.send({message: "success" , data: data.filter(item => !item.deletedAt)}))
     .catch(error => res.send(error))
   }
@@ -54,7 +63,10 @@ module.exports.searchcashier = (req, res) => {
     }
     if(user.length > 0){
       UpgradeSubscription.find(ids)
-      .populate({path: "userId"})
+      .populate({
+        path: 'userId',
+        select: "-password -token"
+      })
       .then((data) => {
         res.send({message: "success", data: data.filter(item => !item.deletedAt)})
       })
@@ -68,7 +80,10 @@ module.exports.searchcashier = (req, res) => {
 
 module.exports.getOneUser = (request, response) => {
     UpgradeSubscription.findById(request.params.id)
-    .populate('userId')
+    .populate({
+      path: 'userId',
+      select: "-password -token"
+    })
     .then(data => response.json(data.banned ? "User is banned" : data))
     .catch(error => response.send(error))
 }
