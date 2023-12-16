@@ -29,14 +29,14 @@ module.exports.getOne = (request, response) => {
 }
 
 module.exports.update = (request, response) => {
-    const { value, enteredamount, createdby, playfabid, playfabToken } = request.body;
+    const { value, enteredamount,} = request.body;
     const { id } = request.params;
   
     const history = {
       barId: id,
       value: value,
       enteredamount: enteredamount,
-      createdby: createdby
+      createdby: req.user.username
     };
 
     Gameactivity.findByIdAndUpdate(id, request.body, { new: true })

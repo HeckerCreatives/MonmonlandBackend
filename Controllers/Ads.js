@@ -7,7 +7,7 @@ exports.update = (req, res) => {
     const history = {
       adsId: process.env.adsid,
       enteredamount: amount,
-      createdby: createdby
+      createdby: req.user.username
     }
 
     Ads.findByIdAndUpdate(process.env.adsid, {amount: amount}, {new : true})

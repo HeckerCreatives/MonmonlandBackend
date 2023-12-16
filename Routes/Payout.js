@@ -9,7 +9,7 @@ router.post("/create", gameprotect ,Payout.create)
 router.post("/adminfind",protect, Payout.adminfind)
 router.post("/agentfind", protect,Payout.agentfind)
 router.post("/payoutwallet", protect, Payout.findpayoutwallet)
-router.post("/agentpayoutwallet", protect,Payout.agentpayoutwallet)
+router.post("/agentpayoutwallet", protect, Payout.agentpayoutwallet)
 router.post("/createexisting", protect,Payout.createexsisting)
 router.post("/pangreject", Payout.pangreject)
 

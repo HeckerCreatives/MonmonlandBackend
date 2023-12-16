@@ -7,7 +7,7 @@ exports.update = (req,res) => {
     const history = {
         usdrateId: process.env.exchangerate,
         enteredamount: amount,
-        createdby: createdby
+        createdby: req.user.username
     }
 
     Exchangerate.findByIdAndUpdate({_id: process.env.exchangerate},{amount: amount})

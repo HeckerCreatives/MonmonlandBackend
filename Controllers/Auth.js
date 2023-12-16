@@ -5,6 +5,8 @@ const fs = require('fs')
 const path = require('path')
 const privateKey = fs.readFileSync(path.resolve(__dirname, "../private-key.pem"), 'utf-8');
 const jsonwebtokenPromisified = require('jsonwebtoken-promisified')
+var expirationDate = new Date();
+expirationDate.setTime(expirationDate.getTime() + 8 * 60 * 60 * 1000);
 
 module.exports.Login = (request, response) => {
     const {email, password} = request.body
@@ -22,7 +24,7 @@ module.exports.Login = (request, response) => {
 
                 let token = ''
 
-                const payload = { _id: user._id, username: email, role: user.roleId.display_name }
+                const payload = { _id: user._id, username: email, role: user.roleId, playfabid: user.playfabid }
 
                 try {
                     token = await jsonwebtokenPromisified.sign(payload, privateKey, { algorithm: 'RS256' } )
@@ -40,8 +42,8 @@ module.exports.Login = (request, response) => {
                     path: "roleId",
                     select: "display_name"
                 })
-                response.cookie('sessionToken', token, { httpOnly: true })
-                response.cookie('auth', JSON.stringify(userdata))
+                response.cookie('sessionToken', token, { httpOnly: true, expires: expirationDate })
+                // response.cookie('auth', JSON.stringify(userdata), { httpOnly: true })
                 return response.json({message: "success", data: userdata})
                 
             }
@@ -52,6 +54,26 @@ module.exports.Login = (request, response) => {
     })
     .catch(error => {
         return response.send({ message: "failed", data: error})
+    })
+}
+
+exports.logout = (req, res) => {
+    res.clearCookie('sessionToken', { path: '/' });
+    res.clearCookie('playfabAdminAuthToken', { path: '/' });
+    res.redirect('/login');
+}
+
+exports.islogin = (req, res) => {
+
+    User.findOne({_id: req.user._id})
+    .populate({
+        path: "roleId",
+        select: "display_name"
+    })
+    .then(data => {
+        if(data){
+            return res.json({id: req.user._id, role: data.roleId.display_name, name: req.user.username})
+        }
     })
 }
 

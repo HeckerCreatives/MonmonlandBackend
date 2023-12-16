@@ -5,6 +5,6 @@ const { protect } = require("../Middleware/index")
 
 router.post("/updatetradepayin", protect, Trade.updatepayin)
 router.post("/updatetrademerchindise", protect, Trade.updatemerchandise)
-router.get("/findhistory", Trade.find)
+router.get("/findhistory", protect, Trade.find)
 
 module.exports = router;

@@ -56,8 +56,8 @@ exports.decwithdrawalfee = async (req, res) => {
 }
 
 exports.find = (req, res) => {
-  const {id} = req.body;
-  withdrawal.find({userId: id})
+//   const {id} = req.body;
+  withdrawal.find({userId: req.user._id})
   .then(data => {
     res.json({message: "success", data: data})
   })

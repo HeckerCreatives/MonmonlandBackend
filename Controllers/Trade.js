@@ -19,7 +19,7 @@ exports.updatepayin = async (req, res) => {
     const history = {
         value: value,
         enteredamount: amount,
-        createdby: createdby
+        createdby: req.user._id
     }
 
     await TradeHistory.create(history)

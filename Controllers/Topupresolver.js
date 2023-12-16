@@ -47,7 +47,7 @@ exports.resolve = (req, res) => {
                     playfabid: playfabid,
                     amount: amount,
                     receipt: req.file.path,
-                    admin: admin
+                    admin: req.user.username
                 }
 
                 TopUpResolver.create(history)
@@ -67,8 +67,8 @@ exports.resolve = (req, res) => {
 }
 
 exports.find = (req, res) => {
-    const {admin} = req.body
-    TopUpResolver.find({admin: admin})
+    // const {admin} = req.body
+    TopUpResolver.find({admin: req.user.username})
     .sort({'createdAt': -1})
     .then(data => {
         if(data){

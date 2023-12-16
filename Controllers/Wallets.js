@@ -53,8 +53,8 @@ exports.sendcommission = async (req, res) => {
 }
 
 exports.find = (req, res) => {
-  const {id} = req.body;
-  Wallets.find({userId: id})
+  // const {id} = req.body;
+  Wallets.find({userId: req.user._id})
   .then(data => {
     res.json({message: "success", data: data})
   })

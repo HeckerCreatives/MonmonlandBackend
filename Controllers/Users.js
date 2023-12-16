@@ -40,7 +40,7 @@ module.exports.userRegister = async (request, response) => {
                 // Create user
                 const newUser = new User({
                     roleId: roleId,
-                    referrerId: referrerId,
+                    referrerId: req.user._id,
                     firstName: firstName,
                     lastName: lastName,
                     userName: userName,
@@ -111,7 +111,7 @@ exports.marketingarmregister = (req, res) => {
 
       const newUser = new User({
         roleId: roleId,
-        referrerId: referrerId,
+        referrerId: req.user._id,
         firstName: firstName,
         lastName: lastName,
         userName: userName,

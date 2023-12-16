@@ -24,12 +24,8 @@ exports.create = (req, res) => {
 
 exports.process = (req, res) => {
     const { id } = req.params
-    const { admin, adminId, playfabid, playfabToken } = req.body
+    const { playfabToken } = req.body
     const status = "process"
-    const playFabUserData = {
-        CreateAccount: false,            
-        CustomId: playfabid,           
-    };
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending"){
@@ -45,13 +41,13 @@ exports.process = (req, res) => {
                 GeneratePlayStreamEvent: true,
             }, (error1, result1) => {
                 if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
+                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {
                             PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
+                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
                                     res.json({message: "success"})
                                 })
@@ -77,32 +73,32 @@ exports.process = (req, res) => {
 
 exports.reject = (req, res) => {
     const { id } = req.params
-    const { admin, adminId, playfabid, playfabToken } = req.body
+    const {  playfabToken } = req.body
     const status = "reject"
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending" || data[0].status === "process"){
-            // PlayFab._internalSettings.sessionTicket = playfabToken;
-            // PlayFabClient.ExecuteCloudScript({
-            //     FunctionName: "ProceessPayout",
-            //     FunctionParameter: {
-            //         processType: "Reject",
-            //         playerId: data[0].playfabId,
-            //         processId: data[0].playfabPayoutKey,
-            //     },
-            //     ExecuteCloudScript: true,
-            //     GeneratePlayStreamEvent: true,
-            // }, (error1, result1) => {
-                // if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: admin}, {new: true})
+            PlayFab._internalSettings.sessionTicket = playfabToken;
+            PlayFabClient.ExecuteCloudScript({
+                FunctionName: "ProceessPayout",
+                FunctionParameter: {
+                    processType: "Reject",
+                    playerId: data[0].playfabId,
+                    processId: data[0].playfabPayoutKey,
+                },
+                ExecuteCloudScript: true,
+                GeneratePlayStreamEvent: true,
+            }, (error1, result1) => {
+                if(result1.data.FunctionResult.message === "success"){
+                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: data[0].status === "pending" ? process.env.requestid : process.env.processid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {   
                             PayoutWallet.findOneAndUpdate({_id: process.env.rejectid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) 
+                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: -data[0].amount}}) 
                                 .then(() => {
-                                    PayoutWallet.findOneAndUpdate({user: adminId, name: "reject"}, {$inc: {amount: data[0].amount}})
+                                    PayoutWallet.findOneAndUpdate({user: req.user._id, name: "reject"}, {$inc: {amount: data[0].amount}})
                                     .then(() => {
                                     res.json({message: "success"})
                                 })
@@ -114,12 +110,12 @@ exports.reject = (req, res) => {
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                // } else if (result1.data.FunctionResult.message === "failed"){
-                //     res.json({message: "failed", data: result1.data.FunctionResult.data})
-                // } else if (error1){
-                //     res.json({message: "failed", data: error1})
-                // }
-            // })
+                } else if (result1.data.FunctionResult.message === "failed"){
+                    res.json({message: "failed", data: result1.data.FunctionResult.data})
+                } else if (error1){
+                    res.json({message: "failed", data: error1})
+                }
+            })
         } else {
             res.json({message: "failed", data: "This payout is already reject"})
         }
@@ -130,12 +126,9 @@ exports.reject = (req, res) => {
 
 exports.done = (req, res) => {
     const { id } = req.params
-    const { admin, receipt, adminId, playfabid, playfabToken } = req.body
+    const { playfabToken } = req.body
     const status = "done"
-    const playFabUserData = {
-        CreateAccount: false,            
-        CustomId: playfabid,           
-    };
+    
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "process"){
@@ -151,15 +144,15 @@ exports.done = (req, res) => {
                 GeneratePlayStreamEvent: true,
             },(error1, result1) => {
                 if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: admin, receipt: req.file.path}, {new: true})
+                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username, receipt: req.file.path}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {
                             PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: adminId, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
+                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
-                                    PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
+                                    PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
                                     .then(() => {
                                         res.json({message: "success"})
                                     })
@@ -189,16 +182,16 @@ exports.done = (req, res) => {
 
 exports.reprocess = async (req, res) => {
     const { id } = req.params
-    const { admin, playfabid, playfabToken } = req.body
+    const { playfabToken } = req.body
     const status = "pending"
-    const playFabUserData = {
-        CreateAccount: false,            
-        CustomId: playfabid,           
-    };
-    const adminId = await User.findOne({userName: admin})
-    .then(item => {
-        return item._id
-    })
+    // const playFabUserData = {
+    //     CreateAccount: false,            
+    //     CustomId: playfabid,           
+    // };
+    // const adminId = await User.findOne({userName: req.user.username})
+    // .then(item => {
+    //     return item._id
+    // })
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
@@ -220,7 +213,7 @@ exports.reprocess = async (req, res) => {
                         .then(() => {
                             PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: adminId, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
+                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                                 .then(() => {
                                     res.json({message: "success"})
                                 })
@@ -269,17 +262,17 @@ exports.adminfind = (req, res) => {
 
 // pang find ng kanyang sariling transaction - cashier
 exports.agentfind = (req, res) => {
-    const {admin, status} = req.body
+    const { status} = req.body
     const pageOptions = {
         page: parseInt(req.query.page) || 0,
         limit: parseInt(req.query.limit) || 10
     }
-    Payout.find({status: status, admin: admin})
+    Payout.find({status: status, admin: req.user.username})
     .skip(pageOptions.page * pageOptions.limit)
     .limit(pageOptions.limit)
     .sort({'createdAt': 1})
     .then(user => {
-        Payout.countDocuments({status: status, admin: admin})
+        Payout.countDocuments({status: status, admin: req.user.username})
         .then(count => {
             const totalPages = Math.ceil(count / pageOptions.limit)
             res.json({ message: "success", data: user, pages: totalPages })
@@ -304,7 +297,7 @@ exports.findpayoutwallet = (req, res) => {
 
 exports.agentpayoutwallet = (req, res) => {
     const {adminId, item} = req.body;
-    PayoutWallet.find({user: adminId, name: item})
+    PayoutWallet.find({user: req.user._id, name: item})
     .populate({
         path: "user",
         select: "-password -token"

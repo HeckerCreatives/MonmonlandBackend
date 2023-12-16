@@ -184,7 +184,7 @@ module.exports.updatebuyer = (request, response) => {
       
                 TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
                 .then(() => {
-                  TopUpWallet.findOneAndUpdate({user: adminId}, {$inc: {amount: amount}})
+                  TopUpWallet.findOneAndUpdate({user: req.user._id}, {$inc: {amount: amount}})
                   .then(() => {
                     AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
                     .then(()=> {
@@ -214,7 +214,8 @@ module.exports.updatebuyer = (request, response) => {
 };
 
 module.exports.getAllbuyer = (request, response) => {
-    PaymentHistory.find()
+
+    PaymentHistory.find({cashier: request.user.username})
     .sort({ createdAt: -1 })   
     .then(data => response.send(data.filter(item => !item.deletedAt)))
     .catch(error => response.send(error))
@@ -228,8 +229,8 @@ exports.findcoinbasereceipt = (req, res) => {
 }
 
 exports.iscashier = (req, res) => {
-  const {adminId} = req.body;
-  UpgradeSubscription.findOne({userId: adminId})
+  // const {adminId} = req.body;
+  UpgradeSubscription.findOne({userId: req.user._id})
   .then(data => {
     if(!data){
       res.json(false)

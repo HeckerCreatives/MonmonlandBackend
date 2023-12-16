@@ -16,7 +16,9 @@ const verifyJWT = async (token) => {
 };
 
 exports.protect = async (req, res, next) => {
-  let token = req.headers.cookie.split('; ').find(row => row.startsWith('sessionToken=')).split('=')[1]
+
+  let token = req.headers.cookie?.split('; ').find(row => row.startsWith('sessionToken=')).split('=')[1]
+
   if(!token){
       res.status(401).json("You are not authorized")
   } else {
