@@ -16,6 +16,6 @@ router.post("/resolve", protect, function (req, res, next){
     })
 }, Topupresolver.resolve)
 
-router.post("/find", Topupresolver.find)
+router.post("/find", protect ,Topupresolver.find)
 
 module.exports = router;
