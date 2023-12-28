@@ -10,8 +10,18 @@ const Dailyactivities = require('../Gamemodels/Dailyactivities')
 const Energy = require('../Gamemodels/Energy')
 const Playtimegrinding = require('../Gamemodels/Playtimegrinding')
 const Ingameleaderboard = require('../Gamemodels/Leaderboard')
+const Paymentdetails = require('../Gamemodels/Paymentdetails')
+const Cashouthistory = require('../Gamemodels/Cashouthistory')
+const Wallethistory = require("../Gamemodels/Wallethistory")
+const moment = require('moment');
 const bcrypt = require('bcrypt')
-
+var playfab = require('playfab-sdk')
+var PlayFab = playfab.PlayFab
+var PlayFabClient = playfab.PlayFabClient
+PlayFab.settings.titleId = process.env.monmontitleid;
+const { Worker } = require('worker_threads')
+const path = require('path')
+const workerjs = path.resolve(__dirname, "../worker.js")
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -19,6 +29,12 @@ const encrypt = async password => {
 
 exports.register = async (req, res) => {
     const { username, password, referral, phone, email } = req.body
+
+    const refer = await Gameusers.findOne({_id: referral})
+    
+    if(!refer){
+        return res.json({message: "falied", data: "Please do not tamper the Url"})
+    }
 
     await Gameusers.findOne({username: username})
     .then(async data => {
@@ -33,9 +49,28 @@ exports.register = async (req, res) => {
                 return true
             }
         })
+        .catch(error => {
+            return res.json({message: "failed", data: error.message})
+        })
 
         if(emailcheck){
             return res.json({message: "failed", data: "E-mail already exist"})
+        }
+
+        const isreferral = await Gameusers.findOne({_id: referral})
+        .then(data => {
+            if(data){
+                return true
+            } else {
+                return false
+            }
+        })
+        .catch(error => {
+            return res.json({message: "failed", data: error.message})
+        })
+
+        if(!isreferral){
+            return res.json({message: "failed", data: "Referral does not exist"})
         }
 
         const newuser = new Gameusers({
@@ -43,10 +78,12 @@ exports.register = async (req, res) => {
             password: password,
             referral: referral
         })
+
+        let userid
     
         await newuser.save()
         .then(async data => {
-    
+            userid = data._id
             // playerdetails
             const playerdetails = {
                 owner: data._id,
@@ -68,7 +105,7 @@ exports.register = async (req, res) => {
             const walletcutoff = [
                 {
                     owner: data._id,
-                    wallettype: "personalpoints"
+                    wallettype: "activitypoints"
                 },
                 {
                     owner: data._id,
@@ -100,7 +137,7 @@ exports.register = async (req, res) => {
             const gamewallet = [
                 {
                     owner: data._id,
-                    wallettype: "personalpoints"
+                    wallettype: "activitypoints"
                 },
                 {
                     owner: data._id,
@@ -124,7 +161,11 @@ exports.register = async (req, res) => {
                 },
                 {
                     owner: data._id,
-                    wallettype: "monstergem"
+                    wallettype: "monstergemfarm"
+                },
+                {
+                    owner: data._id,
+                    wallettype: "monstergemunilevel"
                 },
                 {
                     owner: data._id,
@@ -406,30 +447,117 @@ exports.register = async (req, res) => {
     
             res.json({message: "success", data: "Registration Successfull"})
         })
-        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
-    })
+        .catch(async (error) => {
 
-   
+                if(userid == ''){
+                res.status(500).json({message: 'failed'})
+                return
+                }
+
+                await Playerdetails.deleteMany({owner: userid})
+                await Gamewallet.deleteMany({owner: userid})
+                await Walletscutoff.deleteMany({owner: userid})
+                await Equipment.deleteMany({owner: userid})
+                await Clock.deleteMany({owner: userid})
+                await Ingamegames.deleteMany({owner: userid})
+                await Dailyactivities.deleteMany({owner: userid})
+                await Energy.deleteMany({owner: userid})
+                await Playtimegrinding.deleteMany({owner: userid})
+                await Ingameleaderboard.deleteMany({owner: userid})
+                await Gameusers.deleteOne({_id: userid})
+
+                res.status(500).json({ message: "failed",  data: error.message })
+                return
+        });
+    })
+    .catch(error => {
+        return res.json({message: "failed", data: error.message})
+    })
 }
 
 exports.changepassword = (req, res) => {
-    const { username , password, oldpassword } = req.body
+    const { password, oldpassword } = req.body
 
-    Gameusers.findOne({username: username})
+    Gameusers.findOne({username: req.user.username})
     .then(async user => {
         if(user && (await user.matchPassword(oldpassword))){
             if(user.status === "banned"){
                 res.json({message: "failed", data: 'Your account has been banned'})
             } else {
                 let newpassword = await encrypt(password)
-                Gameusers.findByIdAndUpdate(user._id, {password: newpassword})
+                Gameusers.findByIdAndUpdate({_id: req.user.id}, {password: newpassword})
                 .then(() => {
                     res.json({message: "success", data: "Password has been successfully change"})
                 })
+                .catch(error => res.status(400).json({ message: "falied", data: error.message }));
             }
         } else {
             res.json({message: "failed", data: "Password does not match"})
         }
     })
     .catch(error => res.status(400).json({ message: "falied", data: error.message }));
+}
+
+exports.migrationdata = (req, res) => {
+    const { username, password , playfabToken, thetime} = req.body
+
+    const worker = new Worker(workerjs)
+
+    worker.on('message', (result) => {
+        res.json(result)
+        worker.terminate();
+    })
+
+    worker.postMessage([username, password , playfabToken, thetime])
+
+}
+
+exports.findreferrer = async (req, res) => {
+
+    const { id } = req.params
+
+    await Gameusers.findOne({_id: id})
+    .then(data => {
+        if(data){
+            res.json({message: "success", data: data.username})
+        } else {
+            res.json({message: "failed", data: 'Please do not tamper the url'})
+        }
+        
+    })
+    .catch(err => res.json({message: "failed", data: "Please do not tamper the url"}))
+}
+
+exports.setreferrer = async (req, res) => {
+    const { referrer } = req.body
+
+    const isexist = await Gameusers.findOne({username: referrer})
+
+    if(!isexist){
+        return res.json({message: "failed", data: "Sorry Referrer not found"})
+    }
+
+    await Gameusers.findOne({_id: req.user.id})
+    .then(async data => {
+
+        if(req.user.username === referrer){
+            return res.json({message: "failed", data: "You cant set yourself as referrer"})
+        }
+
+        if(data.referral){
+            return res.json({message: "failed", data: "You already set up your referrer"})
+        }
+
+        if(!data.referral){
+            await Gameusers.findOneAndUpdate({_id: data._id},{referral: isexist._id})
+            .then(item => {
+                if(item){
+                    res.json({message: "success", data: `You have successfully set up your referrer`})
+                }
+            })
+            .catch(err => res.json({message: "failed", data: "Please try again later"}))
+        }
+    })
+    .catch(err => res.json({message: "failed", data: "Please try again later"}))
+
 }

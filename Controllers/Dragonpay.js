@@ -27,6 +27,7 @@ exports.createfunds = (req, res) => {
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
+
     const data = {
         "Amount": amount,
         "Currency": "PHP",
@@ -77,7 +78,7 @@ exports.createbundles = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://test.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'
@@ -256,7 +257,7 @@ exports.createpayout = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://test.dragonpay.ph/api/payout/merchant/v1/${merchantId}/post`,
+        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/${merchantId}/post`,
         headers: { 
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
@@ -357,7 +358,7 @@ exports.verifypayout = (request, response) => {
         response.status(200).send("Payment verification successful. Status is not 'SUCCESS'.");
       }
     }
-  };
+};
 
 exports.subscribe = async (req, res) => {
     const { username, playfabId, playfabToken, subsname, email } = req.body
@@ -386,7 +387,7 @@ exports.subscribe = async (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://test.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'
@@ -409,4 +410,25 @@ exports.subscribe = async (req, res) => {
         res.json({message: "success", data: item.data})
     })
     .catch((error) => res.status(500).json({ error: error.message }));
+}
+
+exports.track = (req, res) => {
+    const {refno} = req.body 
+    AutoReceipt.findOne({ $or: [{orderCode: refno}, {receiptId: refno}]})
+    .then(data => {
+        if(data){
+            const summary = {
+                "transactionnumber": data.receiptId,
+                "amount": data.amount,
+                "status": data.status,
+                "date": data.createdAt
+            }
+            res.json({message: "success", data: summary})
+        } else {
+            res.json({message: "failed", data: "Transaction not found"})
+        }
+    })
+    .catch(err => {
+        res.json({message: "failed", data: err})
+    })
 }

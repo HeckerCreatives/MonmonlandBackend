@@ -5,6 +5,7 @@ const fs = require('fs')
 const path = require('path')
 const privateKey = fs.readFileSync(path.resolve(__dirname, "../private-key.pem"), 'utf-8');
 const jsonwebtokenPromisified = require('jsonwebtoken-promisified')
+
 var expirationDate = new Date();
 expirationDate.setTime(expirationDate.getTime() + 8 * 60 * 60 * 1000);
 
@@ -60,7 +61,7 @@ module.exports.Login = (request, response) => {
 exports.logout = (req, res) => {
     res.clearCookie('sessionToken', { path: '/' });
     res.clearCookie('playfabAdminAuthToken', { path: '/' });
-    res.redirect('/login');
+    res.redirect('/');
 }
 
 exports.islogin = (req, res) => {

@@ -1,7 +1,8 @@
 const router = require('express').Router(),
-    { find } = require('../Gamecontrollers/Wallets')
-
+    { find } = require('../Gamecontrollers/Wallets'),
+    { protectplayer } = require('../Gamemiddleware/index')
+    
 router 
-    .post('/find', find)
+    .get('/find', protectplayer, find)
 
 module.exports = router;
