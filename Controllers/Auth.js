@@ -43,7 +43,7 @@ module.exports.Login = (request, response) => {
                     path: "roleId",
                     select: "display_name"
                 })
-                response.cookie('sessionToken', token ) // { httpOnly: true, expires: expirationDate }
+                response.cookie('sessionToken', token, { secure: true, sameSite: 'None' } ) // { httpOnly: true, expires: expirationDate }
                 // response.cookie('auth', JSON.stringify(userdata), { httpOnly: true })
                 return response.json({message: "success", data: userdata})
                 
