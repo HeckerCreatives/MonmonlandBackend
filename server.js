@@ -56,7 +56,7 @@ db.once('open', ()=> console.log("We are now Connected to the Cloud."))
 
 const corsConfig = {
     // origin: "http://localhost:3000",
-    origin: ["http://localhost:3000","https://monmontestwebsite.onrender.com/","https://monmontestwebsite.onrender.com","https://monmontestserver-lotk.onrender.com","https://monmontestserver-lotk.onrender.com/", "https://mon-mon-land-dashboard-website.vercel.app/", 'https://mon-mon-land-dashboard-website.vercel.app'],
+    origin: ["http://localhost:3000","https://monmonlandwebsite.onrender.com/","https://monmonlandwebsite.onrender.com"],
     // origin: ["https://www.monmonland.games/", "https://www.monmonland.games", 
     //   "https://monmonland.games/", "https://monmonland.games"],
     methods: ["GET", "POST", "PUT", "DELETE"], // List only` available methods
