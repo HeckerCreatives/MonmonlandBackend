@@ -75,6 +75,6 @@ exports.islogin = async (req, res) => {
 }
 
 exports.logout = (req, res) => {
-    res.clearCookie('sessionToken', { path: '/' });
+    res.clearCookie('sessionToken', { secure: true, sameSite: 'None' });
     res.redirect('/login');
 }
