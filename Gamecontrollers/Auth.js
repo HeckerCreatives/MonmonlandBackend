@@ -39,7 +39,7 @@ exports.login = async ( req, res ) => {
                         token: token
                     }
 
-                    res.cookie('sessionToken', jwttoken, { httpOnly: true})
+                    res.cookie('sessionToken', jwttoken)
                     res.json({message: "success", data: data})
                 })
                 .catch(error => {
