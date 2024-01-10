@@ -8,7 +8,7 @@ const PooldetailsSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            default: 'inactive'
+            default: 'Inactive'
 
         },
         rank: {

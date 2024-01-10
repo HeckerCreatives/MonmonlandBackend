@@ -10,6 +10,7 @@ const Dailyactivities = require('../Gamemodels/Dailyactivities')
 const Energy = require('../Gamemodels/Energy')
 const Playtimegrinding = require('../Gamemodels/Playtimegrinding')
 const Ingameleaderboard = require('../Gamemodels/Leaderboard')
+const Dailylimit = require('../Gamemodels/Dailylimit')
 const Fiesta = require("../Gamemodels/Fiesta")
 const Sponsor = require("../Gamemodels/Sponsor")
 const mongoose = require("mongoose");
@@ -178,398 +179,461 @@ exports.register = async (req, res) => {
         await newuser.save()
         .then(async data => {
             userid = data._id
-            // Sponsor
-            // const sponsor = {
-            //     owner: data._id,
-            //     type: "monmonbonanza",
-            //     amount: 0
-            // }
 
-            // await Sponsor.create(sponsor)
-            // // fiesta
-            // const fiesta = [
-            //     {
-            //     owner: data._id,
-            //     type: "palosebo",
-            //     amount: 0
-            //     },
-            //     {
-            //         owner: data._id,
-            //         type: "supermonmon",
-            //         amount: 0
-            //     },
-            // ]
+           // pooldetails
+           const pooldetails = {
+                owner: userid,
+            }
 
-            // await Fiesta.insertMany(fiesta)
+        await Pooldetails.create(pooldetails)
 
-            // playerdetails
-            const playerdetails = {
-                owner: data._id,
-                phone: phone,
-                email: email
-            }
-    
-            await Playerdetails.create(playerdetails)
-    
-            // pooldetails
-            const pooldetails = {
-                owner: data._id,
-            }
-    
-            await Pooldetails.create(pooldetails)
-    
-            // walletcuoff
-    
-            const walletcutoff = [
-                {
-                    owner: data._id,
-                    wallettype: "activitypoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "adspoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "purchasepoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "taskpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "recruitpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "totalpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "grouppoints"
-                },
-    
-            ]
-    
-            await Walletscutoff.insertMany(walletcutoff)
-    
-            // gamewallet
-    
-            const gamewallet = [
-                {
-                    owner: data._id,
-                    wallettype: "activitypoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "adspoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "purchasepoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "taskpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "recruitpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "totalpoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "grouppoints"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "monstergemfarm"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "monstergemunilevel"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "monstercoin"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "balance"
-                },
-                {
-                    owner: data._id,
-                    wallettype: "totalincome"
-                },
-    
-            ]
-    
-            await Gamewallet.insertMany(gamewallet)
-    
-            // equipment
-    
-            const equipment = [
-                {
-                    owner: data._id,
-                    type: "1",
-                    isowned: "1",
-                    expiration: '0',
-                    isequip: '1'
-                },
-                {
-                    owner: data._id,
-                    type: "2",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "3",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "4",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "5",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-    
-            ]
-    
-            await Equipment.insertMany(equipment)
-    
-            // clock
-    
-            const clock = [
-                {
-                    owner: data._id,
-                    type: "1",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "2",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "3",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-                {
-                    owner: data._id,
-                    type: "4",
-                    isowned: "0",
-                    expiration: '0',
-                    isequip: '0'
-                },
-    
-            ]
-    
-            await Clock.insertMany(clock)
-    
-            // games
-            const games = [
-                {
-                    owner: data._id,
-                    type: "woodcutting",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "mining",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "fishing",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "farming",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "hunting",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "crafting",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-                {
-                    owner: data._id,
-                    type: "smithing",
-                    status: 'pending',
-                    unixtime: '0',
-                    harvestmc: 0,
-                    harvestmg: 0,
-                    harvestap: 0
-                },
-    
-            ]
-    
-            await Ingamegames.insertMany(games)
-    
-            // dailyactivities
-            const dailyactivities = [
-                {
-                    owner: data._id,
-                    type: "1",
-                    status: 'not-claimed'
-                },
-                {
-                    owner: data._id,
-                    type: "2",
-                    status: 'not-claimed'
-                },
-                {
-                    owner: data._id,
-                    type: "3",
-                    status: 'not-claimed'
-                },
-                {
-                    owner: data._id,
-                    type: "4",
-                    status: 'not-claimed'
-                },
-                {
-                    owner: data._id,
-                    type: "5",
-                    status: 'not-claimed'
-                },
-    
-            ]
-    
-            await Dailyactivities.create(dailyactivities)
-    
-            // energy
-            const energy = {
-                    owner: data._id,
-                    amount: 0
-            }
-                
-            await Energy.create(energy)
-    
-            //playtimegrinding
-    
-            const playtimegrinding = [
-                {
-                    owner: data._id,
-                    type: "woodcutting",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "mining",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "fishing",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "farming",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "hunting",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "crafting",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-                {
-                    owner: data._id,
-                    type: "smithing",
-                    day: 0, 
-                    hours: 0, 
-                    minute: 0, 
-                    seconds: 0,
-                },
-    
-    
-            ]
-    
-            await Playtimegrinding.insertMany(playtimegrinding)
-    
-            const leaderboard = {
-                owner: data._id,
+        // gamewallet
+
+        const gamewallet = [
+            {
+                owner: userid,
+                wallettype: "activitypoints",
                 amount: 0,
-            }
-    
-            await Ingameleaderboard.create(leaderboard)
+                
+            },  
+            {
+                owner: userid,
+                wallettype: "adspoints",
+                amount: 0,
+                
+
+            },
+            {
+                owner: userid,
+                wallettype: "purchasepoints",
+                amount: 0,
+                
+
+            },
+            {
+                owner: userid,
+                wallettype: "taskpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "directpoints", // group point na ituh
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "grouppoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "totalpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "monstergemfarm",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "monstergemunilevel",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "monstercoin",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "balance",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "totalincome",
+                amount: 0,
+                
+            },
+
+        ]
+
+        await Gamewallet.insertMany(gamewallet)
+
+                // walletcuoff
+
+        const walletcutoff = [
+            {
+                owner: userid,
+                wallettype: "activitypoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "adspoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "purchasepoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "taskpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "directpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "totalpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "grouppoints",
+                amount: 0,
+                
+            },
+
+        ]
+
+        await Walletscutoff.insertMany(walletcutoff)
+
+                // equipment
+
+        const equipment = [
+            {
+                owner: userid,
+                type: "1",
+                isowned: "1",
+                expiration: 0,
+                isequip: '1',
+                
+            },
+            {
+                owner: userid,
+                type: "2",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "3",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "4",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "5",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+
+        ]
+
+        await Equipment.insertMany(equipment)
+
+        // clock
+
+        const clock = [
+            {
+                owner: userid,
+                type: "1",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "2",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "3",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+            {
+                owner: userid,
+                type: "4",
+                isowned: "0",
+                expiration: 0,
+                isequip: '0',
+                
+            },
+
+        ]
+
+        await Clock.insertMany(clock)
+
+                // games
+        const games = [
+            {
+                owner: userid,
+                type: "woodcutting",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "mining",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "fishing",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "farming",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "hunting",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "crafting",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0
+            },
+            {
+                owner: userid,
+                type: "smithing",
+                status: 'pending',
+                unixtime: 0,
+                harvestmc: 0,
+                harvestmg: 0,
+                harvestap: 0,
+                timestarted: 0,
+                
+            },
+
+        ]
+
+        await Ingamegames.insertMany(games)
+
+        // energy
+        const energy = {
+                owner: userid,
+                amount: 0,
+                
+        }
+            
+        await Energy.create(energy)
+
+        // dailyactivities
+        const dailyactivities = [
+            {
+                owner: userid,
+                type: "1",
+                status: 'not-claimed',
+                taskpoints: 1,
+                rewardsmc: 1,
+                
+            },
+            {
+                owner: userid,
+                type: "2",
+                status: 'not-claimed',
+                taskpoints: 3,
+                rewardsmc: 1,
+                
+            },
+            {
+                owner: userid,
+                type: "3",
+                status: 'not-claimed',
+                taskpoints: 5,
+                rewardsmc: 2,
+                
+            },
+            {
+                owner: userid,
+                type: "4",
+                status: 'not-claimed',
+                taskpoints: 10,
+                rewardsmc: 3,
+                
+            },
+            {
+                owner: userid,
+                type: "5",
+                status: 'not-claimed',
+                taskpoints: 10,
+                rewardsmc: 3,
+                
+            },
+
+        ]
+
+        await Dailyactivities.insertMany(dailyactivities)
+
+        //playtimegrinding
+        
+        const playtimegrinding = [
+            {
+                owner: userid,
+                type: "woodcutting",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "mining",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "fishing",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "farming",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "hunting",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "crafting",
+                currenttime: 0,
+                
+            },
+            {
+                owner: userid,
+                type: "smithing",
+                currenttime: 0,
+                
+            },
+
+
+        ]
+
+        await Playtimegrinding.insertMany(playtimegrinding)
+
+        //leaderboard
+        const leaderboard = {
+            owner: userid,
+            amount: 0,
+            
+        }
+
+        await Ingameleaderboard.create(leaderboard)
+
+
+        const dailylimit = [
+            {
+                owner: userid,
+                wallettype: 'monstercoin',
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: 'monstergemfarm',
+                amount: 0,
+                
+            },
+        ]
+
+        Dailylimit.insertMany(dailylimit)
+
+        
+
+        // playerdetails
+        const playerdetails = {
+            owner: userid,
+            phone: phone,
+            email: email,
+            
+        }
+
+        await Playerdetails.create(playerdetails)
     
             res.json({message: "success", data: "Registration Successfull"})
         })
@@ -591,7 +655,7 @@ exports.register = async (req, res) => {
                 await Playtimegrinding.deleteMany({owner: userid})
                 await Ingameleaderboard.deleteMany({owner: userid})
                 await Gameusers.deleteOne({_id: userid})
-
+                await Dailylimit.deleteMany({_id: userid})
                 res.status(500).json({ message: "failed",  data: error.message })
                 return
         });
