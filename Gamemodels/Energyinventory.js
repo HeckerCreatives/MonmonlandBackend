@@ -1,21 +1,21 @@
 const mongoose = require("mongoose");
 
-const DailyactivitiesSchema = new mongoose.Schema(
+const energyInventorySchema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Gameusers"
         },
-        type: {
+        name: {
             type: String
         },
-        status: {
-            type: String,
+        type: {
+            type: String  // ring / etc.
         },
-        taskpoints: {
+        amount: {
             type: Number
         },
-        rewardsmc: {
+        consumableamount: {
             type: Number
         }
     },
@@ -24,5 +24,5 @@ const DailyactivitiesSchema = new mongoose.Schema(
     }
 )
 
-const Dailyactivities = mongoose.model("Dailyactivities", DailyactivitiesSchema);
-module.exports = Dailyactivities
+const EnergyInventory = mongoose.model("EnergyInventory", energyInventorySchema);
+module.exports = EnergyInventory

@@ -8,11 +8,11 @@ const PayoutSchema = new mongoose.Schema(
         },
         playfabId: {
             type: String,
-            required: true
+            // required: true
         },
         playfabPayoutKey: {
             type: String,
-            required: true
+            // required: true
         },
         username: {
             type: String,

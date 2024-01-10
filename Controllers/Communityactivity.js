@@ -6,7 +6,7 @@ const Communityactivityaccumulated = require("../Models/Communityactivyaccumulat
 const Merchandise = require("../Models/Merchandise")
 const Ads = require("../Models/Ads")
 const Investorfunds = require("../Models/Investorfunds")
-
+const Wallets = require("../Gamemodels/Wallets")
 exports.mcvalue = (req, res) => {
 
     Monmoncoin.findOne({name: "Monster Coin"})
@@ -191,6 +191,12 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const unilevelbonus = await Wallets.findOne({owner: process.env.simonmonland, wallettype: 'balance'})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -206,7 +212,8 @@ exports.find = async (req, res) => {
         "trademerchandise": trademerchandise,
         "tradepayin": tradepayin,
         "complanmerchandise": complanmerchandise,
-        "complanpayin": complanpayin
+        "complanpayin": complanpayin,
+        "unilevelbonus": unilevelbonus
     }
 
     res.json({message: "success", data: summary})

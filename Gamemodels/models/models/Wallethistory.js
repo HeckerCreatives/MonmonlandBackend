@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const DailyactivitiesSchema = new mongoose.Schema(
+const WallethistorySchema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Schema.Types.ObjectId,
@@ -9,20 +9,20 @@ const DailyactivitiesSchema = new mongoose.Schema(
         type: {
             type: String
         },
-        status: {
+        description: {
             type: String,
         },
-        taskpoints: {
-            type: Number
+        amount: {
+            type: Number,
         },
-        rewardsmc: {
-            type: Number
-        }
+        historystructure: {
+            type: String,
+        },
     },
     {
         timestamps: true
     }
 )
 
-const Dailyactivities = mongoose.model("Dailyactivities", DailyactivitiesSchema);
-module.exports = Dailyactivities
+const Wallethistory = mongoose.model("Wallethistory", WallethistorySchema);
+module.exports = Wallethistory

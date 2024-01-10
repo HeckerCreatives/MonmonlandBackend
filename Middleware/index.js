@@ -17,17 +17,18 @@ const verifyJWT = async (token) => {
 
 exports.protect = async (req, res, next) => {
 
-  let token = req.headers.cookie?.split('; ').find(row => row.startsWith('sessionToken=')).split('=')[1]
-
-  if(!token){
-      res.status(401).json("You are not authorized")
+  let token = req.headers.cookie?.split('; ').find(row => row.startsWith('sessionToken='))?.split('=')[1]
+  // console.log(req)
+  // let token = req.cookies.sessionToken
+  if(!token || token == undefined){
+      res.status(401).json({expired: "You are not authorized"})
   } else {
     try {
       const decodeToken = await verifyJWT(token)
       req.user = decodeToken
       next()
     } catch (error) {
-      return res.status(401).json({message: "Unauthorized", data : error})
+      return res.status(401).json({expired: "Unauthorized", data : error})
     }
       
   }

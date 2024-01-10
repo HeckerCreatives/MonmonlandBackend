@@ -37,7 +37,7 @@ exports.createfunds = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://test.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const PlaytimegrindingSchema = new mongoose.Schema(
+const AnalyticsSchema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Schema.Types.ObjectId,
@@ -9,14 +9,14 @@ const PlaytimegrindingSchema = new mongoose.Schema(
         type: {
             type: String
         },
-        currenttime: {
-            type: Number
-        }
+        amount: {
+            type: Number,
+        },
     },
     {
         timestamps: true
     }
 )
 
-const Playtimegrinding = mongoose.model("Playtimegrinding", PlaytimegrindingSchema);
-module.exports = Playtimegrinding
+const Analytics = mongoose.model("Analytics", AnalyticsSchema);
+module.exports = Analytics

@@ -136,5 +136,5 @@ app.get('/phtime', async (req, res) => {
 
 // Game Route
 require('./Gameroutes')(app)
-
+require('./Admingameroutes')(app)
 server.listen(port, ()=> console.log(`Server is running at port ${port}`));

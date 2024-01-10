@@ -1,4 +1,5 @@
 const Gameusers = require("../Gamemodels/Gameusers")
+const Playerdetails = require("../Gamemodels/Playerdetails")
 const fs = require('fs')
 const path = require('path')
 const privateKey = fs.readFileSync(path.resolve(__dirname, "../private-key.pem"), 'utf-8');
@@ -59,9 +60,13 @@ exports.islogin = async (req, res) => {
 
     Gameusers.findOne({_id: req.user.id})
     .select("-password")
-    .then(data => {
+    .then(async data => {
         if(data){
-            return res.json({ name: data.username, referrer: data.referral})
+            const email = await Playerdetails.findOne({owner: req.user.id})
+            .then(detail => {
+                return detail.email
+            })
+            return res.json({ name: data.username, referrer: data.referral, email: email})
         }
     })
     .catch(error => {

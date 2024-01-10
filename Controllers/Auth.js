@@ -76,6 +76,9 @@ exports.islogin = (req, res) => {
             return res.json({id: req.user._id, role: data.roleId.display_name, name: req.user.username})
         }
     })
+    .catch(error => {
+        return res.send({ message: "failed", data: error})
+    })
 }
 
 exports.gentoken = (req, res) => {

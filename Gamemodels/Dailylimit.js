@@ -1,22 +1,17 @@
 const mongoose = require("mongoose");
 
-const ClockSchema = new mongoose.Schema(
+const DailylimitSchema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Gameusers"
         },
-        type: {
+        wallettype: {
             type: String
         },
-        isowned: {
-            type: String,
-        },
-        expiration: {
+        amount: {
             type: Number,
-        },
-        isequip: {
-            type: String,
+            default: 0
         },
         
     },
@@ -25,5 +20,5 @@ const ClockSchema = new mongoose.Schema(
     }
 )
 
-const Clock = mongoose.model("Clock", ClockSchema);
-module.exports = Clock
+const Dailylimit = mongoose.model("DailylimitSchema", DailylimitSchema);
+module.exports = Dailylimit

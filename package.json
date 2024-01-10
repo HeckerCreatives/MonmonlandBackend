@@ -25,6 +25,7 @@
     "jsonwebtoken": "^9.0.0",
     "jsonwebtoken-promisified": "^1.0.3",
     "moment": "^2.29.4",
+    "moment-timezone": "^0.5.44",
     "mongoose": "^7.0.5",
     "multer": "^1.4.5-lts.1",
     "nanoid": "^3.0.0",

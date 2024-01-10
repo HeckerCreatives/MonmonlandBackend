@@ -10,9 +10,9 @@ const Dailyactivities = require('../Gamemodels/Dailyactivities')
 const Energy = require('../Gamemodels/Energy')
 const Playtimegrinding = require('../Gamemodels/Playtimegrinding')
 const Ingameleaderboard = require('../Gamemodels/Leaderboard')
-const Paymentdetails = require('../Gamemodels/Paymentdetails')
-const Cashouthistory = require('../Gamemodels/Cashouthistory')
-const Wallethistory = require("../Gamemodels/Wallethistory")
+const Fiesta = require("../Gamemodels/Fiesta")
+const Sponsor = require("../Gamemodels/Sponsor")
+const mongoose = require("mongoose");
 const moment = require('moment');
 const bcrypt = require('bcrypt')
 var playfab = require('playfab-sdk')
@@ -26,6 +26,100 @@ const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
 };
+
+exports.monmonseed = (req, res) => {
+
+    Gameusers.create({
+        _id: '658be2287d0fa9e48a8512c5',
+        username: 'monmonland',
+        password: 'dev123',
+        status: "active",
+    }).then(data => {
+        const gamewallet = [
+            {
+                owner: data._id,
+                wallettype: "activitypoints",
+                amount: 0,
+                
+            },  
+            {
+                owner: data._id,
+                wallettype: "adspoints",
+                amount: 0,
+                
+
+            },
+            {
+                owner: data._id,
+                wallettype: "purchasepoints",
+                amount: 0,
+                
+
+            },
+            {
+                owner: data._id,
+                wallettype: "taskpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "directpoints", // group point na ituh
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "grouppoints",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "totalpoints",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "monstergemfarm",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "monstergemunilevel",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "monstercoin",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "balance",
+                amount: 0,
+                
+            },
+            {
+                owner: data._id,
+                wallettype: "totalincome",
+                amount: 0,
+                
+            },
+
+        ]
+        Gamewallet.create(gamewallet)
+        .then(data => {
+            res.json({message: 'success', data: 'Monmonseed'})
+        })
+        .catch(error => res.status(400).json({ message: "falied", data: error.message }));
+    })
+    .catch(error => res.status(400).json({ message: "falied", data: error.message }));
+}
 
 exports.register = async (req, res) => {
     const { username, password, referral, phone, email } = req.body
@@ -84,6 +178,30 @@ exports.register = async (req, res) => {
         await newuser.save()
         .then(async data => {
             userid = data._id
+            // Sponsor
+            // const sponsor = {
+            //     owner: data._id,
+            //     type: "monmonbonanza",
+            //     amount: 0
+            // }
+
+            // await Sponsor.create(sponsor)
+            // // fiesta
+            // const fiesta = [
+            //     {
+            //     owner: data._id,
+            //     type: "palosebo",
+            //     amount: 0
+            //     },
+            //     {
+            //         owner: data._id,
+            //         type: "supermonmon",
+            //         amount: 0
+            //     },
+            // ]
+
+            // await Fiesta.insertMany(fiesta)
+
             // playerdetails
             const playerdetails = {
                 owner: data._id,
@@ -127,6 +245,10 @@ exports.register = async (req, res) => {
                     owner: data._id,
                     wallettype: "totalpoints"
                 },
+                {
+                    owner: data._id,
+                    wallettype: "grouppoints"
+                },
     
             ]
     
@@ -158,6 +280,10 @@ exports.register = async (req, res) => {
                 {
                     owner: data._id,
                     wallettype: "totalpoints"
+                },
+                {
+                    owner: data._id,
+                    wallettype: "grouppoints"
                 },
                 {
                     owner: data._id,
@@ -499,7 +625,7 @@ exports.changepassword = (req, res) => {
 }
 
 exports.migrationdata = (req, res) => {
-    const { username, password , playfabToken, thetime} = req.body
+    const { username, password , playfabToken, thetime, referral} = req.body
 
     const worker = new Worker(workerjs)
 
@@ -508,7 +634,7 @@ exports.migrationdata = (req, res) => {
         worker.terminate();
     })
 
-    worker.postMessage([username, password , playfabToken, thetime])
+    worker.postMessage([username, password , playfabToken, thetime, referral])
 
 }
 
@@ -516,7 +642,7 @@ exports.findreferrer = async (req, res) => {
 
     const { id } = req.params
 
-    await Gameusers.findOne({_id: id})
+    await Gameusers.findOne({ _id: id })
     .then(data => {
         if(data){
             res.json({message: "success", data: data.username})
@@ -560,4 +686,78 @@ exports.setreferrer = async (req, res) => {
     })
     .catch(err => res.json({message: "failed", data: "Please try again later"}))
 
+}
+
+exports.findnetwork = async (req, res) => {
+    
+    const downline = await Gameusers.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user.id),
+            },
+        },
+        {
+            $graphLookup: {
+                from: "gameusers",
+                startWith: "$_id",
+                connectFromField: "_id",
+                connectToField: "referral",
+                as: "ancestors",
+                depthField: "level",
+            },
+        },
+        {
+            $unwind: "$ancestors",
+        },
+        {
+            $replaceRoot: { newRoot: "$ancestors" },
+        },
+        {
+            $addFields: {
+                level: { $add: ["$level", 1] },
+            },
+        },
+        {
+            $lookup: {
+                from: "pooldetails",
+                localField: "_id", // Use the _id from ancestors
+                foreignField: "owner",
+                as: "subscriptionDetails",
+            },
+        },
+        {
+            $project: {
+                _id: 0, // Exclude _id field
+                username: 1,
+                level: 1,
+                subscription: { $arrayElemAt: ["$subscriptionDetails.subscription", 0] },
+            },
+        },
+        {
+            $group: {
+                _id: "$level",
+                data: { $push: "$$ROOT" },
+            },
+        },
+        {
+            $sort: { _id: 1 }, // Sort by level
+        },
+    ]);
+
+    return res.json({message: 'success', data: downline});
+};
+
+exports.migrationreferrer = async (req, res) => {
+
+    const { username } = req.params
+    await Gameusers.findOne({ username: username })
+    .then(data => {
+        if(data){
+            res.json({message: "success", data: data._id})
+        } else {
+            res.json({message: "failed", data: 'Referrer Not Found'})
+        }
+        
+    })
+    .catch(err => res.json({message: "failed", data: 'Referrer Not Found'}))
 }

@@ -6,7 +6,8 @@ var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
 PlayFab.settings.titleId = process.env.monmontitleid;
-const { connectToDatabase } = require('./db')
+const { connectToDatabase } = require('./db');
+const { default: mongoose } = require('mongoose');
 
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
@@ -18,6 +19,7 @@ parentPort.on('message', async (message) => {
     const password =  message[1]
     const playfabToken = message[2]
     const thetime = message[3]
+    const referral = message[4]
     const desiredDate = new Date('Fri Dec 29 2023 00:00:00 GMT+0800');
     const currentdatetime = new Date(thetime)
     const options = {
@@ -32,7 +34,7 @@ parentPort.on('message', async (message) => {
         timeZoneName: 'short'
     };
     const formateddate = currentdatetime.toLocaleString('en-US', options)
-
+    const createdat = new Date(createdat)
     if(formateddate < desiredDate){
        return parentPort.postMessage({message: "failed", data: "Opps! Sorry You Can't Do That"})
     }
@@ -57,15 +59,10 @@ parentPort.on('message', async (message) => {
             const Energy = db.collection('energy')
             const Playtimegrinding = db.collection('playtimegrindings')
             const Ingameleaderboard = db.collection('ingameleaderboards')
-            const Paymentdetails = db.collection('paymentdetails')
-            const Cashouthistory = db.collection('cashouthistory')
-            const Wallethistory = db.collection('wallethistory')
             const Cosmetics = db.collection('cosmetics')
-
+            const Dailylimit = db.collection('dailylimits')
+            
             const personaldetails = JSON.parse(result1.data.FunctionResult.data.personalDetails.Value)
-            const paymentdetails = JSON.parse(result1.data.FunctionResult.data.paymentDetails.Value)
-            const wallethistory = JSON.parse(result1.data.FunctionResult.data.walletHistory.Value)
-            const payouthistory = JSON.parse(result1.data.FunctionResult.data.payoutHistory.Value)
             const wallets = JSON.parse(result1.data.FunctionResult.data.wallets.Value)
             const poolDetails = JSON.parse(result1.data.FunctionResult.data.poolDetails.Value)
             const cosmetics = JSON.parse(result1.data.FunctionResult.data.softLaunchUser.Value)
@@ -87,10 +84,6 @@ parentPort.on('message', async (message) => {
                 return
             }
 
-            // const newuser = new Gameusers({
-            //     username: username,
-            //     password: password,
-            // })
 
             let userid
             let pass = await encrypt(password)
@@ -98,68 +91,22 @@ parentPort.on('message', async (message) => {
                 username: username,
                 password: pass,
                 status: "active",
+                referral: new mongoose.Types.ObjectId(referral),
+                createdAt: createdat
             })
             .then(async data => {
                 userid = data.insertedId
 
-                //cosmetics
-                if(cosmetics !== null){
-                    const data = {
-                        owner: userid,
-                        name: poolDetails.subscription,
-                        type: "ring",
-                        expiration: "permanent",
-                        isequip: "0"
-                    }
-
-                    Cosmetics.insertOne(data)
-                }
-
-                //cashouthistory
-
-                // Convert the data into an array of documents
-                const cashouthistory = Object.entries(payouthistory)?.map(([key, value]) => {
-                    
-                    return {
-                    owner: userid, // Assuming your '_id' field is an ObjectId
-                    amount: value.amount,
-                    status: value.status,
-                    updatedAt: new Date(),
-                    createdAt: moment(value.date, 'MM/DD/YYYY HH:mm:ss').toISOString(true)
-                    };
-                });
-
-                if(cashouthistory.length !== 0){
-                    await Cashouthistory.insertMany(cashouthistory)
-                }
-
-                // walletHistory
-
-                const walletHistory = Object.entries(wallethistory)?.map(([key, value]) => {
-                    return {
-                        owner: userid,
-                        type: value.description, // Replace with the actual type value
-                        description: value.description,
-                        amount: parseFloat(value.amount),
-                        // historystructure: 'yourHistoryStructure', // Replace with the actual historystructure value
-                        updatedAt: new Date(),
-                        createdAt: moment(value.dateTime, 'MM/DD/YYYY HH:mm:ss').toISOString(true)
-                    }
-                })
-
-                if(walletHistory.length !== 0){
-                    await Wallethistory.insertMany(walletHistory)
-                }
-                
-
-                // playerdetails
-                const playerdetails = {
+                // pooldetails
+                const pooldetails = {
                     owner: userid,
-                    phone: personaldetails.phone,
-                    email: personaldetails.email
+                    status: poolDetails.status,
+                    rank: "none",
+                    subscription: poolDetails.subscription,
+                    createdAt: createdat
                 }
-        
-                await Playerdetails.insertOne(playerdetails)
+
+                await Pooldetails.insertOne(pooldetails)
 
                 // gamewallet
 
@@ -167,138 +114,174 @@ parentPort.on('message', async (message) => {
                     {
                         owner: userid,
                         wallettype: "activitypoints",
-                        amount: 0
+                        amount: 0,
+                        createdAt: createdat
                     },  
                     {
                         owner: userid,
                         wallettype: "adspoints",
+                        amount: 0,
+                        createdAt: createdat
 
                     },
                     {
                         owner: userid,
                         wallettype: "purchasepoints",
+                        amount: 0,
+                        createdAt: createdat
 
                     },
                     {
                         owner: userid,
-                        wallettype: "taskpoints"
+                        wallettype: "taskpoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "recruitpoints",
-                        amount: wallets.recruitPoints
+                        wallettype: "directpoints", // group point na ituh
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "totalpoints"
+                        wallettype: "grouppoints",
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: "totalpoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         wallettype: "monstergemfarm",
-                        amount: wallets.monsterGem
+                        amount: wallets.monsterGem,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "monstergemunilevel"
+                        wallettype: "monstergemunilevel",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         wallettype: "monstercoin",
-                        amount: wallets.monsterCoin
+                        amount: wallets.monsterCoin,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         wallettype: "balance",
-                        amount: wallets.balance
+                        amount: wallets.balance,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         wallettype: "totalincome",
-                        amount: wallets.totalIncome
+                        amount: wallets.totalIncome,
+                        createdAt: createdat
                     },
         
                 ]
 
                 await Gamewallet.insertMany(gamewallet)
-                
-                // pooldetails
-                const pooldetails = {
-                    owner: userid,
-                    status: poolDetails.status,
-                    subscription: poolDetails.subscription
-                }
 
-                await Pooldetails.insertOne(pooldetails)
-        
-                // walletcuoff
+                        // walletcuoff
         
                 const walletcutoff = [
                     {
                         owner: userid,
-                        wallettype: "activitypoints"
+                        wallettype: "activitypoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "adspoints"
+                        wallettype: "adspoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "purchasepoints"
+                        wallettype: "purchasepoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "taskpoints"
+                        wallettype: "taskpoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "recruitpoints"
+                        wallettype: "directpoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
-                        wallettype: "totalpoints"
+                        wallettype: "totalpoints",
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: "grouppoints",
+                        amount: 0,
+                        createdAt: createdat
                     },
         
                 ]
         
                 await Walletscutoff.insertMany(walletcutoff)
 
-                // equipment
+                        // equipment
 
                 const equipment = [
                     {
                         owner: userid,
                         type: "1",
                         isowned: "1",
-                        expiration: '0',
-                        isequip: '1'
+                        expiration: 0,
+                        isequip: '1',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "2",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "3",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "4",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "5",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
         
                 ]
@@ -312,87 +295,101 @@ parentPort.on('message', async (message) => {
                         owner: userid,
                         type: "1",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "2",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "3",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "4",
                         isowned: "0",
-                        expiration: '0',
-                        isequip: '0'
+                        expiration: 0,
+                        isequip: '0',
+                        createdAt: createdat
                     },
         
                 ]
 
                 await Clock.insertMany(clock)
-        
-                // games
+
+                        // games
                 const games = [
                     {
                         owner: userid,
                         type: "woodcutting",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "mining",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "fishing",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "farming",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "hunting",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "crafting",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
                         harvestap: 0
@@ -401,128 +398,183 @@ parentPort.on('message', async (message) => {
                         owner: userid,
                         type: "smithing",
                         status: 'pending',
-                        unixtime: '0',
+                        unixtime: 0,
                         harvestmc: 0,
                         harvestmg: 0,
-                        harvestap: 0
+                        harvestap: 0,
+                        timestarted: 0,
+                        createdAt: createdat
                     },
         
                 ]
 
                 await Ingamegames.insertMany(games)
-        
+
+                // energy
+                const energy = {
+                        owner: userid,
+                        amount: 0,
+                        createdAt: createdat
+                }
+                    
+                await Energy.insertOne(energy)
+
                 // dailyactivities
                 const dailyactivities = [
                     {
                         owner: userid,
                         type: "1",
-                        status: 'not-claimed'
+                        status: 'not-claimed',
+                        taskpoints: 1,
+                        rewardsmc: 1,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "2",
-                        status: 'not-claimed'
+                        status: 'not-claimed',
+                        taskpoints: 3,
+                        rewardsmc: 1,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "3",
-                        status: 'not-claimed'
+                        status: 'not-claimed',
+                        taskpoints: 5,
+                        rewardsmc: 2,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "4",
-                        status: 'not-claimed'
+                        status: 'not-claimed',
+                        taskpoints: 10,
+                        rewardsmc: 3,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "5",
-                        status: 'not-claimed'
+                        status: 'not-claimed',
+                        taskpoints: 10,
+                        rewardsmc: 3,
+                        createdAt: createdat
                     },
         
                 ]
 
                 await Dailyactivities.insertMany(dailyactivities)
 
-                // energy
-                const energy = {
-                        owner: userid,
-                        amount: 0
-                }
-                    
-                await Energy.insertOne(energy)
-        
                 //playtimegrinding
-        
+                
                 const playtimegrinding = [
                     {
                         owner: userid,
                         type: "woodcutting",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "mining",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "fishing",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "farming",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "hunting",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "crafting",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
                     {
                         owner: userid,
                         type: "smithing",
-                        day: 0, 
-                        hours: 0, 
-                        minute: 0, 
-                        seconds: 0,
+                        currenttime: 0,
+                        createdAt: createdat
                     },
-        
-        
+
+
                 ]
 
                 await Playtimegrinding.insertMany(playtimegrinding)
-        
+
+                //leaderboard
                 const leaderboard = {
                     owner: userid,
                     amount: 0,
+                    createdAt: createdat
                 }
         
                 await Ingameleaderboard.insertOne(leaderboard)
 
+                //cosmetics
+                if(cosmetics !== null){
+                    const data = {
+                        owner: userid,
+                        name: poolDetails.subscription,
+                        type: "ring",
+                        permanent: "permanent",
+                        expiration: 0,
+                        isequip: "0",
+                        createdAt: createdat
+                    }
+
+                    Cosmetics.insertOne(data)
+                }
+
+                const dailylimit = [
+                    {
+                        owner: userid,
+                        wallettype: 'monstercoin',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: 'monstergemfarm',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                ]
+
+                Dailylimit.insertMany(dailylimit)
+
+                
+
+                // playerdetails
+                const playerdetails = {
+                    owner: userid,
+                    phone: personaldetails.phone,
+                    email: personaldetails.email,
+                    createdAt: createdat
+                }
+        
+                await Playerdetails.insertOne(playerdetails)
+
+
+        
+        
+        
+        
                 parentPort.postMessage({message: "success", data: "Account Migrated Successfully"})
                 await db.close
                 return
@@ -535,8 +587,6 @@ parentPort.on('message', async (message) => {
                 return
                 }
 
-                await Cashouthistory.deleteMany({owner: userid})
-                await Wallethistory.deleteMany({owner: userid})
                 await Playerdetails.deleteMany({owner: userid})
                 await Gamewallet.deleteMany({owner: userid})
                 await Walletscutoff.deleteMany({owner: userid})
@@ -548,7 +598,7 @@ parentPort.on('message', async (message) => {
                 await Playtimegrinding.deleteMany({owner: userid})
                 await Ingameleaderboard.deleteMany({owner: userid})
                 await Gameusers.deleteOne({_id: userid})
-
+                await Dailylimit.deleteMany({owner: userid})
                 parentPort.postMessage({message: 'failed'})
                 await db.close
                 return
@@ -556,7 +606,8 @@ parentPort.on('message', async (message) => {
             })
 
         
-        } else if (error1){
+        }
+         else if (error1){
             return parentPort.postMessage({message: "failed", data: error1})
         }
     })

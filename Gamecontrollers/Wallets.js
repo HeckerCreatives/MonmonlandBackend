@@ -4,6 +4,15 @@ const Monmoncoin = require("../Models/Monmoncoin")
 const Gameactivity = require("../Models/Gameactivity")
 const Ads = require("../Models/Ads")
 const Investorfunds = require("../Models/Investorfunds")
+const Wallethistory = require("../Gamemodels/Wallethistory")
+const Cashouthistory = require('../Gamemodels/Cashouthistory')
+const WalletsCutoff = require('../Gamemodels/Walletscutoff')
+const Pooldetails = require("../Gamemodels/Pooldetails")
+const DragonPaymentdetails = require('../Models/Paymentdetails')
+const Paymentdetails = require("../Gamemodels/Paymentdetails")
+
+
+
 exports.find = async (req, res) => {
     
     Wallets.find({owner: req.user.id})
@@ -34,35 +43,189 @@ exports.find = async (req, res) => {
         })
         .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 
+        const pooldetail = await Pooldetails.findOne({owner: req.user.id})
+        .select('status rank subscription')
+        .then(pool => {
+            return pool
+        })
+        .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+
+
 
         const activitypoints = data.find(e => e.wallettype === "activitypoints")
         const adspoints = data.find(e => e.wallettype === "adspoints")
         const purchasepoints = data.find(e => e.wallettype === "purchasepoints")
         const taskpoints = data.find(e => e.wallettype === "taskpoints")
-        const recruitpoints = data.find(e => e.wallettype === "recruitpoints")
+        const directpoints = data.find(e => e.wallettype === "directpoints")
         const totalpoints = data.find(e => e.wallettype === "totalpoints")
         const monstergemfarm = data.find(e => e.wallettype === "monstergemfarm")
         const monstergemunilevel = data.find(e => e.wallettype === "monstergemunilevel")
         const monstercoin = data.find(e => e.wallettype === "monstercoin")
         const balance = data.find(e => e.wallettype === "balance")
         const totalincome = data.find(e => e.wallettype === "totalincome")
+        const grouppoints = data.find(e => e.wallettype === "grouppoints")
         const subscriberincome = (monstercoin.amount * mcvalue)
-        const summary = {
+
+        const totalaccumulative = {
             "activitypoints": activitypoints.amount,
             "adspoints": adspoints.amount,
             "purchasepoints": purchasepoints.amount,
             "taskpoints": taskpoints.amount,
-            "recruitpoints": recruitpoints.amount,
+            "recruitpoints": directpoints.amount,
             "totalpoints": totalpoints.amount,
             "monstergemfarm": monstergemfarm.amount,
             "monstergemunilevel": monstergemunilevel.amount,
             "monstercoin": monstercoin.amount,
             "balance": balance.amount,
             "totalincome": totalincome.amount,
-            "subscriberincome": subscriberincome
+            "subscriberincome": subscriberincome,
+            "grouppoints": grouppoints?.amount,
+            'poolstatus': pooldetail.status,
+            'poolrank': pooldetail.rank,
+            'poolsubscription': pooldetail.subscription
         }
 
-        res.json({message: "success", data: summary})
+        await WalletsCutoff.find({owner: req.user.id})
+        .then(async item => {
+
+            const activitypoints = item.find(e => e.wallettype === "activitypoints")
+            const adspoints = item.find(e => e.wallettype === "adspoints")
+            const purchasepoints = item.find(e => e.wallettype === "purchasepoints")
+            const taskpoints = item.find(e => e.wallettype === "taskpoints")
+            const recruitpoints = item.find(e => e.wallettype === "directpoints")
+            const totalpoints = item.find(e => e.wallettype === "totalpoints")
+            const grouppoints = item.find(e => e.wallettype === "grouppoints")
+
+            const percutoff = {
+                "activitypoints": activitypoints.amount,
+                "adspoints": adspoints.amount,
+                "purchasepoints": purchasepoints.amount,
+                "taskpoints": taskpoints.amount,
+                "recruitpoints": recruitpoints.amount,
+                "totalpoints": totalpoints.amount,
+                "grouppoints": grouppoints?.amount,
+            }
+
+            res.json({message: "success", data: totalaccumulative, data2: percutoff})
+        })
+        .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+
+
+        
     })
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.findwallethistory = (req, res) => {
+
+    Wallethistory.find({owner: req.user.id})
+    .sort({createdAt: -1})
+    .then(data => {
+        res.json({message: 'success', data: data})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}
+
+exports.findcashouthistory = (req, res) => {
+
+    Cashouthistory.find({owner: req.user.id})
+    .sort({createdAt: -1})
+    .select('createdAt amount status')
+    .then(data => {
+        res.json({message: 'success', data: data})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}
+
+exports.paymentdetail = async (req, res) => {
+    const { 
+        firstname,
+        middlename,
+        lastname,
+        email,
+        mobilenumber,
+        birthdate,
+        nationality,
+        street1, 
+        street2, 
+        barangay, 
+        city, 
+        province, 
+        country,
+        paymentmethod,
+        paymentdetail
+    } = req.body
+
+    const currency = paymentmethod == 'CRYPTO' ? 'USDT' : 'PHP'
+    const paymentoption = paymentmethod == 'CRYPTO' ? 'Manual' : 'Automatic'
+
+    const forgame = {
+        owner: req.user.id,
+        paymentoption: paymentoption,
+        paymentmethod: paymentmethod,
+        currency: currency
+    }
+
+    const fordragonpay = {
+        owner: req.user.id,
+        firstname: firstname,
+        middlename: middlename,
+        lastname: lastname,
+        email: email,
+        mobilenumber: mobilenumber,
+        birthdate: birthdate,
+        nationality: nationality,
+        address: {
+            Street1: street1,
+            Street2: street2,
+            Barangay: barangay,
+            City: city,
+            Province: province,
+            Country: country
+        },
+        paymentmethod: paymentmethod,
+        paymentdetail: paymentdetail
+    }
+
+    const isexsist = await Paymentdetails.findOne({owner: req.user.id})
+    .then(data => {
+        if(data){
+            return true
+        } else {
+            return false
+        }
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+
+    const isexsist1 = await DragonPaymentdetails.findOne({owner: req.user.id})
+    .then(data => {
+        if(data){
+            return true
+        } else {
+            return false
+        }
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+
+    if(isexsist && isexsist1){
+        await Paymentdetails.findOneAndUpdate({owner: req.user.id}, forgame)
+        await DragonPaymentdetails.findOneAndUpdate({owner: req.user.id}, fordragonpay)
+
+        res.json({message: "success", data: "Save Successfully"})
+    } else {
+        await Paymentdetails.create(forgame)
+        await DragonPaymentdetails.create(fordragonpay)
+
+        res.json({message: "success", data: "Save Successfully"})
+    }
+
+}
+
+exports.findpaymentdetail = (req, res) => {
+    
+    DragonPaymentdetails.findOne({owner: req.user.id})
+    .then(data => {
+        res.json({message: 'success', data: data})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 }
