@@ -11,6 +11,7 @@ const Energy = require('../Gamemodels/Energy')
 const Playtimegrinding = require('../Gamemodels/Playtimegrinding')
 const Ingameleaderboard = require('../Gamemodels/Leaderboard')
 const Dailylimit = require('../Gamemodels/Dailylimit')
+const Totalusers = require("../Models/Totalusers")
 const Fiesta = require("../Gamemodels/Fiesta")
 const Sponsor = require("../Gamemodels/Sponsor")
 const mongoose = require("mongoose");
@@ -634,6 +635,13 @@ exports.register = async (req, res) => {
         }
 
         await Playerdetails.create(playerdetails)
+
+        Totalusers.findByIdAndUpdate(process.env.totaluser, {$inc: {count: 1}})
+        .then(() => {
+            res.json({message: "success"})
+        })
+        .catch(error => response.status(400).json({ error: error.message }))
+        
     
             res.json({message: "success", data: "Registration Successfull"})
         })
