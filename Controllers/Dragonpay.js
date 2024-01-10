@@ -182,6 +182,7 @@ exports.verifypayments = async (request, response) => {
             const id = await Gameusers.findOne({username: data.username}).then(user => user._id)
             const history = {
                 owner: id,
+                amount: finalamount,
                 type: 'Topup Balance',
                 description: 'Topup Balance',
                 historystructure: data.subscriptionType
