@@ -10,6 +10,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 const Subscription = require("../Models/Subscription")
 const Exchangerate = require("../Models/Exchangerate");
+const Gameusers = require('../Gamemodels/Gameusers')
+const Wallets = require('../Gamemodels/Wallets')
+const DragonpayURL = process.env.dragonpayurl
 
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -37,7 +40,7 @@ exports.createfunds = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `${DragonpayURL}/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'
@@ -78,7 +81,7 @@ exports.createbundles = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `${DragonpayURL}/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'
@@ -173,19 +176,12 @@ exports.verifypayments = async (request, response) => {
         // }
         const finalamount = (item.amount / usdrate)
 
-        PlayFab._internalSettings.sessionTicket = item.playfabToken;
-        PlayFabClient.ExecuteCloudScript({
-            FunctionName: "Topup",
-            FunctionParameter: {
-            playerId: item.playerPlayfabId,
-            topupAmount: finalamount,
-            },
-            ExecuteCloudScript: true,
-            GeneratePlayStreamEvent: true,
-        }, (error1, result1) => {
-            if(result1.data.FunctionResult.message === "success"){
-            AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, procId: procid}, {new: true})
-            .then(data => {
+        AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, procId: procid}, {new: true})
+        .then(async data => {
+            const id = await Gameusers.findOne({username: data.username}).then(user => user._id)
+
+            await Wallets.findOneAndUpdate({owner: id, wallettype: 'balance'},{$inc: {amount: finalamount}}).then(() => {
+
                 TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: finalamount}})
                 .then(()=> {
                     response.statusCode = 200;
@@ -196,16 +192,32 @@ exports.verifypayments = async (request, response) => {
                     response.status(400).send(err);
                     return
                 })
+                
             })
-            .catch(err => {
-                response.status(400).send(err);
-                return
-            })
-            } else {
-                response.status(400).send("Error: Please Contact Admin");
-                return
-            }
+            
         })
+        .catch(err => {
+            response.status(400).send(err);
+            return
+        })
+
+        // PlayFab._internalSettings.sessionTicket = item.playfabToken;
+        // PlayFabClient.ExecuteCloudScript({
+        //     FunctionName: "Topup",
+        //     FunctionParameter: {
+        //     playerId: item.playerPlayfabId,
+        //     topupAmount: finalamount,
+        //     },
+        //     ExecuteCloudScript: true,
+        //     GeneratePlayStreamEvent: true,
+        // }, (error1, result1) => {
+        //     if(result1.data.FunctionResult.message === "success"){
+           
+        //     } else {
+        //         response.status(400).send("Error: Please Contact Admin");
+        //         return
+        //     }
+        // })
     })
     .catch(err => {
         response.status(400).send(err);
@@ -257,7 +269,7 @@ exports.createpayout = (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/${merchantId}/post`,
+        url: `${DragonpayURL}/payout/merchant/v1/${merchantId}/post`,
         headers: { 
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
@@ -387,7 +399,7 @@ exports.subscribe = async (req, res) => {
 
     const config = {
         method: 'post',
-        url: `https://gw.dragonpay.ph/api/collect/v1/${uniqueId}/post`,
+        url: `${DragonpayURL}/collect/v1/${uniqueId}/post`,
         headers: { 
             'Authorization': 'Basic ' + Buffer.from(merchantId + ':' + password).toString('base64'),
             'Content-Type': 'application/json'
