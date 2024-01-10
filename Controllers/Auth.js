@@ -61,7 +61,7 @@ module.exports.Login = (request, response) => {
 exports.logout = (req, res) => {
     res.clearCookie('sessionToken', { secure: true, sameSite: 'None' });
     res.clearCookie('playfabAdminAuthToken', { path: '/' });
-    res.redirect('/');
+    res.redirect('/gamelogin');
 }
 
 exports.islogin = (req, res) => {

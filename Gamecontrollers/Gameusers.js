@@ -636,14 +636,14 @@ exports.register = async (req, res) => {
 
         await Playerdetails.create(playerdetails)
 
-        Totalusers.findByIdAndUpdate(process.env.totaluser, {$inc: {count: 1}})
+        await Totalusers.findByIdAndUpdate(process.env.totaluser, {$inc: {count: 1}})
         .then(() => {
-            res.json({message: "success"})
+            res.json({message: "success", data: "Registration Successfull"})
         })
         .catch(error => res.status(400).json({ error: error.message }))
         
     
-            res.json({message: "success", data: "Registration Successfull"})
+            
         })
         .catch(async (error) => {
 
