@@ -12,6 +12,7 @@ const Subscription = require("../Models/Subscription")
 const Exchangerate = require("../Models/Exchangerate");
 const Gameusers = require('../Gamemodels/Gameusers')
 const Wallets = require('../Gamemodels/Wallets')
+const Wallethistory = require('../Gamemodels/Wallethistory')
 const DragonpayURL = process.env.dragonpayurl
 
 function generateRandomString() {
@@ -179,9 +180,15 @@ exports.verifypayments = async (request, response) => {
         AutoReceipt.findByIdAndUpdate(item._id, {status: "success", orderCode: refno, procId: procid}, {new: true})
         .then(async data => {
             const id = await Gameusers.findOne({username: data.username}).then(user => user._id)
+            const history = {
+                owner: id,
+                type: 'Topup Balance',
+                description: 'Topup Balance',
+                historystructure: data.subscriptionType
+            }
 
             await Wallets.findOneAndUpdate({owner: id, wallettype: 'balance'},{$inc: {amount: finalamount}}).then(() => {
-
+                Wallethistory.create(history)
                 TopUpWallet.findByIdAndUpdate({_id: process.env.automaticid}, {$inc: {amount: finalamount}})
                 .then(()=> {
                     response.statusCode = 200;
