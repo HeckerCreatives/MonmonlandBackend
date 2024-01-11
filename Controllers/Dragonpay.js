@@ -241,8 +241,8 @@ exports.verifypayments = async (request, response) => {
 };
 
 exports.createpayout = (info) => {
-    const { Amount, Description, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
-
+    const { Amount, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
+    
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
@@ -257,7 +257,7 @@ exports.createpayout = (info) => {
         LastName: LastName,
         Amount: Amount,
         Currency: "PHP", 
-        Description: Description,
+        Description: "MML Payout",
         ProcId: ProcId, 
         ProcDetail: ProcDetail, // Account or mobile no of payout channel
         RunDate: dateString, 
@@ -274,7 +274,7 @@ exports.createpayout = (info) => {
           Country: Country
         }
     }
-
+    // console.log(data)
 
     const config = {
         method: 'post',
@@ -288,6 +288,7 @@ exports.createpayout = (info) => {
     // console.log("Dragonpay API Request:", config);
     axios(config)
     .then(async response => {
+        console.log(response)
         if (response.status === 200) {
             await Dragonpayout.create(data)
             .then(item => {

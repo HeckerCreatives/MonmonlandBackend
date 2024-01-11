@@ -5,6 +5,8 @@ const Payout = require('../Models/Payout')
 const PayoutWallet = require("../Models/PayoutWallet")
 const Cashouthistory = require('../Gamemodels/Cashouthistory')
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
+const Wallethistory = require('../Gamemodels/Wallethistory')
+const Pooldetails = require("../Gamemodels/Pooldetails")
 const { nanoid } = require("nanoid")
 
 
@@ -16,6 +18,10 @@ exports.requestpayout = async (req, res) => {
    const payoption = await Paymentdetail.findOne({owner: req.user.id}).then(data => data.paymentoption)
 
    const dragonpaymentdetail = await Dragonpayout.findOne({owner: req.user.id}).then(data => data)
+
+   const pooldetail = await Pooldetails.findOne({owner: req.user.id}).then(data => data.subscription)
+
+   const hastopup = await Wallethistory.findOne({owner: req.user.id, type: "Topup Balance"}).then(data => data)
     
    if(balance < amount){
     return res.json({message: 'failed', data: 'Not Enough Balance'})
@@ -23,6 +29,18 @@ exports.requestpayout = async (req, res) => {
 
    if(!dragonpaymentdetail && !payoption){
     return res.json({message: 'failed', data: 'Please setup your payment details first in your profile section'})
+   }
+
+   if(!amount >= 10){
+    return res.json({message: 'failed', data: 'Minimum withdrawal amount is $10'})
+   }
+
+   if(pooldetail === "Pearl"){
+    return res.json({message: 'failed', data: 'Subscription must be Ruby and up'})
+   }
+
+   if(!hastopup){
+    return res.json({message: 'failed', data: 'You must have atleast one Topup'})
    }
 
    if(payoption == 'Automatic'){

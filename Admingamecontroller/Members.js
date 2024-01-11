@@ -77,7 +77,8 @@ exports.find = (req, res) => {
         },
         {
             $match: {
-                status: "active"
+                status: "active",
+                username: { $ne: "monmonland" }
             }
         }
     ])
