@@ -615,3 +615,37 @@ exports.communityactivityaccumulated = (req, res) => {
 
     res.json("communityactivity accumulated created")
 }
+
+exports.dragonpayoutwallets = (req, res) => {
+
+    const dragonpayoutwallet = [
+        {
+            _id: "629a98a5a881575c013b5350",
+            amount: 0,
+            name: "dragonrequest",
+            user: "64672f8f6d8526e7eed1759b"
+        },
+        {
+            _id: "629a98a5a881575c013b5351",
+            amount: 0,
+            name: "dragonprocess",
+            user: "64672f8f6d8526e7eed1759b"
+        },
+        {
+            _id: "629a98a5a881575c013b5352",
+            amount: 0,
+            name: "dragondone",
+            user: "64672f8f6d8526e7eed1759b"
+        },
+        {
+            _id: "629a98a5a881575c013b5353",
+            amount: 0,
+            name: "dragonreject",
+            user: "64672f8f6d8526e7eed1759b"
+        },
+    ]
+
+    PayoutWallet.create(dragonpayoutwallet)
+
+    res.json("dragonpayoutwallet created")
+}

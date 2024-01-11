@@ -14,6 +14,7 @@ const Dailylimit = require('../Gamemodels/Dailylimit')
 const Totalusers = require("../Models/Totalusers")
 const Fiesta = require("../Gamemodels/Fiesta")
 const Sponsor = require("../Gamemodels/Sponsor")
+const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const mongoose = require("mongoose");
 const moment = require('moment');
 const bcrypt = require('bcrypt')
@@ -28,6 +29,24 @@ const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
 };
+
+exports.getgameannouncement = (req, res) => {
+    Gameannouncement.find()
+    .sort({createdAt: -1})
+    .then(data => {
+        if (data.length <= 0){
+            return res.json({message: "noannouncement"})
+        }
+
+        const finaldata = {
+            title: data[0].title,
+            description: data[0].description
+        }
+        
+        return res.json({message: "success", finaldata})
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
 
 exports.monmonseed = (req, res) => {
 

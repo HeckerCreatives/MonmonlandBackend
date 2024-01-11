@@ -11,7 +11,15 @@ const DragonpayoutrequestSchema = new mongoose.Schema(
         paymentdetails: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "DragonPaymentdetails"
-        }
+        },
+        admin: {
+            type: String
+        },
+        status: {
+            type: String,
+            default: 'pending'
+        },
+        
     },
     {
         timestamps: true

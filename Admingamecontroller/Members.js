@@ -20,6 +20,7 @@ const WalletsCutoff = require('../Gamemodels/Walletscutoff')
 const Paymentdetails = require("../Gamemodels/Paymentdetails")
 const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Energyinventories = require('../Gamemodels/Energyinventories')
+const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -835,3 +836,19 @@ exports.getmembertask = async (req, res) => {
 
     res.json({message: "success", data: summary})
 }
+
+exports.gameannouncement = (req, res) => {
+    const { title, description } = req.body
+
+    const data = {
+        title: title,
+        description: description
+    }
+
+    Gameannouncement.create(data)
+    .then((data) => {
+        res.json({message: 'success', data: data})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}
+

@@ -240,8 +240,9 @@ exports.verifypayments = async (request, response) => {
   }
 };
 
-exports.createpayout = (req, res) => {
-    const { Amount, Description, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail } = req.body
+exports.createpayout = (info) => {
+    const { Amount, Description, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
+
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
@@ -257,20 +258,20 @@ exports.createpayout = (req, res) => {
         Amount: Amount,
         Currency: "PHP", 
         Description: Description,
-        ProcId: "CEBL", 
+        ProcId: ProcId, 
         ProcDetail: ProcDetail, // Account or mobile no of payout channel
         RunDate: dateString, 
         Email: Email, 
         MobileNo: MobileNo, 
-        BirthDate: "1970-11-17", 
-        Nationality: "Philippines", 
+        BirthDate: BirthDate, 
+        Nationality: Nationality, 
         Address:
-        { Street1: "123 Sesame Street", 
-        Street2: "Childrens Television Workshop", 
-        Barangay: "Ugong", 
-        City : "Pasig", 
-        Province: "Metro Manila", 
-        Country: "PH"
+        { Street1: Street1, 
+          Street2: Street2, 
+          Barangay: Barangay, 
+          City : City, 
+          Province: Province, 
+          Country: Country
         }
     }
 
@@ -290,20 +291,21 @@ exports.createpayout = (req, res) => {
         if (response.status === 200) {
             await Dragonpayout.create(data)
             .then(item => {
-                Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message})
+                Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message, owner: owner})
                 .then((data) => {
-                    res.json({ message: "success", data: response.data });
+                    // res.json({ message: "success", data: response.data });
+                    return `success: ${response.data}`
                 })
                 
             })
             
         } else {
             // Handle other status codes
-            console.error(`Request failed with status code ${response.status}`);
-            res.status(response.status).json({ error: response.statusText });
+            console.error(`Request failed with status code `);
+            return `failed: ${response.statusText}, status : ${response.status}`
         }
     })
-    .catch(error => res.status(500).json({ error: error }));
+    .catch(error => `failed: ${error}`);
 
 }
 

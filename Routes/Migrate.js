@@ -17,4 +17,5 @@ router.post("/communityacivity", Migrate.communityactivity)
 router.post("/communityactivityaccumulated", Migrate.communityactivityaccumulated)
 router.post("/investorfund", Migrate.investorfund)
 router.post("/exchangerate", Migrate.exchangerate)
+router.post('/dragonpaywallet', Migrate.dragonpayoutwallets)
 module.exports = router;

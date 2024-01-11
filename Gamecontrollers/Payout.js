@@ -16,7 +16,7 @@ exports.requestpayout = async (req, res) => {
    const payoption = await Paymentdetail.findOne({owner: req.user.id}).then(data => data.paymentoption)
 
    const dragonpaymentdetail = await Dragonpayout.findOne({owner: req.user.id}).then(data => data)
-    console.log(dragonpaymentdetail)
+    
    if(balance < amount){
     return res.json({message: 'failed', data: 'Not Enough Balance'})
    }
@@ -62,7 +62,6 @@ exports.requestpayout = async (req, res) => {
             owner: req.user.id,
             amount: amount
         }
-        console.log(data)
         Payout.create(data)
         .then(async item =>{
             Cashouthistory.create(cashouthistory)
