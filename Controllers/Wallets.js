@@ -1,6 +1,6 @@
 const Wallets = require("../Models/Wallets")
 const User = require('../Models/Users')
-
+const TopUpWallet = require("../Models/Topupwallet.js")
 // wallet creation for existing user
 exports.createexsisting = async (req, res) => {
     try {
@@ -61,3 +61,46 @@ exports.find = (req, res) => {
   .catch(error => res.status(400).json({ error: error.message }))
 }
 
+exports.findsoftlaunchwallet = (req,res) => {
+
+  TopUpWallet.find({user: process.env.superadminid})
+  .then(item => {
+
+    const softlaunchmanual = item.find(e => e.name === 'softlaunchmanual')
+    const softlaunchauto = item.find(e => e.name === 'softlaunchautomatic')
+
+    const summary = {
+      "softlaunchmanual": softlaunchmanual.amount,
+      "softlaunchauto": softlaunchauto.amount,
+      "softlaunchtotal": softlaunchmanual.amount + softlaunchauto.amount
+    }
+
+    res.json({message: "success", data: summary})
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+exports.findcombinedsalehwallet = (req,res) => {
+
+  TopUpWallet.find({user: process.env.superadminid})
+  .then(item => {
+
+    const softlaunchmanual = item.find(e => e.name === 'softlaunchmanual')
+    const softlaunchauto = item.find(e => e.name === 'softlaunchautomatic')
+    const grandlaunchmanual = item.find(e => e.name === 'manual')
+    const grandlaunchauto = item.find(e => e.name === 'automatic')
+
+
+    const totalmanual = softlaunchmanual.amount + grandlaunchmanual.amount
+    const totalauto = softlaunchauto.amount + + grandlaunchauto.amount
+    const totalcombinesale = softlaunchmanual.amount + softlaunchauto.amount + grandlaunchmanual.amount + grandlaunchauto.amount
+    const summary = {
+      "totalmanual": totalmanual,
+      "totalauto": totalauto,
+      "combinetotal": totalcombinesale
+    }
+
+    res.json({message: "success", data: summary})
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}

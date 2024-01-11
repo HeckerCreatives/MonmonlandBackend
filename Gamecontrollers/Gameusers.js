@@ -512,7 +512,7 @@ exports.register = async (req, res) => {
         // energy
         const energy = {
                 owner: userid,
-                amount: 0,
+                amount: 10,
                 
         }
             

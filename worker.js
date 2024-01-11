@@ -34,7 +34,8 @@ parentPort.on('message', async (message) => {
         timeZoneName: 'short'
     };
     const formateddate = currentdatetime.toLocaleString('en-US', options)
-    const createdat = new Date(createdat)
+    const createdat = new Date(moment(currentdatetime, 'MM/DD/YYYY HH:mm:ss').toISOString(true))
+
     if(formateddate < desiredDate){
        return parentPort.postMessage({message: "failed", data: "Opps! Sorry You Can't Do That"})
     }
@@ -413,7 +414,7 @@ parentPort.on('message', async (message) => {
                 // energy
                 const energy = {
                         owner: userid,
-                        amount: 0,
+                        amount: 10,
                         createdAt: createdat
                 }
                     
