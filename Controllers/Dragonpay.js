@@ -288,25 +288,23 @@ exports.createpayout = (info) => {
     // console.log("Dragonpay API Request:", config);
     axios(config)
     .then(async response => {
-        console.log(response)
         if (response.status === 200) {
             await Dragonpayout.create(data)
             .then(item => {
                 Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message, owner: owner})
                 .then((data) => {
                     // res.json({ message: "success", data: response.data });
-                    return `success: ${response.data}`
+                    return `success`
                 })
                 
             })
             
         } else {
             // Handle other status codes
-            console.error(`Request failed with status code `);
-            return `failed: ${response.statusText}, status : ${response.status}`
+            return `failed`
         }
     })
-    .catch(error => `failed: ${error}`);
+    .catch(error => `failed`);
 
 }
 
