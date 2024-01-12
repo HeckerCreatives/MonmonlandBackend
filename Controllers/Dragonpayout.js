@@ -23,7 +23,7 @@ exports.process = async (req, res) => {
     const { id } = req.params
     const status = 'process'
     const rate = await Exchangerate.findOne({_id: process.env.exchangerate}).then(data => data.amount)
-    const withdrawalfee = 0.05
+    const withdrawalfee = 0.1
 
     Dragonpayoutrequest.findOne({_id: id})
     .populate({
@@ -40,7 +40,7 @@ exports.process = async (req, res) => {
         finalamount = (deductedamount * rate)
 
         const info = { 
-            owner: data.paymentdetails.owner,
+            owner: data.id,
             FirstName: data.paymentdetails.firstname,
             MiddleName: data.paymentdetails.middlename,
             LastName: data.paymentdetails.lastname,
@@ -60,16 +60,13 @@ exports.process = async (req, res) => {
         }
 
         const payout = await createpayout(info)
-        console.log(payout)
-        console.log(WFtobededuct)
-        console.log(deductedamount)
-        console.log(finalamount)
         if(payout === 'success'){
-            Dragonpayoutrequest.findOneAndUpdate({_id: data._id},{status: status})
+            Dragonpayoutrequest.findOneAndUpdate({_id: data._id},{status: status, admin: req.user.username})
             .then(async data => {
-                await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: withdrawalfee}})
+                await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
+            .catch((error) => res.status(500).json({ error: error.message }));
         } else {
             res.json({message: 'failed', data: 'Please check the payment details'})
         }
@@ -83,15 +80,25 @@ exports.reject = (req, res) => {
     const status = 'reject'
 
     Dragonpayoutrequest.findOne({_id: id})
+    .populate({
+        path: 'paymentdetails'
+    })
     .then(async data => {
 
-        if(data.status !== 'reject'){
+        if(data.status !== 'pending'){
             return res.json({message: 'failed', data: 'This payout is already rejected'})
         }
-        await Dragonpayoutrequest.findOneAndUpdate({_id: data._id}, {status: status})
-        await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
 
-        res.json({message: 'success', data: 'Payout Rejected'})
+        await Dragonpayoutrequest.findOneAndUpdate({_id: data._id}, {status: status, admin: req.user.username})
+        await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
+        .then((item) => {
+            if(item){
+                res.json({message: 'success', data: 'Payout Rejected'})
+            }
+            
+        })
+        
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 }
+

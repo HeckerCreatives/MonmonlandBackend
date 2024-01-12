@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Dragonpayout = require("../Controllers/Dragonpayout")
-
-router.post("/process/:id", Dragonpayout.process)
-router.post("/find", Dragonpayout.find)
+const { protect } = require("../Middleware/index")
+router.post("/process/:id", protect, Dragonpayout.process)
+router.post("/reject/:id", protect, Dragonpayout.reject)
+router.post("/find", protect, Dragonpayout.find)
 
 module.exports = router

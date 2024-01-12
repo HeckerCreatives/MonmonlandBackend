@@ -25,6 +25,7 @@ exports.requestpayout = async (req, res) => {
 
    const customid = nanoid(10)
 
+
    if(balance < amount){
     return res.json({message: 'failed', data: 'Not Enough Balance'})
    }
@@ -33,7 +34,7 @@ exports.requestpayout = async (req, res) => {
     return res.json({message: 'failed', data: 'Please setup your payment details first in your profile section'})
    }
 
-   if(!amount >= 10){
+   if(amount < 10){
     return res.json({message: 'failed', data: 'Minimum withdrawal amount is $10'})
    }
 

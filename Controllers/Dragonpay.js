@@ -35,7 +35,7 @@ exports.createfunds = (req, res) => {
     const data = {
         "Amount": amount,
         "Currency": "PHP",
-        "Description": `Top Up ${amount}`,
+        "Description": `Top Up`,
         "Email": email
     }
 
@@ -56,7 +56,7 @@ exports.createfunds = (req, res) => {
             orderCode: item.data.RefNo,
             username: username,
             playerPlayfabId: playerPlayfabId,
-            subscriptionType: `Top Up $${amount}`,
+            subscriptionType: `Top Up`,
             amount: amount,
             playfabToken: playfabToken
         })
