@@ -19,7 +19,9 @@ const DragonpayoutrequestSchema = new mongoose.Schema(
             type: String,
             default: 'pending'
         },
-        
+        id: {
+            type: String
+        }
     },
     {
         timestamps: true

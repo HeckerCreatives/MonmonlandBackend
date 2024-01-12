@@ -22,7 +22,9 @@ exports.requestpayout = async (req, res) => {
    const pooldetail = await Pooldetails.findOne({owner: req.user.id}).then(data => data.subscription)
 
    const hastopup = await Wallethistory.findOne({owner: req.user.id, type: "Topup Balance"}).then(data => data)
-    
+
+   const customid = nanoid(10)
+
    if(balance < amount){
     return res.json({message: 'failed', data: 'Not Enough Balance'})
    }
@@ -45,6 +47,7 @@ exports.requestpayout = async (req, res) => {
 
    if(payoption == 'Automatic'){
         const data = {
+            id: customid,
             username: req.user.username,
             amount: amount,
             paymentdetails: dragonpaymentdetail._id
@@ -52,7 +55,8 @@ exports.requestpayout = async (req, res) => {
 
         const cashouthistory = {
             owner: req.user.id,
-            amount: amount
+            amount: amount,
+            id: customid,
         }
 
         Dragonpayoutrequest.create(data)
@@ -68,7 +72,7 @@ exports.requestpayout = async (req, res) => {
         .catch(error => res.status(400).json({ error: error.message }));
    } else if (payoption == 'Manual'){
         const data = {
-            id: nanoid(10),
+            id: customid,
             amount: amount,
             username: req.user.username,
             walletaddress: dragonpaymentdetail.paymentdetail,
@@ -77,8 +81,10 @@ exports.requestpayout = async (req, res) => {
         }
 
         const cashouthistory = {
+            id: customid,
             owner: req.user.id,
-            amount: amount
+            amount: amount,
+            
         }
         Payout.create(data)
         .then(async item =>{
