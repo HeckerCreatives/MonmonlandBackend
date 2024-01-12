@@ -61,11 +61,13 @@ exports.process = async (req, res) => {
 
         const payout = await createpayout(info)
         console.log(payout)
-
+        console.log(WFtobededuct)
+        console.log(deductedamount)
+        console.log(finalamount)
         if(payout === 'success'){
             Dragonpayoutrequest.findOneAndUpdate({_id: data._id},{status: status})
             .then(data => {
-                withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: amount}})
+                withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: withdrawalfee}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
         } else {
