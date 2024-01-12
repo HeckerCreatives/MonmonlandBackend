@@ -240,73 +240,73 @@ exports.verifypayments = async (request, response) => {
   }
 };
 
-exports.createpayout = (info) => {
-    const { Amount, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
+// exports.createpayout = (info) => {
+//     const { Amount, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
     
-    const uniqueId = generateRandomString()
-    const merchantId = process.env.merchantid
-    const password = process.env.merchantpass
-    const apiKey = process.env.merchantapi
-    const currentDate = new Date();
-    const dateString = currentDate.toDateString();
+//     const uniqueId = generateRandomString()
+//     const merchantId = process.env.merchantid
+//     const password = process.env.merchantpass
+//     const apiKey = process.env.merchantapi
+//     const currentDate = new Date();
+//     const dateString = currentDate.toDateString();
 
-    const data = { 
-        TxnId: uniqueId, 
-        FirstName: FirstName,
-        MiddleName: MiddleName,
-        LastName: LastName,
-        Amount: Amount,
-        Currency: "PHP", 
-        Description: "MML Payout",
-        ProcId: ProcId, 
-        ProcDetail: ProcDetail, // Account or mobile no of payout channel
-        RunDate: dateString, 
-        Email: Email, 
-        MobileNo: MobileNo, 
-        BirthDate: BirthDate, 
-        Nationality: Nationality, 
-        Address:
-        { Street1: Street1, 
-          Street2: Street2, 
-          Barangay: Barangay, 
-          City : City, 
-          Province: Province, 
-          Country: Country
-        }
-    }
-    // console.log(data)
+//     const data = { 
+//         TxnId: uniqueId, 
+//         FirstName: FirstName,
+//         MiddleName: MiddleName,
+//         LastName: LastName,
+//         Amount: Amount,
+//         Currency: "PHP", 
+//         Description: "MML Payout",
+//         ProcId: ProcId, 
+//         ProcDetail: ProcDetail, // Account or mobile no of payout channel
+//         RunDate: dateString, 
+//         Email: Email, 
+//         MobileNo: MobileNo, 
+//         BirthDate: BirthDate, 
+//         Nationality: Nationality, 
+//         Address:
+//         { Street1: Street1, 
+//           Street2: Street2, 
+//           Barangay: Barangay, 
+//           City : City, 
+//           Province: Province, 
+//           Country: Country
+//         }
+//     }
+//     // console.log(data)
 
-    const config = {
-        method: 'post',
-        url: `${DragonpayURL}/payout/merchant/v1/${merchantId}/post`,
-        headers: { 
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json',
-        },
-        data : data
-    }
-    // console.log("Dragonpay API Request:", config);
-    axios(config)
-    .then(async response => {
-        if (response.status === 200) {
-            await Dragonpayout.create(data)
-            .then(item => {
-                Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message, owner: owner})
-                .then((data) => {
-                    // res.json({ message: "success", data: response.data });
-                    return `success`
-                })
+//     const config = {
+//         method: 'post',
+//         url: `${DragonpayURL}/payout/merchant/v1/${merchantId}/post`,
+//         headers: { 
+//             'Authorization': `Bearer ${apiKey}`,
+//             'Content-Type': 'application/json',
+//         },
+//         data : data
+//     }
+//     // console.log("Dragonpay API Request:", config);
+//     axios(config)
+//     .then(async response => {
+//         if (response.status === 200) {
+//             await Dragonpayout.create(data)
+//             .then(item => {
+//                 Dragonpayout.findByIdAndUpdate(item._id, {Refno: response.data.Message, owner: owner})
+//                 .then((data) => {
+//                     // res.json({ message: "success", data: response.data });
+//                     return `success`
+//                 })
                 
-            })
+//             })
             
-        } else {
-            // Handle other status codes
-            return `failed`
-        }
-    })
-    .catch(error => `failed`);
+//         } else {
+//             // Handle other status codes
+//             return `failed`
+//         }
+//     })
+//     .catch(error => `failed`);
 
-}
+// }
 
 exports.verifypayout = (request, response) => {
     
@@ -452,4 +452,66 @@ exports.track = (req, res) => {
     .catch(err => {
         res.json({message: "failed", data: err})
     })
+}
+
+exports.createpayout = async (info) => {
+    try {
+        const { Amount, Email, MobileNo, FirstName, MiddleName, LastName, ProcDetail, ProcId , BirthDate, Nationality, Street1, Street2, Barangay, City, Province, Country, owner } = info
+        
+        const uniqueId = generateRandomString()
+        const merchantId = process.env.merchantid
+        const password = process.env.merchantpass
+        const apiKey = process.env.merchantapi
+        const currentDate = new Date();
+        const dateString = currentDate.toDateString();
+
+        const data = { 
+            TxnId: uniqueId, 
+            FirstName: FirstName,
+            MiddleName: MiddleName,
+            LastName: LastName,
+            Amount: Amount,
+            Currency: "PHP", 
+            Description: "MML Payout",
+            ProcId: ProcId, 
+            ProcDetail: ProcDetail, // Account or mobile no of payout channel
+            RunDate: dateString, 
+            Email: Email, 
+            MobileNo: MobileNo, 
+            BirthDate: BirthDate, 
+            Nationality: Nationality, 
+            Address: {
+                Street1: Street1, 
+                Street2: Street2, 
+                Barangay: Barangay, 
+                City : City, 
+                Province: Province, 
+                Country: Country
+            }
+        }
+
+        const config = {
+            method: 'post',
+            url: `${DragonpayURL}/payout/merchant/v1/${merchantId}/post`,
+            headers: { 
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+            },
+            data: data
+        }
+
+        const response = await axios(config);
+
+        if (response.status === 200) {
+            const item = await Dragonpayout.create(data);
+            await Dragonpayout.findByIdAndUpdate(item._id, { Refno: response.data.Message, owner: owner });
+            return 'success';
+        } else {
+            // Handle other status codes
+            return 'failed';
+        }
+    } catch (error) {
+        console.error(error);
+        return 'failed';
+    }
 }
