@@ -3,8 +3,7 @@ const mongoose = require("mongoose");
 const DragonpayoutSchema = new mongoose.Schema(
     { 
         owner: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Gameusers'
+            type: String
         },
         TxnId: {
             type: String
