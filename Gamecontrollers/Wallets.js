@@ -10,7 +10,8 @@ const WalletsCutoff = require('../Gamemodels/Walletscutoff')
 const Pooldetails = require("../Gamemodels/Pooldetails")
 const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Paymentdetails = require("../Gamemodels/Paymentdetails")
-
+const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
+const { default: mongoose } = require('mongoose')
 
 
 exports.find = async (req, res) => {
@@ -127,15 +128,37 @@ exports.findwallethistory = (req, res) => {
 }
 
 exports.findcashouthistory = (req, res) => {
-
-    Cashouthistory.find({owner: req.user.id})
-    .sort({createdAt: -1})
-    .select('createdAt amount status')
+    Cashouthistory.aggregate([
+        {
+            $match: { owner: new mongoose.Types.ObjectId(req.user.id)  }
+        },
+        {
+            $sort: { createdAt: -1 }
+        },
+        {
+            $lookup: {
+                from: 'dragonpayoutrequests',
+                localField: 'id',
+                foreignField: 'id',
+                as: 'payoutRequest'
+            }
+        },
+        {
+            $unwind: '$payoutRequest'
+        },
+        {
+            $project: {
+                amount: 1,
+                status: '$payoutRequest.status',
+                createdAt: 1
+            }
+        }
+    ])
     .then(data => {
-        res.json({message: 'success', data: data})
+        res.json({ message: 'success', data: data });
     })
-    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
-}
+    .catch(error => res.status(500).json({ message: 'failed', data: error.message }));
+};
 
 exports.paymentdetail = async (req, res) => {
     const { 

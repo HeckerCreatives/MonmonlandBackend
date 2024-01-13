@@ -13,6 +13,7 @@ const Exchangerate = require("../Models/Exchangerate");
 const Gameusers = require('../Gamemodels/Gameusers')
 const Wallets = require('../Gamemodels/Wallets')
 const Wallethistory = require('../Gamemodels/Wallethistory')
+const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const DragonpayURL = process.env.dragonpayurl
 
 function generateRandomString() {
@@ -350,8 +351,15 @@ exports.verifypayout = (request, response) => {
           if(status === "F" || status === 'V'){
                Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
               .then(()=> {
-                  response.status(200).send('OK');
-                  return
+                Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
+                .populate({
+                    path: "paymentdetails"
+                })
+                .then((async (data) => {
+                    await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
+                    response.status(200).send('OK');
+                    return
+                }))
               })
               .catch(err => {
                   response.status(400).send(err);
@@ -363,8 +371,11 @@ exports.verifypayout = (request, response) => {
 
             Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
             .then(() => {
-                response.status(200).send('OK');
-                return
+                Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'success'})
+                .then((() => {
+                    response.status(200).send('OK');
+                    return
+                }))
             })
             .catch(err => {
                 response.status(400).send(err);
