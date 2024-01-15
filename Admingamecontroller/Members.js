@@ -21,6 +21,7 @@ const Paymentdetails = require("../Gamemodels/Paymentdetails")
 const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Energyinventories = require('../Gamemodels/Energyinventories')
 const Gameannouncement = require("../Gamemodels/Gameannouncement")
+const Maintenance = require("../Gamemodels/Maintenance")
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -853,3 +854,48 @@ exports.gameannouncement = (req, res) => {
     .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 }
 
+exports.maintenance = (req, res) => {
+    const {type, value} = req.body
+
+    Maintenance.findOneAndUpdate({type: type}, {value: value})
+    .then(data => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}
+
+exports.maintenancevalue = (req, res) => {
+
+    Maintenance.find()
+    .select('type value')
+    .then(data => {
+        const maintenancefullgame = data.find(e => e.type == "maintenancefullgame")
+        const maintenancegrinding = data.find(e => e.type == "maintenancegrinding")
+        const maintenancesubscription = data.find(e => e.type == "maintenancesubscription")
+        const maintenanceitems = data.find(e => e.type == "maintenanceitems")
+        const maintenancefiestagame = data.find(e => e.type == "maintenancefiestagame")
+        const maintenancesponsor = data.find(e => e.type == "maintenancesponsor")
+        const maintenancecashoutmanual = data.find(e => e.type == "maintenancecashoutmanual")
+        const maintenancecashoutautomated = data.find(e => e.type == "maintenancecashoutautomated")
+        const maintenancecashinmanual = data.find(e => e.type == "maintenancecashinmanual")
+        const maintenancecashinautomated = data.find(e => e.type == "maintenancecashinautomated")
+
+        const summary = {
+            "maintenancefullgame": maintenancefullgame,
+            "maintenancegrinding": maintenancegrinding,
+            "maintenancesubscription": maintenancesubscription,
+            "maintenanceitems": maintenanceitems,
+            "maintenancefiestagame": maintenancefiestagame,
+            "maintenancesponsor": maintenancesponsor,
+            "maintenancecashoutmanual": maintenancecashoutmanual,
+            "maintenancecashoutautomated": maintenancecashoutautomated,
+            "maintenancecashinmanual": maintenancecashinmanual,
+            "maintenancecashinautomated": maintenancecashinautomated,
+        }
+
+        res.json({message: "success", data: summary})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}
