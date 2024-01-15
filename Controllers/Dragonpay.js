@@ -16,6 +16,8 @@ const Wallethistory = require('../Gamemodels/Wallethistory')
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const DragonpayURL = process.env.dragonpayurl
 
+const { checkmaintenance } = require("../Utils/utils")
+
 function generateRandomString() {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let randomString = '';
@@ -27,11 +29,17 @@ function generateRandomString() {
     return randomString;
 }
 
-exports.createfunds = (req, res) => {
+exports.createfunds = async (req, res) => {
     const { amount, email, playfabToken, username, playerPlayfabId } = req.body
     const uniqueId = generateRandomString()
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
+
+    const maintenance = await checkmaintenance("maintenancecashinautomated")
+
+    if (maintenance == "1") {
+        return res.json({message: "maintenance"})
+    }
 
     const data = {
         "Amount": amount,
@@ -68,11 +76,17 @@ exports.createfunds = (req, res) => {
 
 }
 
-exports.createbundles = (req, res) => {
+exports.createbundles = async (req, res) => {
     const uniqueId = generateRandomString()
     const { amount, playfabToken, username, playerPlayfabId, bundle, bundledescription, subs, email} = req.body
     const merchantId = process.env.merchantid
     const password = process.env.merchantpass
+
+    const maintenance = await checkmaintenance("maintenancecashinautomated")
+
+    if (maintenance == "1") {
+        return res.json({message: "maintenance"})
+    }
 
     const data = {
         "Amount": amount,

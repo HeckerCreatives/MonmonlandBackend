@@ -8,10 +8,14 @@ const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const Wallethistory = require('../Gamemodels/Wallethistory')
 const Pooldetails = require("../Gamemodels/Pooldetails")
 const { nanoid } = require("nanoid")
-
+const { checkmaintenance } = require("../Utils/utils")
 
 exports.requestpayout = async (req, res) => {
-    const { amount } = req.body
+   const { amount } = req.body
+
+   const maintenancemanual = await checkmaintenance("maintenancecashoutmanual")
+
+   const maintenanceauto = await checkmaintenance("maintenancecashoutautomated")
 
    const balance = await Wallets.findOne({owner: req.user.id, wallettype: 'balance'}).then(data => data.amount)
 
@@ -47,6 +51,11 @@ exports.requestpayout = async (req, res) => {
    }
 
    if(payoption == 'Automatic'){
+
+    if (maintenanceauto == "1") {
+        return res.json({message: "maintenance"})
+    }
+
         const data = {
             id: customid,
             username: req.user.username,
@@ -72,6 +81,11 @@ exports.requestpayout = async (req, res) => {
         })
         .catch(error => res.status(400).json({ error: error.message }));
    } else if (payoption == 'Manual'){
+
+    if (maintenancemanual == "1") {
+        return res.json({message: "maintenance"})
+    }
+    
         const data = {
             id: customid,
             amount: amount,
@@ -101,3 +115,7 @@ exports.requestpayout = async (req, res) => {
    }
 
 }
+
+
+
+    
