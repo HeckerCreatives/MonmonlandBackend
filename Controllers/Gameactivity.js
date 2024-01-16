@@ -36,7 +36,7 @@ module.exports.update = (request, response) => {
       barId: id,
       value: value,
       enteredamount: enteredamount,
-      createdby: req.user.username
+      createdby: request.user.username
     };
 
     Gameactivity.findByIdAndUpdate(id, request.body, { new: true })
