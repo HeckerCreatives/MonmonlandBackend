@@ -563,7 +563,7 @@ exports.findtopearners = (req, res) => {
         select: "username"
     })
     .sort({amount: -1})
-    .limit(15)
+    .limit(100)
     .then(data => {
         res.json({message: "success", data: data})
     })
