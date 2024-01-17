@@ -852,3 +852,21 @@ exports.migrationreferrer = async (req, res) => {
     })
     .catch(err => res.json({message: "failed", data: 'Referrer Not Found'}))
 }
+
+exports.currentrank = async (req, res) => {
+
+    const playerlb = await Ingameleaderboard.findOne({owner: new mongoose.Types.ObjectId(req.user.id)})
+    .then(data => data)
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+    if (!playerlb){
+        return res.status(404).json({ message: 'notfound' })
+    }
+
+    const rank = await Ingameleaderboard.countDocuments({amount: { $gte: playerlb.amount}})
+    .then(data => data)
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+    res.json({message: "success", data: rank})
+
+}

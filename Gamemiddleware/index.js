@@ -18,7 +18,7 @@ exports.protectplayer = async (req, res, next) => {
     // let token = req.headers.cookie?.split('; ').find(row => row.startsWith('sessionToken=')).split('=')[1]
     let token = req.cookies.sessionToken
     if(!token){
-        res.status(401).json("You are not authorized")
+        res.status(401).json({message: "You are not authorized"})
     } else {
 
     try {
