@@ -430,7 +430,6 @@ exports.banmember = (req, res) => {
         bandate: new Date().toLocaleString(),
         banreason: reason
     }
-
     Gameusers.findOneAndUpdate({username: username}, ban)
     .then(data => {
         if(data){
