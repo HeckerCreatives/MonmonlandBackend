@@ -15,6 +15,8 @@ const Totalusers = require("../Models/Totalusers")
 const Fiesta = require("../Gamemodels/Fiesta")
 const Sponsor = require("../Gamemodels/Sponsor")
 const Gameannouncement = require("../Gamemodels/Gameannouncement")
+const Gameunlock = require("../Gamemodels/Gameunlock")
+const Task = require("../Gamemodels/Task")
 const mongoose = require("mongoose");
 const moment = require('moment');
 const bcrypt = require('bcrypt')
@@ -200,6 +202,55 @@ exports.register = async (req, res) => {
         .then(async data => {
             userid = data._id
 
+            //task
+
+            const task = [ 
+                {
+                    owner: userid,
+                    type: "1",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "2",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "3",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "4",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "5",
+                    value: "0"
+                },
+            ]
+
+            await Task.create(task)
+
+            //gameunlock
+
+            // const gameunlock = [ 
+            //     {
+            //         owner: userid,
+            //         type: "fiestagame",
+            //         value: "0"
+            //     },
+            //     {
+            //         owner: userid,
+            //         type: "sponsorgame",
+            //         value: "0"
+            //     },
+            // ]
+
+            // await Gameunlock.create(gameunlock)
+
            // pooldetails
            const pooldetails = {
                 owner: userid,
@@ -208,13 +259,11 @@ exports.register = async (req, res) => {
         await Pooldetails.create(pooldetails)
 
         // gamewallet
-
         const gamewallet = [
             {
                 owner: userid,
                 wallettype: "activitypoints",
                 amount: 0,
-                
             },  
             {
                 owner: userid,
@@ -284,7 +333,18 @@ exports.register = async (req, res) => {
                 amount: 0,
                 
             },
-
+            {
+                owner: userid,
+                wallettype: "fiestaparticipation",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "sponsorparticipation",
+                amount: 0,
+                
+            },
         ]
 
         await Gamewallet.insertMany(gamewallet)
@@ -331,6 +391,18 @@ exports.register = async (req, res) => {
             {
                 owner: userid,
                 wallettype: "grouppoints",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "fiestaparticipation",
+                amount: 0,
+                
+            },
+            {
+                owner: userid,
+                wallettype: "sponsorparticipation",
                 amount: 0,
                 
             },

@@ -252,3 +252,33 @@ exports.findpaymentdetail = (req, res) => {
     })
     .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 }
+
+exports.subscommission = (req, res) => {
+    Wallethistory.aggregate([
+        {
+            $match: {
+                owner: new mongoose.Types.ObjectId(req.user.id),
+                type: "Subscription Unilevel"
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                totalAmount: { $sum: "$amount" }
+            }
+        },
+        {
+            $unwind: '$totalAmount'
+        },
+        {
+            $project: {
+                _id: 0,
+                totalAmount: 1
+            }
+        }
+    ])
+    .then(data => {
+        res.json({message: 'success', data: data[0]})
+    })
+    .catch(error => res.status(500).json({ message: "failed", data: error.message }));
+}

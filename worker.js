@@ -62,7 +62,8 @@ parentPort.on('message', async (message) => {
             const Ingameleaderboard = db.collection('ingameleaderboards')
             const Cosmetics = db.collection('cosmetics')
             const Dailylimit = db.collection('dailylimits')
-            
+            // const Gameunlock = db.collection('gameunlocks')
+            const Task = db.collection('tasks')
             const personaldetails = JSON.parse(result1.data.FunctionResult.data.personalDetails.Value)
             const wallets = JSON.parse(result1.data.FunctionResult.data.wallets.Value)
             const poolDetails = JSON.parse(result1.data.FunctionResult.data.poolDetails.Value)
@@ -97,6 +98,55 @@ parentPort.on('message', async (message) => {
             })
             .then(async data => {
                 userid = data.insertedId
+
+                 //task
+
+            const task = [ 
+                {
+                    owner: userid,
+                    type: "1",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "2",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "3",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "4",
+                    value: "0"
+                },
+                {
+                    owner: userid,
+                    type: "5",
+                    value: "0"
+                },
+            ]
+
+            await Task.insertMany(task)
+
+            //gameunlock
+
+            // const gameunlock = [ 
+            //     {
+            //         owner: userid,
+            //         type: "fiestagame",
+            //         value: "0"
+            //     },
+            //     {
+            //         owner: userid,
+            //         type: "sponsorgame",
+            //         value: "0"
+            //     },
+            // ]
+
+            // await Gameunlock.insertMany(gameunlock)
 
                 // pooldetails
                 const pooldetails = {
@@ -186,6 +236,18 @@ parentPort.on('message', async (message) => {
                         amount: wallets.totalIncome,
                         createdAt: createdat
                     },
+                    {
+                        owner: userid,
+                        wallettype: "fiestaparticipation",
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: "sponsorparticipation",
+                        amount: 0,
+                        createdAt: createdat
+                    },
         
                 ]
 
@@ -233,6 +295,18 @@ parentPort.on('message', async (message) => {
                     {
                         owner: userid,
                         wallettype: "grouppoints",
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: "fiestaparticipation",
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: "sponsorparticipation",
                         amount: 0,
                         createdAt: createdat
                     },
