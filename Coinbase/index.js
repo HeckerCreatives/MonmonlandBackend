@@ -135,7 +135,7 @@ exports.findtopup = (req,res) => {
 
 exports.agentmanualtopupwallet = (req,res) => {
   const {adminId, name} = req.body;
-  TopUpWallet.find({user: adminId, name: name})
+  TopUpWallet.findOne({user: req.user._id, name: name})
   .then(item => {
     res.json({message: "success", data: item})
   })

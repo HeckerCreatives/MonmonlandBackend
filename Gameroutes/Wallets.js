@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission} = require('../Gamecontrollers/Wallets'),
+    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet} = require('../Gamecontrollers/Wallets'),
     { protectplayer } = require('../Gamemiddleware/index')
     
 router 
@@ -9,4 +9,5 @@ router
     .post('/paymentdetail', protectplayer, paymentdetail)
     .get('/findpaymentdetail', protectplayer, findpaymentdetail)
     .get('/totalcommission', protectplayer, subscommission)
+    .post('/filterwallet', protectplayer, filterwallet)
 module.exports = router;

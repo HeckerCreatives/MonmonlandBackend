@@ -22,6 +22,7 @@ const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Energyinventories = require('../Gamemodels/Energyinventories')
 const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Maintenance = require("../Gamemodels/Maintenance")
+const Walletscutoff = require("../Gamemodels/Walletscutoff")
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -556,17 +557,58 @@ exports.filterwallet = (req, res) => {
 
 exports.findtopearners = (req, res) => {
 
-    Ingameleaderboard.find()
-    .populate({
-        path: "owner",
-        select: "username"
-    })
-    .sort({amount: -1})
-    .limit(100)
+    Walletscutoff.aggregate([
+        {
+            $match: {
+                wallettype: "directpoints",
+                amount: { $gte: 1 }
+            }
+        },
+        {
+            $lookup: {
+                from: "ingameleaderboards", // Use the actual collection name of Ingameleaderboard
+                localField: "owner",
+                foreignField: "owner",
+                as: "leaderboardData"
+            }
+        },
+        {
+            $unwind: "$leaderboardData"
+        },
+        {
+            $lookup: {
+                from: "gameusers", // Assuming User is the collection name for your User model
+                localField: "owner",
+                foreignField: "_id",
+                as: "userData"
+            }
+        },
+        {
+            $unwind: "$userData"
+        },
+        {
+            $sort: {
+                "leaderboardData.amount": -1
+            }
+        },
+        {
+            $limit: 100
+        },
+        {
+            $project: {
+                _id: 0, // Exclude _id field
+                owner: "$leaderboardData.owner",
+                username: "$userData.username", // Access the username through userData
+                amount: "$leaderboardData.amount"
+                // Add more fields if needed
+            }
+        }
+    ])
     .then(data => {
-        res.json({message: "success", data: data})
+        res.json({ message: "success", data: data });
     })
-    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
 }
 
 exports.findnetwork = async (req, res) => {

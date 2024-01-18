@@ -8,7 +8,7 @@ const receiptimg = upload.single("file")
 router.post("/add", protect, UpgradeSubscription.add)
 router.post("/addbuyer", UpgradeSubscription.addbuyer)
 router.get("/find", UpgradeSubscription.getAll)
-router.get("/findbuyer", UpgradeSubscription.getAllbuyer)
+router.get("/findbuyer", protect, UpgradeSubscription.getAllbuyer)
 router.get('/findone/:id', UpgradeSubscription.getOneUser)
 router.put("/update/:id", protect, UpgradeSubscription.update)
 

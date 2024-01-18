@@ -282,3 +282,13 @@ exports.subscommission = (req, res) => {
     })
     .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 }
+
+exports.filterwallet = (req, res) => {
+    const { filter } = req.body
+
+    Wallethistory.find({owner: req.user.id, type: filter})
+    .then(data => {
+        res.json({message: 'success', data: data})
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
