@@ -66,7 +66,7 @@ exports.islogin = async (req, res) => {
             .then(detail => {
                 return detail.email
             })
-            return res.json({ name: data.username, referrer: data.referral, email: email})
+            return res.json({ name: data.username, referrer: data.referral, email: email, uid: data._id})
         }
     })
     .catch(error => {
