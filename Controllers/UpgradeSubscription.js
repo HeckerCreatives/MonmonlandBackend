@@ -142,63 +142,89 @@ module.exports.destroybuyer = (request, response) => {
 }
 
 module.exports.updatebuyer = async (request, response) => {
-    const { cashierId, amount, stats, idnitopup, owner, actualprice } = request.body;
-    console.log(request.user)
-    await Wallets.findOneAndUpdate({owner: owner, wallettype: 'balance'}, {$inc: {amount: actualprice}})
-            .then(async data => {
-              if(!data){
-                return response.json({message: "failed", data: "Player Wallet not found"})
-              } else {
+    const { amount, stats, idnitopup, owner, actualprice } = request.body;
+    const session = await Wallets.startSession()
+    try {
+      session.startTransaction()
+      await Wallets.findOneAndUpdate({owner: owner, wallettype: 'balance'}, {$inc: {amount: actualprice}})
+      .then(async data => {
+        if(!data){
+          await session.abortTransaction()
+          return response.json({message: "failed", data: "Player Wallet not found"})
+        } else {
 
-                const history = {
-                  owner: owner,
-                  type: "Topup Balance",
-                  description: "Topup Balance",
-                  amount: actualprice,
-                  historystructure: "Manual Top up"
-                }
+          const history = {
+            owner: owner,
+            type: "Topup Balance",
+            description: "Topup Balance",
+            amount: actualprice,
+            historystructure: "Manual Top up"
+          }
 
-                await Wallethistory.create(history)
-                
-                await UpgradeSubscription.findByIdAndUpdate(
-                  request.user._id,
-                  { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
-                  { new: true }
-                ) 
-                .then((upgradeSubscription) => {
-        
-                  let paydata = {
-                    cashier: request.user.username,
-                    image: request.file.path,
-                    clientusername: request.body.clientusername,
-                    price: request.body.price
-                  }
-        
-                  PaymentHistory.findByIdAndUpdate(
-                    request.params.id,
-                    paydata,
-                    { new: true }
-                  ).then(history => {
+          await Wallethistory.create(history)
           
-                    TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
-                    .then(() => {
-                      TopUpWallet.findOneAndUpdate({user: request.user._id}, {$inc: {amount: amount}})
-                      .then(() => {
-                        AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
-                        .then(()=> {
-                          response.json({userhistory: history, roomdetails: upgradeSubscription})
-                        })
-                        .catch((error) => response.status(500).json({ error: error.message }));
-                      })
-                      .catch((error) => response.status(500).json({ error: error.message }));
+          await UpgradeSubscription.findByIdAndUpdate(
+            request.user._id,
+            { $inc: { paymentcollected: amount, numberoftransaction: 1 }, $set: { status: stats } },
+            { new: true }
+          ) 
+          .then((upgradeSubscription) => {
+
+            let paydata = {
+              cashier: request.user.username,
+              image: request.file.path,
+              clientusername: request.body.clientusername,
+              price: request.body.price
+            }
+
+            PaymentHistory.findByIdAndUpdate(
+              request.params.id,
+              paydata,
+              { new: true }
+            ).then(history => {
+              if(history){
+                TopUpWallet.findByIdAndUpdate({_id: idnitopup}, {$inc: {amount: amount}})
+                .then(() => {
+                  TopUpWallet.findOneAndUpdate({user: request.user._id}, {$inc: {amount: amount}})
+                  .then(() => {
+                    AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
+                    .then(()=> {
+                      response.json({userhistory: history, roomdetails: upgradeSubscription})
                     })
-                    .catch((error) => response.status(500).json({ error: error.message }));
+                    .catch((error) => {
+                    session.abortTransaction()
+                    response.status(500).json({message: "failed", data: error})
+                    });
                   })
+                  .catch((error) => {
+                  session.abortTransaction()
+                  response.status(500).json({message: "failed", data: error})
+                  });
                 })
-                .catch((error) => response.status(500).json({ error: error.message }));
+                .catch((error) => {
+                session.abortTransaction()
+                response.status(500).json({message: "failed", data: error})
+                });
               }
+
             })
-      
+            .catch((error) => {
+            session.abortTransaction()
+            response.status(500).json({message: "failed", data: error})
+            });
+          })
+          .catch((error) => {
+          session.abortTransaction()
+          response.status(500).json({message: "failed", data: error})
+          });
+        }
+      })
+    } catch (error) {
+      await session.abortTransaction()
+      response.json({message: "failed", data: error})
+    }
+    
+    session.endSession()
 };
 
 module.exports.getAllbuyer = (request, response) => {

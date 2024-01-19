@@ -287,6 +287,7 @@ exports.filterwallet = (req, res) => {
     const { filter } = req.body
 
     Wallethistory.find({owner: req.user.id, type: filter})
+    .sort({createdAt: -1})
     .then(data => {
         res.json({message: 'success', data: data})
     })
