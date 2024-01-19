@@ -1,6 +1,6 @@
 
 const router = require('express').Router(),
-    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue } = require('../Admingamecontroller/Members'),
+    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank } = require('../Admingamecontroller/Members'),
     { protect } = require('../Middleware/index')
 
 router 
@@ -33,4 +33,5 @@ router
     .post('/gameannouncement', protect, gameannouncement)
     .post('/gamemaintenance', protect, maintenance)
     .get('/gamemaintenancevalue', protect, maintenancevalue)
+    .post('/getcurrentrank', protect, getcurrentrank)
 module.exports = router;

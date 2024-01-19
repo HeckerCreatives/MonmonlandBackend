@@ -940,3 +940,22 @@ exports.maintenancevalue = (req, res) => {
     })
     .catch(error => res.status(500).json({ message: "failed", data: error.message }));
 }
+
+exports.getcurrentrank = async (req, res) => {
+    const { username } = req.body
+    const id = await Gameusers.findOne({username: username}).then(data => data._id)
+    const playerlb = await Ingameleaderboard.findOne({owner: new mongoose.Types.ObjectId(id)})
+    .then(data => data)
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+    if (!playerlb){
+        return res.status(404).json({ message: 'notfound' })
+    }
+
+    const rank = await Ingameleaderboard.countDocuments({amount: { $gte: playerlb.amount}})
+    .then(data => data)
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+    res.json({message: "success", data: rank})
+
+}
