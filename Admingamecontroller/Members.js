@@ -23,6 +23,7 @@ const Energyinventories = require('../Gamemodels/Energyinventories')
 const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Maintenance = require("../Gamemodels/Maintenance")
 const Walletscutoff = require("../Gamemodels/Walletscutoff")
+const bcrypt = require('bcrypt')
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);

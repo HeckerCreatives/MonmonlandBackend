@@ -16,6 +16,8 @@ const encrypt = async password => {
 
 parentPort.on('message', async (message) => {
     const username = message[0]
+    let trimedusername = username.trim();
+    trimedusername = trimedusername.replace(/\s+/g, '');
     const password =  message[1]
     const playfabToken = message[2]
     const thetime = message[3]
@@ -90,7 +92,7 @@ parentPort.on('message', async (message) => {
             let userid
             let pass = await encrypt(password)
             await Gameusers.insertOne({
-                username: username,
+                username: trimedusername,
                 password: pass,
                 status: "active",
                 referral: new mongoose.Types.ObjectId(referral),
