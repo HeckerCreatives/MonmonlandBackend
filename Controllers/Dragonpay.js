@@ -323,8 +323,8 @@ exports.verifypayments = async (request, response) => {
 
 // }
 
-exports.verifypayout = (request, response) => {
-    
+exports.verifypayout = async (request, response) => {
+    console.log(request)
     const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
     const refno = request.query.refNo; // Adjust this according to your actual object structure
     const status = request.query.status; // Adjust this according to your actual object structure
@@ -348,8 +348,9 @@ exports.verifypayout = (request, response) => {
       // Check if status is 'SUCCESS'
       if (status === 'S') {
         // Process customer order for shipment
-       Dragonpayout.findOne({TxnId: txnid})
-      .then(item => {
+      await Dragonpayout.findOne({TxnId: txnid})
+      .then(async item => {
+        console.log(item)
           if(!item){
               response.status(400).send("Error: item not found");
               console.error("item not found");
@@ -363,9 +364,9 @@ exports.verifypayout = (request, response) => {
             }
   
           if(status === "F" || status === 'V'){
-               Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
-              .then(()=> {
-                Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
+               await Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
+              .then(async ()=> {
+                await Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
                 .populate({
                     path: "paymentdetails"
                 })
@@ -383,9 +384,9 @@ exports.verifypayout = (request, response) => {
               return
           }
 
-            Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
-            .then(() => {
-                Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'success'})
+           await Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
+            .then(async () => {
+               await  Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'success'})
                 .then((() => {
                     response.status(200).send('OK');
                     return
