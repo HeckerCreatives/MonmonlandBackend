@@ -354,7 +354,7 @@ exports.verifypayout = async (request, response) => {
       .then(async item => {
         console.log(item)
           if(!item){
-              response.status(400).send("Error: item not found");
+              response.status(200).send("Error: item not found");
               console.error("item not found");
               return
           }
@@ -379,7 +379,7 @@ exports.verifypayout = async (request, response) => {
                 }))
               })
               .catch(err => {
-                  response.status(400).send(err);
+                  response.status(200).send(err);
                   console.error(err);
                   return
               })
@@ -396,7 +396,7 @@ exports.verifypayout = async (request, response) => {
                 }))
             })
             .catch(err => {
-                response.status(400).send(err);
+                response.status(200).send(err);
                 console.error(err);
                 return
             })
