@@ -347,58 +347,60 @@ exports.verifypayout = async (request, response) => {
     } else {
       // Check if status is 'SUCCESS'
       if (status === 'S') {
+        console.log(request)
+        response.status(200).send('OK');
         // Process customer order for shipment
-      await Dragonpayout.findOne({TxnId: txnid})
-      .then(async item => {
-        console.log(item)
-          if(!item){
-              response.status(400).send("Error: item not found");
-              console.error("item not found");
-              return
-          }
+    //   await Dragonpayout.findOne({TxnId: txnid})
+    //   .then(async item => {
+    //     console.log(item)
+    //       if(!item){
+    //           response.status(400).send("Error: item not found");
+    //           console.error("item not found");
+    //           return
+    //       }
           
-            if(item.Status !== 'pending'){
-              response.status(200).send("this is already process");
-              console.error("this is already process");
-              return
-            }
+    //         if(item.Status !== 'pending'){
+    //           response.status(200).send("this is already process");
+    //           console.error("this is already process");
+    //           return
+    //         }
   
-          if(status === "F" || status === 'V'){
-               await Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
-              .then(async ()=> {
-                await Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
-                .populate({
-                    path: "paymentdetails"
-                })
-                .then((async (data) => {
-                    await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
-                    response.status(200).send('OK');
-                    return
-                }))
-              })
-              .catch(err => {
-                  response.status(400).send(err);
-                  console.error(err);
-                  return
-              })
-              return
-          }
+    //       if(status === "F" || status === 'V'){
+    //            await Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
+    //           .then(async ()=> {
+    //             await Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
+    //             .populate({
+    //                 path: "paymentdetails"
+    //             })
+    //             .then((async (data) => {
+    //                 await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
+    //                 response.status(200).send('OK');
+    //                 return
+    //             }))
+    //           })
+    //           .catch(err => {
+    //               response.status(400).send(err);
+    //               console.error(err);
+    //               return
+    //           })
+    //           return
+    //       }
 
-           await Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
-            .then(async () => {
-               await  Dragonpayoutrequest.findOneAndUpdate({id: item.owner}, {status: 'success'})
-                .then((() => {
-                    console.log("naysjim")
-                    response.status(200).send('OK');
-                    return
-                }))
-            })
-            .catch(err => {
-                response.status(400).send(err);
-                console.error(err);
-                return
-            })
-      })
+    //        await Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
+    //         .then(async () => {
+    //            await  Dragonpayoutrequest.findOneAndUpdate({id: item.owner}, {status: 'success'})
+    //             .then((() => {
+    //                 console.log("naysjim")
+    //                 response.status(200).send('OK');
+    //                 return
+    //             }))
+    //         })
+    //         .catch(err => {
+    //             response.status(400).send(err);
+    //             console.error(err);
+    //             return
+    //         })
+    //   })
         
       } else {
         // Handle other cases as needed
