@@ -386,8 +386,9 @@ exports.verifypayout = async (request, response) => {
 
            await Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
             .then(async () => {
-               await  Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'success'})
+               await  Dragonpayoutrequest.findOneAndUpdate({id: item.owner}, {status: 'success'})
                 .then((() => {
+                    console.log("naysjim")
                     response.status(200).send('OK');
                     return
                 }))
