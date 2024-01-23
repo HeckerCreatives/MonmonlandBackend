@@ -23,6 +23,7 @@ const Energyinventories = require('../Gamemodels/Energyinventories')
 const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Maintenance = require("../Gamemodels/Maintenance")
 const Walletscutoff = require("../Gamemodels/Walletscutoff")
+const Prizepools = require("../Gamemodels/Prizepools")
 const bcrypt = require('bcrypt')
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
@@ -676,20 +677,56 @@ exports.findnetwork = async (req, res) => {
     return res.json({message: 'success', data: downline});
 };
 
-exports.fiesta = (req, res) => {
+exports.fiesta = async(req, res) => {
     const { type } = req.body
 
-    Fiesta.find({type: type})
+    // Fiesta.find({type: type})
+    // .populate({
+    //     path: "owner",
+    //     select: "username"
+    // })
+    // .sort({amount: -1})
+    // .limit(15)
+    // .then(data => {
+    //     res.json({message: "success", data: data})
+    // })
+    // .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+
+    await Fiesta.find({type: type, amount: { $gt: 0 }})
     .populate({
         path: "owner",
         select: "username"
     })
     .sort({amount: -1})
     .limit(15)
-    .then(data => {
-        res.json({message: "success", data: data})
+    .then(async data => {
+        if (data.length <= 0){
+            return res.json({message: "success", data: {}})
+        }
+
+        const finaldata = {
+            leaderboard: {}
+        }
+
+        index = 0;
+        data.forEach(lbdata => {
+            finaldata["leaderboard"][index] = {
+                score: lbdata.amount,
+                username: lbdata.owner.username
+            }
+
+            index++
+        })
+
+        const prizepool = await Prizepools.findOne({type: type})
+        .then(data => data)
+        .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+        finaldata["prizepools"] = prizepool.amount;
+
+        return res.json({message: "success", data: finaldata})
     })
-    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
 
 }
 

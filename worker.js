@@ -66,6 +66,7 @@ parentPort.on('message', async (message) => {
             const Dailylimit = db.collection('dailylimits')
             // const Gameunlock = db.collection('gameunlocks')
             const Task = db.collection('tasks')
+            const Fiesta = db.collection('fiestas')
             const personaldetails = JSON.parse(result1.data.FunctionResult.data.personalDetails.Value)
             const wallets = JSON.parse(result1.data.FunctionResult.data.wallets.Value)
             const poolDetails = JSON.parse(result1.data.FunctionResult.data.poolDetails.Value)
@@ -100,6 +101,24 @@ parentPort.on('message', async (message) => {
             })
             .then(async data => {
                 userid = data.insertedId
+
+                // fiesta
+            const fiesta = [
+                {
+                    owner: userid,
+                    type: "supermonmon",
+                    amount: 0,
+                    createdAt: createdat
+                },
+                {
+                    owner: userid,
+                    type: "palosebo",
+                    amount: 0,
+                    createdAt: createdat
+                },
+            ]
+
+            await Fiesta.insertMany(fiesta)
 
                  //task
 

@@ -1,6 +1,7 @@
 const Wallets = require("../Models/Wallets")
 const User = require('../Models/Users')
 const TopUpWallet = require("../Models/Topupwallet.js")
+const PayoutWallet = require("../Models/PayoutWallet.js")
 // wallet creation for existing user
 exports.createexsisting = async (req, res) => {
     try {
@@ -98,6 +99,29 @@ exports.findcombinedsalehwallet = (req,res) => {
       "totalmanual": totalmanual,
       "totalauto": totalauto,
       "combinetotal": totalcombinesale
+    }
+
+    res.json({message: "success", data: summary})
+  })
+  .catch(err => res.json({message: "Badrequest", data: err.message}))
+}
+
+exports.dragonpayoutwallet = (req, res) => {
+  PayoutWallet.find({user: process.env.superadminid})
+  .then(item => {
+
+    const dragonrequest = item.find(e => e.name === 'dragonrequest')
+    const dragonprocess = item.find(e => e.name === 'dragonprocess')
+    const dragondone = item.find(e => e.name === 'dragondone')
+    const dragonreject = item.find(e => e.name === 'dragonreject')
+    const dragontotal = dragonrequest.amount + dragonprocess.amount + dragondone.amount
+    
+    const summary = {
+      "dragonrequest": dragonrequest.amount,
+      "dragonprocess": dragonprocess.amount,
+      "dragondone": dragondone.amount,
+      "dragonreject": dragonreject.amount,
+      "dragontotal": dragontotal
     }
 
     res.json({message: "success", data: summary})

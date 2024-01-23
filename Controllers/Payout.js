@@ -102,7 +102,7 @@ exports.done = (req, res) => {
     
     Payout.find({_id: id})
     .then(data =>{
-        const tenpercent = data[0].amount * 0.10;
+        const fivepercent = data[0].amount * 0.05;
         if(data[0].status === "process"){
             Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username, receipt: req.file.path}, {new: true})
             .then(() => {
@@ -116,12 +116,10 @@ exports.done = (req, res) => {
                             .then(() => {
                                 User.findOne({userName: "superadmin"})
                                 .then(data => {
-                                    session.startTransaction();
-                                    withdrawal.findOneAndUpdate({ userId: data._id}, { $inc: { withdrawalfee: tenpercent}})
+                                    withdrawal.findOneAndUpdate({ userId: data._id}, { $inc: { withdrawalfee: fivepercent}})
                                     .then(async item => {
                                         if(item){
                                             res.json({message: "success"})
-                                            await session.commitTransaction();
                                         }
                                     })
                                     .catch(error => res.status(400).json({ error: error.message }))
@@ -160,6 +158,7 @@ exports.reprocess = async (req, res) => {
     // })
     Payout.find({_id: id})
     .then(data =>{
+        const fivepercent = data[0].amount * 0.05;
         if(data[0].status === "done"){
             Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
             .then(() => {
@@ -169,7 +168,17 @@ exports.reprocess = async (req, res) => {
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                         .then(() => {
-                            res.json({message: "success"})
+                            User.findOne({userName: "superadmin"})
+                                .then(data => {
+                                    withdrawal.findOneAndUpdate({ userId: data._id}, { $inc: { withdrawalfee: -fivepercent}})
+                                    .then(async item => {
+                                        if(item){
+                                            res.json({message: "success"})
+                                        }
+                                    })
+                                    .catch(error => res.status(400).json({ error: error.message }))
+                                })
+                                .catch(error => res.status(400).json({ error: error.message }))
                         })
                         .catch(error => res.status(400).json({error: error.message}))
                     })

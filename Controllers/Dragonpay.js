@@ -14,6 +14,7 @@ const Gameusers = require('../Gamemodels/Gameusers')
 const Wallets = require('../Gamemodels/Wallets')
 const Wallethistory = require('../Gamemodels/Wallethistory')
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
+const PayoutWallet = require("../Models/PayoutWallet")
 const DragonpayURL = process.env.dragonpayurl
 
 const { checkmaintenance } = require("../Utils/utils")
@@ -370,13 +371,15 @@ exports.verifypayout = async (request, response) => {
                     path: "paymentdetails"
                 })
                 .then((async (data) => {
+                    await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: -data.amount}})
+                    await PayoutWallet.findOneAndUpdate({name: "dragonreject"}, {$inc: {amount: data.amount}})
                     await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
                     response.status(200).send('OK');
                     return
                 }))
               })
               .catch(err => {
-                  response.status(200);
+                  response.status(400);
                   console.error(err);
                   return
               })
@@ -385,15 +388,17 @@ exports.verifypayout = async (request, response) => {
 
            await Dragonpayout.findByIdAndUpdate(item._id, {Status: "success", Refno: refno}, {new: true})
             .then(async () => {
+               
                await  Dragonpayoutrequest.findOneAndUpdate({id: item.owner}, {status: 'success'})
-                .then((() => {
-                    console.log("naysjim")
+                .then((async (data) => {
+                    await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: -data.amount}})
+                    await PayoutWallet.findOneAndUpdate({name: "dragondone"}, {$inc: {amount: data.amount}})
                     response.status(200).send('OK');
                     return
                 }))
             })
             .catch(err => {
-                response.status(200);
+                response.status(400);
                 console.error(err);
                 return
             })

@@ -3,6 +3,7 @@ const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const Wallets = require('../Gamemodels/Wallets')
 const Exchangerate = require('../Models/Exchangerate')
 const withdrawal = require("../Models/Withdrawalfee")
+const PayoutWallet = require("../Models/PayoutWallet")
 const { createpayout } = require('./Dragonpay')
 
 exports.find = (req, res) => {
@@ -64,6 +65,8 @@ exports.process = async (req, res) => {
             Dragonpayoutrequest.findOneAndUpdate({_id: data._id},{status: status, admin: req.user.username})
             .then(async data => {
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
+                await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -amount}})
+                await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: amount}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
             .catch((error) => res.status(500).json({ error: error.message }));
@@ -90,6 +93,8 @@ exports.reject = (req, res) => {
         }
 
         await Dragonpayoutrequest.findOneAndUpdate({_id: data._id}, {status: status, admin: req.user.username})
+        await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -data.amount}})
+        await PayoutWallet.findOneAndUpdate({name: "dragonreject"}, {$inc: {amount: data.amount}})
         await Wallets.findOneAndUpdate({owner: data.paymentdetails.owner, wallettype: 'balance'}, {$inc: {amount: data.amount}})
         .then((item) => {
             if(item){

@@ -202,6 +202,21 @@ exports.register = async (req, res) => {
         .then(async data => {
             userid = data._id
 
+            // fiesta
+            const fiesta = [
+                {
+                    owner: userid,
+                    type: "supermonmon",
+                    amount: 0
+                },
+                {
+                    owner: userid,
+                    type: "palosebo",
+                    amount: 0
+                },
+            ]
+
+            await Fiesta.create(fiesta)
             //task
 
             const task = [ 
