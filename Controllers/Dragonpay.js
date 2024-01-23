@@ -324,7 +324,6 @@ exports.verifypayments = async (request, response) => {
 // }
 
 exports.verifypayout = async (request, response) => {
-    console.log(request)
     const txnid = request.query.merchantTxnId; // Adjust this according to your actual object structure
     const refno = request.query.refNo; // Adjust this according to your actual object structure
     const status = request.query.status; // Adjust this according to your actual object structure
@@ -347,12 +346,10 @@ exports.verifypayout = async (request, response) => {
     } else {
       // Check if status is 'SUCCESS'
       if (status === 'S') {
-        console.log(request)
         // response.status(200).send('OK');
         // Process customer order for shipment
       await Dragonpayout.findOne({TxnId: txnid})
       .then(async item => {
-        console.log(item)
           if(!item){
               response.status(200).send("Error: item not found");
               console.error("item not found");
@@ -379,7 +376,7 @@ exports.verifypayout = async (request, response) => {
                 }))
               })
               .catch(err => {
-                  response.status(200).send(err);
+                  response.status(200);
                   console.error(err);
                   return
               })
@@ -396,7 +393,7 @@ exports.verifypayout = async (request, response) => {
                 }))
             })
             .catch(err => {
-                response.status(200).send(err);
+                response.status(200);
                 console.error(err);
                 return
             })
