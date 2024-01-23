@@ -6,6 +6,7 @@ const TopUpWallet = require("../Models/Topupwallet")
 const AdminFeeWallet = require("../Models/Adminfeewallet")
 const Wallets = require("../Gamemodels/Wallets")
 const Wallethistory = require('../Gamemodels/Wallethistory')
+const { checkmaintenance } = require("../Utils/utils")
 var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
@@ -144,6 +145,12 @@ module.exports.destroybuyer = (request, response) => {
 module.exports.updatebuyer = async (request, response) => {
     const { amount, stats, idnitopup, owner, actualprice } = request.body;
     const session = await Wallets.startSession()
+    const maintenancecashinmanual = await checkmaintenance("maintenancecashinmanual")
+
+    if (maintenancecashinmanual == "1") {
+      return response.json({message: "maintenance"})
+    }
+
     try {
       session.startTransaction()
       await Wallets.findOneAndUpdate({owner: owner, wallettype: 'balance'}, {$inc: {amount: actualprice}})

@@ -1,7 +1,10 @@
 const Payout = require("../Models/Payout")
+const Wallets = require("../Gamemodels/Wallets")
+const Gameusers = require("../Gamemodels/Gameusers")
 const { nanoid } = require("nanoid")
 const PayoutWallet = require("../Models/PayoutWallet")
 const User = require("../Models/Users")
+const withdrawal = require("../Models/Withdrawalfee")
 var playfab = require('playfab-sdk')
 var PlayFab = playfab.PlayFab
 var PlayFabClient = playfab.PlayFabClient
@@ -29,19 +32,7 @@ exports.process = (req, res) => {
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending"){
-            PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.ExecuteCloudScript({
-                FunctionName: "ProceessPayout",
-                FunctionParameter: {
-                    processType: "Processing",
-                    playerId: data[0].playfabId,
-                    processId: data[0].playfabPayoutKey,
-                },
-                ExecuteCloudScript: true,
-                GeneratePlayStreamEvent: true,
-            }, (error1, result1) => {
-                if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
+            Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {
@@ -57,12 +48,6 @@ exports.process = (req, res) => {
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: result1.data.FunctionResult.data})
-                } else if (error1){
-                    res.json({message: "failed", data: error1})
-                }
-            })
         } else {
             res.json({message: "failed", data: "This payout is already in process"})
         }
@@ -78,19 +63,7 @@ exports.reject = (req, res) => {
     Payout.find({_id: id})
     .then(async data =>{
         if(data[0].status === "pending" || data[0].status === "process"){
-            PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.ExecuteCloudScript({
-                FunctionName: "ProceessPayout",
-                FunctionParameter: {
-                    processType: "Reject",
-                    playerId: data[0].playfabId,
-                    processId: data[0].playfabPayoutKey,
-                },
-                ExecuteCloudScript: true,
-                GeneratePlayStreamEvent: true,
-            }, (error1, result1) => {
-                if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
+            Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username}, {new: true})
                     .then(() => {
                         PayoutWallet.findOneAndUpdate({_id: data[0].status === "pending" ? process.env.requestid : process.env.processid}, {$inc: {amount: -data[0].amount}})
                         .then(() => {   
@@ -99,8 +72,12 @@ exports.reject = (req, res) => {
                                 PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: -data[0].amount}}) 
                                 .then(() => {
                                     PayoutWallet.findOneAndUpdate({user: req.user._id, name: "reject"}, {$inc: {amount: data[0].amount}})
-                                    .then(() => {
-                                    res.json({message: "success"})
+                                    .then(async () => {
+                                        const id = await Gameusers.findOne({username: data[0].username}).then(e => e._id)
+                                        await Wallets.findOneAndUpdate({owner: id, wallettype: 'balance'}, {$inc: {amount: data[0].amount}})
+                                        .then(() =>{
+                                            res.json({message: "success"})
+                                        })
                                 })
                                 })
                                 
@@ -110,12 +87,6 @@ exports.reject = (req, res) => {
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: result1.data.FunctionResult.data})
-                } else if (error1){
-                    res.json({message: "failed", data: error1})
-                }
-            })
         } else {
             res.json({message: "failed", data: "This payout is already reject"})
         }
@@ -131,46 +102,41 @@ exports.done = (req, res) => {
     
     Payout.find({_id: id})
     .then(data =>{
+        const tenpercent = data[0].amount * 0.10;
         if(data[0].status === "process"){
-            PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.ExecuteCloudScript({
-                FunctionName: "ProceessPayout",
-                FunctionParameter: {
-                    processType: "Done",
-                    playerId: data[0].playfabId,
-                    processId: data[0].playfabPayoutKey,
-                },
-                ExecuteCloudScript: true,
-                GeneratePlayStreamEvent: true,
-            },(error1, result1) => {
-                if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username, receipt: req.file.path}, {new: true})
+            Payout.findByIdAndUpdate(id, {status: status, admin: req.user.username, receipt: req.file.path}, {new: true})
+            .then(() => {
+                PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
+                .then(() => {
+                    PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
                     .then(() => {
-                        PayoutWallet.findOneAndUpdate({_id: process.env.processid}, {$inc: {amount: -data[0].amount}})
+                        PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                         .then(() => {
-                            PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: data[0].amount}})
+                            PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
                             .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "process"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
-                                .then(() => {
-                                    PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: data[0].amount}}) // ito ay done id dapat 
-                                    .then(() => {
-                                        res.json({message: "success"})
+                                User.findOne({userName: "superadmin"})
+                                .then(data => {
+                                    session.startTransaction();
+                                    withdrawal.findOneAndUpdate({ userId: data._id}, { $inc: { withdrawalfee: tenpercent}})
+                                    .then(async item => {
+                                        if(item){
+                                            res.json({message: "success"})
+                                            await session.commitTransaction();
+                                        }
                                     })
-                                    .catch(error => res.status(400).json({error: error.message}))
+                                    .catch(error => res.status(400).json({ error: error.message }))
                                 })
-                                .catch(error => res.status(400).json({error: error.message}))
+                                .catch(error => res.status(400).json({ error: error.message }))
                             })
                             .catch(error => res.status(400).json({error: error.message}))
                         })
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: result1.data.FunctionResult.data})
-                } else if (error1){
-                    res.json({message: "failed", data: error1})
-                }
+                })
+                .catch(error => res.status(400).json({error: error.message}))
             })
+            .catch(error => res.status(400).json({error: error.message}))
 
         } else {
             res.json({message: "failed", data: "This payout is already done"})
@@ -195,41 +161,23 @@ exports.reprocess = async (req, res) => {
     Payout.find({_id: id})
     .then(data =>{
         if(data[0].status === "done"){
-            PlayFab._internalSettings.sessionTicket = playfabToken;
-            PlayFabClient.ExecuteCloudScript({
-                FunctionName: "ProceessPayout",
-                FunctionParameter: {
-                    processType: "Pending",
-                    playerId: data[0].playfabId,
-                    processId: data[0].playfabPayoutKey,
-                },
-                ExecuteCloudScript: true,
-                GeneratePlayStreamEvent: true,
-            },(error1, result1) => {
-                if(result1.data.FunctionResult.message === "success"){
-                    Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
+            Payout.findByIdAndUpdate(id, {status: status, admin: ""}, {new: true})
+            .then(() => {
+                PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: -data[0].amount}})
+                .then(() => {
+                    PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
                     .then(() => {
-                        PayoutWallet.findOneAndUpdate({_id: process.env.doneid}, {$inc: {amount: -data[0].amount}})
+                        PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
                         .then(() => {
-                            PayoutWallet.findOneAndUpdate({_id: process.env.requestid}, {$inc: {amount: data[0].amount}})
-                            .then(() => {
-                                PayoutWallet.findOneAndUpdate({user: req.user._id, name: "done"}, {$inc: {amount: -data[0].amount}}) // ito ay process id dapat
-                                .then(() => {
-                                    res.json({message: "success"})
-                                })
-                                .catch(error => res.status(400).json({error: error.message}))
-                            })
-                            .catch(error => res.status(400).json({error: error.message}))
+                            res.json({message: "success"})
                         })
                         .catch(error => res.status(400).json({error: error.message}))
                     })
                     .catch(error => res.status(400).json({error: error.message}))
-                } else if (result1.data.FunctionResult.message === "failed"){
-                    res.json({message: "failed", data: result1.data.FunctionResult.data})
-                } else if (error1){
-                    res.json({message: "failed", data: error1})
-                }
+                })
+                .catch(error => res.status(400).json({error: error.message}))
             })
+            .catch(error => res.status(400).json({error: error.message}))
             
         } else {
             res.json({message: "failed", data: "This payout is already in reprocess"})

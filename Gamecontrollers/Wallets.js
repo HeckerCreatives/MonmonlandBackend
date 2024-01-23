@@ -10,6 +10,7 @@ const WalletsCutoff = require('../Gamemodels/Walletscutoff')
 const Pooldetails = require("../Gamemodels/Pooldetails")
 const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Paymentdetails = require("../Gamemodels/Paymentdetails")
+const Payouthistory = require("../Models/Payout")
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const { default: mongoose } = require('mongoose')
 
@@ -130,7 +131,7 @@ exports.findwallethistory = (req, res) => {
 exports.findcashouthistory = (req, res) => {
     Cashouthistory.aggregate([
         {
-            $match: { owner: new mongoose.Types.ObjectId(req.user.id)  }
+            $match: { owner: new mongoose.Types.ObjectId(req.user.id) }
         },
         {
             $sort: { createdAt: -1 }
@@ -144,12 +145,24 @@ exports.findcashouthistory = (req, res) => {
             }
         },
         {
-            $unwind: '$payoutRequest'
+            $unwind: { path: '$payoutRequest', preserveNullAndEmptyArrays: true }
+        },
+        {
+            $lookup: {
+                from: 'payouthistories',
+                localField: 'id',
+                foreignField: 'id',
+                as: 'payoutHistory'
+            }
+        },
+        {
+            $unwind: { path: '$payoutHistory', preserveNullAndEmptyArrays: true }
         },
         {
             $project: {
                 amount: 1,
-                status: '$payoutRequest.status',
+                payoutRequestStatus: { $ifNull: ['$payoutRequest.status', null] },
+                payoutHistoryStatus: { $ifNull: ['$payoutHistory.status', null] },
                 createdAt: 1
             }
         }
@@ -159,6 +172,73 @@ exports.findcashouthistory = (req, res) => {
     })
     .catch(error => res.status(500).json({ message: 'failed', data: error.message }));
 };
+
+// exports.findmanualcashouthistory = (req, res) => {
+//     // Payouthistory.aggregate([
+//     //     {
+//     //         $match: { username: req.user.username  }
+//     //     },
+//     //     {
+//     //         $sort: { createdAt: -1 }
+//     //     },
+//     //     {
+//     //         $project: {
+//     //             amount: 1,
+//     //             status: 1,
+//     //             createdAt: 1
+//     //         }
+//     //     }
+//     // ])
+//     // .then(data => {
+//     //     res.json({ message: 'success', data: data });
+//     // })
+//     // .catch(error => res.status(500).json({ message: 'failed', data: error.message }));
+
+//     Cashouthistory.aggregate([
+//         {
+//             $match: { owner: new mongoose.Types.ObjectId(req.user.id) }
+//         },
+//         {
+//             $sort: { createdAt: -1 }
+//         },
+//         {
+//             $lookup: {
+//                 from: 'dragonpayoutrequests',
+//                 localField: 'id',
+//                 foreignField: 'id',
+//                 as: 'payoutRequest'
+//             }
+//         },
+//         {
+//             $unwind: { path: '$payoutRequest', preserveNullAndEmptyArrays: true }
+//         },
+//         {
+//             $lookup: {
+//                 from: 'payouthistories',
+//                 localField: 'id',
+//                 foreignField: 'id',
+//                 as: 'payoutHistory'
+//             }
+//         },
+//         {
+//             $unwind: { path: '$payoutHistory', preserveNullAndEmptyArrays: true }
+//         },
+//         {
+//             $project: {
+//                 amount: 1,
+//                 payoutRequestStatus: { $ifNull: ['$payoutRequest.status', null] },
+//                 payoutHistoryStatus: { $ifNull: ['$payoutHistory.status', null] },
+//                 createdAt: 1
+//             }
+//         }
+//     ])
+//     .then(data => {
+//         res.json({ message: 'success', data: data });
+//     })
+//     .catch(error => res.status(500).json({ message: 'failed', data: error.message }));
+    
+    
+// }
 
 exports.paymentdetail = async (req, res) => {
     const { 
