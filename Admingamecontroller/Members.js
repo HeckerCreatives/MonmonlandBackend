@@ -24,6 +24,7 @@ const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Maintenance = require("../Gamemodels/Maintenance")
 const Walletscutoff = require("../Gamemodels/Walletscutoff")
 const Prizepools = require("../Gamemodels/Prizepools")
+const { DateTimeServerExpiration1, DateTimeServerExpiration2 } = require("../Utils/utils")
 const bcrypt = require('bcrypt')
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
@@ -996,4 +997,188 @@ exports.getcurrentrank = async (req, res) => {
 
     res.json({message: "success", data: rank})
 
+}
+
+exports.grantenergy = (req, res) => {
+    const {username, quantity, name} = req.body
+
+    Gameusers.findOne({username: username})
+    .then(async (user) => {
+        if(user){
+            await Energyinventories.findOneAndUpdate({owner: user._id, name: name}, {$inc: {amount: quantity}})
+            .then((data) => {
+                if(data){
+                    res.json({message: "success"})
+                } else {
+                    res.json({message: "failed", data: "Energy type not found"})
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.granttool = async (req, res) => {
+    const { username, type, expiration } = req.body
+
+   const timeifowned =  DateTimeServerExpiration2(expiration)
+   const timeifnotowned = DateTimeServerExpiration1(expiration)
+
+    Gameusers.findOne({username: username})
+    .then((user) => {
+        if(user){
+            Equipment.findOne({owner: user._id, type: type})
+            .then((item) => {
+                if(item.isowned == "1"){
+                    Equipment.findOneAndUpdate({owner: user._id, type: type}, { $inc: { expiration: timeifowned }})
+                    .then((data) => {
+                        if(data){
+                            res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                } else {
+                    Equipment.findOneAndUpdate({owner: user._id, type: type}, { expiration: timeifnotowned, $set: { isowned: "1" } })
+                    .then((data) => {
+                        if(data){
+                            res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantclock = (req, res) => {
+    const { username, type, expiration } = req.body
+
+    const timeifowned =  DateTimeServerExpiration2(expiration)
+    const timeifnotowned = DateTimeServerExpiration1(expiration)
+
+    Gameusers.findOne({username: username})
+    .then((user) => {
+        if(user){
+            Clock.findOne({owner: user._id, type: type})
+            .then((item) => {
+                if(item.isowned == "1"){
+                    Clock.findOneAndUpdate({owner: user._id, type: type}, { $inc: { expiration: timeifowned }})
+                    .then((data) => {
+                        if(data){
+                            res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                } else {
+                    Clock.findOneAndUpdate({owner: user._id, type: type}, { expiration: timeifnotowned, $set: { isowned: "1" } })
+                    .then((data) => {
+                        if(data){
+                            res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantcosmetic = (req, res) => {
+    const {username, name, expiration} = req.body
+    const timeifowned =  DateTimeServerExpiration2(expiration)
+    const timeifnotowned = DateTimeServerExpiration1(expiration)
+    let grant;
+    let id;
+
+    
+
+    Gameusers.findOne({username: username})
+    .then((user) => {
+        if(user){
+            id = user._id
+            Cosmetics.findOne({owner: id, name: name})
+            .then(async (data) => {
+                if(data){
+                    if(data.permanent === "permanent"){
+                        res.json({message: "failed", data: `user already owned a permanent ${name} ring.`})
+                    } else if ( data.permanent === "nonpermanent"){
+                       await Cosmetics.findOneAndUpdate({owner: id, name: name}, {$inc : {expiration: timeifowned}})
+                       .then((item) => {
+                            if(item){
+                                res.json({message: "success"})
+                            }
+                       })
+                       .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                    }
+                } else {
+                    switch(name){
+                        case "Ruby":
+                        grant = {
+                            owner: id,
+                            name: "Ruby",
+                            type: "ring",
+                            expiration: timeifnotowned,
+                            permanent: "nonpermanent",
+                            isequip: "0"
+                        }
+                        break;
+                        case "Emerald":
+                        grant = {
+                            owner: id,
+                            name: "Emerald",
+                            type: "ring",
+                            expiration: timeifnotowned,
+                            permanent: "nonpermanent",
+                            isequip: "0"
+                        }
+                        break;
+                        case "Diamond":
+                        grant = {
+                            owner: id,
+                            name: "Diamond",
+                            type: "ring",
+                            expiration: timeifnotowned,
+                            permanent: "nonpermanent",
+                            isequip: "0"
+                        }
+                        break;
+                        case "Energy":
+                        grant = {
+                            owner: id,
+                            name: "Energy",
+                            type: "ring",
+                            expiration: timeifnotowned,
+                            permanent: "nonpermanent",
+                            isequip: "0"
+                        }
+                        break;
+                    }
+
+                    await Cosmetics.create(grant)
+                    .then(() => {
+                        res.json({message: "success"})
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                }
+                
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+        } else {
+            res.json({message: "failed", data: "no user found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
 }
