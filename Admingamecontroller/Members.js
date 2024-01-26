@@ -1245,3 +1245,111 @@ exports.grantcosmetic = (req, res) => {
     })
     .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
 }
+
+exports.grantbalance = (req, res) => {
+    const {username, amount, description} = req.body
+
+    Gameusers.findOne({username: username})
+    .then((user) => {
+        if(user){
+            Wallets.findOne({owner: user._id, wallettype: "balance"})
+            .then(async (wallet) => {
+                if(wallet){
+                    await Wallets.findOneAndUpdate({owner: user._id, wallettype: "balance"}, {$inc: {amount: amount}})
+                    .then(async (item) => {
+                        if(item){
+                            const history = {
+                                owner: user._id,
+                                type: "Game Event Prize",
+                                description: description,
+                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                amount: amount
+                            }
+                           await Wallethistory.create(history)
+                           res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                } else {
+                    res.json({message: "failed", data: "wallet not found"})
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantmonstercoin = (req, res) => {
+    const {username, amount, description} = req.body
+
+    Gameusers.findOne({username: username})
+    .then((user) =>{
+        if(user){
+            Wallets.findOne({owner: user._id, wallettype: "monstercoin"})
+            .then(async (wallet) => {
+                if(wallet){
+                    await Wallets.findOneAndUpdate({owner: user._id, wallettype: "monstercoin"}, {$inc: {amount: amount}})
+                    .then(async (item) => {
+                        if(item){
+                            const history = {
+                                owner: user._id,
+                                type: "Game Event Prize",
+                                description: description,
+                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                amount: amount
+                            }
+                           await Wallethistory.create(history)
+                           res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                } else {
+                    res.json({message: "failed", data: "wallet not found"})
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantmonstergem = (req, res) => {
+    const {username, amount, description} = req.body
+
+    Gameusers.findOne({username: username})
+    .then((user) =>{
+        if(user){
+            Wallets.findOne({owner: user._id, wallettype: "monstergemunilevel"})
+            .then(async (wallet) => {
+                if(wallet){
+                    await Wallets.findOneAndUpdate({owner: user._id, wallettype: "monstergemunilevel"}, {$inc: {amount: amount}})
+                    .then(async (item) => {
+                        if(item){
+                            const history = {
+                                owner: user._id,
+                                type: "Game Event Prize",
+                                description: description,
+                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                amount: amount
+                            }
+                           await Wallethistory.create(history)
+                           res.json({message: "success"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                } else {
+                    res.json({message: "failed", data: "wallet not found"})
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
