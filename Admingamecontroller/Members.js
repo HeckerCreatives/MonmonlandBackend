@@ -1001,19 +1001,84 @@ exports.getcurrentrank = async (req, res) => {
 
 exports.grantenergy = (req, res) => {
     const {username, quantity, name} = req.body
+    let grant;
+    let id;
 
     Gameusers.findOne({username: username})
     .then(async (user) => {
         if(user){
-            await Energyinventories.findOneAndUpdate({owner: user._id, name: name}, {$inc: {amount: quantity}})
-            .then((data) => {
-                if(data){
-                    res.json({message: "success"})
+            id = user._id
+            Energyinventories.findOne({owner: user._id, name: name})
+            .then(async (item) => {
+                if(item){
+                    await Energyinventories.findOneAndUpdate({owner: user._id, name: name}, {$inc: {amount: quantity}})
+                    .then((data) => {
+                        if(data){
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Energy type not found"})
+                        }
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
                 } else {
-                    res.json({message: "failed", data: "Energy type not found"})
+                    switch(name){
+                        case "1":
+                        grant = {
+                            owner: id,
+                            name: "1",
+                            type: "energy",
+                            amount: quantity,
+                            consumableamount: 1
+                        }
+                        break;
+                        case "2":
+                            grant = {
+                                owner: id,
+                                name: "2",
+                                type: "energy",
+                                amount: quantity,
+                                consumableamount: 5
+                            }
+                        break;
+                        case "3":
+                            grant = {
+                                owner: id,
+                                name: "3",
+                                type: "energy",
+                                amount: quantity,
+                                consumableamount: 10
+                            }
+                        break;
+                        case "4":
+                            grant = {
+                                owner: id,
+                                name: "4",
+                                type: "energy",
+                                amount: quantity,
+                                consumableamount: 20
+                            }
+                        break;
+                        case "5":
+                            grant = {
+                                owner: id,
+                                name: "5",
+                                type: "energy",
+                                amount: quantity,
+                                consumableamount: 50
+                            }
+                        break;
+                    }
+
+                    await Energyinventories.create(grant)
+                    .then(() => {
+                        res.json({message: "success"})
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
                 }
             })
             .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+            
         } else {
             res.json({message: "failed", data: "user not found"})
         }
@@ -1101,8 +1166,6 @@ exports.grantcosmetic = (req, res) => {
     const timeifnotowned = DateTimeServerExpiration1(expiration)
     let grant;
     let id;
-
-    
 
     Gameusers.findOne({username: username})
     .then((user) => {

@@ -46,9 +46,9 @@ exports.requestpayout = async (req, res) => {
     return res.json({message: 'failed', data: 'Subscription must be Ruby and up'})
    }
 
-   if(!hastopup){
-    return res.json({message: 'failed', data: 'You must have atleast one Topup'})
-   }
+//    if(!hastopup){
+//     return res.json({message: 'failed', data: 'You must have atleast one Topup'})
+//    }
 
    if(payoption == 'Automatic'){
 
