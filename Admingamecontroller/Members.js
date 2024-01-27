@@ -24,6 +24,7 @@ const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Maintenance = require("../Gamemodels/Maintenance")
 const Walletscutoff = require("../Gamemodels/Walletscutoff")
 const Prizepools = require("../Gamemodels/Prizepools")
+const Sponsorlist = require("../Gamemodels/Sponsorlist")
 const { DateTimeServerExpiration1, DateTimeServerExpiration2 } = require("../Utils/utils")
 const bcrypt = require('bcrypt')
 const encrypt = async password => {
@@ -1262,7 +1263,7 @@ exports.grantbalance = (req, res) => {
                                 owner: user._id,
                                 type: "Game Event Prize",
                                 description: description,
-                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                historystructure: `granted by ${req.user.username}:  ${description} `,
                                 amount: amount
                             }
                            await Wallethistory.create(history)
@@ -1298,7 +1299,7 @@ exports.grantmonstercoin = (req, res) => {
                                 owner: user._id,
                                 type: "Game Event Prize",
                                 description: description,
-                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                historystructure: `granted by ${req.user.username}:  ${description} `,
                                 amount: amount
                             }
                            await Wallethistory.create(history)
@@ -1334,7 +1335,7 @@ exports.grantmonstergem = (req, res) => {
                                 owner: user._id,
                                 type: "Game Event Prize",
                                 description: description,
-                                historystructure: `made by ${req.user.username}:  ${description} `,
+                                historystructure: `granted by ${req.user.username}:  ${description} `,
                                 amount: amount
                             }
                            await Wallethistory.create(history)
@@ -1349,6 +1350,73 @@ exports.grantmonstergem = (req, res) => {
             .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
         } else {
             res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.createsponsorprize = (req, res) => {
+    const {
+        itemnumber,
+        itemname,
+        itemtype,
+        itemid,
+        amount,
+        expiration,
+        qty,
+        percentage,
+        isprize } = req.body
+
+    const prize = {
+        itemnumber: itemnumber,
+        itemname: itemname,
+        itemtype: itemtype,
+        itemid: itemid,
+        amount: amount,
+        expiration: expiration,
+        qty: qty,
+        percentage: percentage,
+        isprize: isprize }
+    
+    Sponsorlist.create(prize)
+    .then(data => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })  
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.findsponsorprize = (req, res) => {
+    
+    Sponsorlist.find()
+    .sort({itemnumber: 1})
+    .then(data => {
+        if(data){
+            res.json({message: "success", data: data})
+        }
+    })  
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.sponsorprizeonandoff = (req, res) => {
+    const { isprize } = req.body
+
+    Sponsorlist.findOneAndUpdate({_id: new mongoose.Types.ObjectId(req.params) }, {isprize: isprize})
+    .then((data) => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.sponsorprizedelete = (req, res) => {
+
+    Sponsorlist.findByIdAndDelete({_id: new mongoose.Types.ObjectId(req.params)})
+    .then((data) => {
+        if(data){
+            res.json({message: "success"})
         }
     })
     .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))

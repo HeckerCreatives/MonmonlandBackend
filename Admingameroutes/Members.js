@@ -1,6 +1,7 @@
+const { create } = require('../Gamemodels/Gameusers');
 
 const router = require('express').Router(),
-    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem } = require('../Admingamecontroller/Members'),
+    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem, createsponsorprize, findsponsorprize, sponsorprizeonandoff, sponsorprizedelete } = require('../Admingamecontroller/Members'),
     { protect } = require('../Middleware/index')
 
 router 
@@ -41,4 +42,8 @@ router
     .post('/grantbalance', protect, grantbalance)
     .post('/grantmonstercoin', protect, grantmonstercoin)
     .post('/grantmonstergem', protect, grantmonstergem)
+    .post('/createsponsorprize', protect, createsponsorprize)
+    .get('/findsponsorprize', protect, findsponsorprize)
+    .post('/sponsorprizeonandoff/:id', protect, sponsorprizeonandoff)
+    .post('/sponsorprizedelete/:id', protect, sponsorprizedelete)
 module.exports = router;

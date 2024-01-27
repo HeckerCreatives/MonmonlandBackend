@@ -23,7 +23,7 @@ exports.find = (req, res) => {
 exports.process = async (req, res) => {
     const { id } = req.params
     const status = 'process'
-    const rate = await Exchangerate.findOne({_id: process.env.exchangerate}).then(data => data.amount)
+    const rate = await Exchangerate.findOne({_id: process.env.payoutexchangerate}).then(data => data.amount)
     const withdrawalfee = 0.1
 
     Dragonpayoutrequest.findOne({_id: id})

@@ -1,22 +1,19 @@
 const mongoose = require("mongoose");
 
-const SponsorhistorySchema = new mongoose.Schema(
+const sponsorhistoryschema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Gameusers"
         },
-        type: {
-            type: String,
-        },
-        amount: {
-            type: Number,
-        },
+        description: {
+            type: String
+        }
     },
     {
         timestamps: true
     }
 )
 
-const Sponsorhistory = mongoose.model("Sponsorhistory", SponsorhistorySchema);
+const Sponsorhistory = mongoose.model("Sponsorhistory", sponsorhistoryschema);
 module.exports = Sponsorhistory

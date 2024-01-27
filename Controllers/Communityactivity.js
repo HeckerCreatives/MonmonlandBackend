@@ -197,6 +197,12 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const sponsorwallet = await Wallets.findOne({owner: process.env.simonmonland, wallettype: 'sponsorwallet'})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -213,7 +219,8 @@ exports.find = async (req, res) => {
         "tradepayin": tradepayin,
         "complanmerchandise": complanmerchandise,
         "complanpayin": complanpayin,
-        "unilevelbonus": unilevelbonus
+        "unilevelbonus": unilevelbonus,
+        "sponsorwallet": sponsorwallet
     }
 
     res.json({message: "success", data: summary})
@@ -230,4 +237,41 @@ exports.unilevelmonstergem = (req, res) => {
         }
     })
     .catch((error) => res.status(500).json({ error: error.message }));
+}
+
+exports.findlandingcoin = async (req, res) => {
+    const leaderboard =  await Communityactivity.findOne({_id: process.env.leaderboardsca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    
+
+
+    const diamondpools = await Communityactivity.findOne({_id: process.env.diamondpoolsca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+
+
+
+    const monstergem = await Communityactivity.findOne({_id: process.env.monstergemca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+   
+
+    const summary = {
+        "leaderboard": leaderboard,
+        "diamondpools": diamondpools,
+        "monstergem": monstergem,
+    }
+
+    res.json({message: "success", data: summary})
+    
 }

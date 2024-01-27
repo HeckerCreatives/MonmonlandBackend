@@ -27,10 +27,36 @@ exports.find = (req,res) => {
 }
 
 exports.findhistory = (req, res) => {
-    ExchangerateHistory.find()
+    const {name} = req.body
+    let id;
+    switch(name){
+        case "payin":
+            id = process.env.exchangerate
+        break;
+        case "payout":
+            id = process.env.payoutexchangerate
+    }
+    ExchangerateHistory.find({usdrateId: id})
     .sort({ 'createdAt': -1 })
     .then(data => {
         res.json({message: "success", data: data})
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+}
+
+exports.updatepayoutrate = (req,res) => {
+    const { amount } = req.body
+
+    const history = {
+        usdrateId: process.env.payoutexchangerate,
+        enteredamount: amount,
+        createdby: req.user.username
+    }
+
+    Exchangerate.findByIdAndUpdate({_id: process.env.payoutexchangerate},{amount: amount})
+    .then(async data => {
+        await ExchangerateHistory.create(history)
+        res.json({message: "success", data: data.amount})
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 }
