@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, } = require('../Gamecontrollers/Wallets'),
+    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, filtergrinding,filtertransaction, findgrindinghistory, findtransactionhistory } = require('../Gamecontrollers/Wallets'),
     { protectplayer } = require('../Gamemiddleware/index')
     
 router 
@@ -11,4 +11,8 @@ router
     .get('/findpaymentdetail', protectplayer, findpaymentdetail)
     .get('/totalcommission', protectplayer, subscommission)
     .post('/filterwallet', protectplayer, filterwallet)
+    .get('/findtransactionhistory', protectplayer, findtransactionhistory)
+    .get('/findgrindinghistory', protectplayer, findgrindinghistory)
+    .post('/filtertransaction', protectplayer, filtertransaction)
+    .post('/filtergrinding', protectplayer, filtergrinding)
 module.exports = router;

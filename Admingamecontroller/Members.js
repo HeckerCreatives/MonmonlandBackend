@@ -25,6 +25,8 @@ const Maintenance = require("../Gamemodels/Maintenance")
 const Walletscutoff = require("../Gamemodels/Walletscutoff")
 const Prizepools = require("../Gamemodels/Prizepools")
 const Sponsorlist = require("../Gamemodels/Sponsorlist")
+const Analytics = require("../Gamemodels/Analytics") // Transaction history
+const GrindingHistory = require("../Gamemodels/Grindinghistory")
 const { DateTimeServerExpiration1, DateTimeServerExpiration2 } = require("../Utils/utils")
 const bcrypt = require('bcrypt')
 const encrypt = async password => {
@@ -1420,4 +1422,116 @@ exports.sponsorprizedelete = (req, res) => {
         }
     })
     .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.editsponsorprize = (req, res) => {
+
+    const {
+        itemnumber,
+        itemname,
+        itemtype,
+        itemid,
+        amount,
+        expiration,
+        qty,
+        percentage,
+        isprize
+    } = req.body
+
+    // Validate that keys with empty values are not included
+    const validKeys = {
+        itemnumber,
+        itemname,
+        itemtype,
+        itemid,
+        amount,
+        expiration,
+        qty,
+        percentage,
+        isprize
+    }
+    console.log(validKeys)
+    const prize = Object.entries(validKeys)
+        .filter(([key, value]) => value !== undefined  && value !== '')
+        .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+        }, {});
+
+    if (Object.keys(prize).length === 0) {
+        return res.status(400).json({ message: "failed", data: "No valid data provided" })
+    }
+
+    Sponsorlist.findOneAndUpdate({ _id: new mongoose.Types.ObjectId(req.params) }, prize)
+    .then(data => {
+        if (data) {
+            res.json({ message: "success" })
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.gettransactionhistory = (req, res) => {
+    const { username } = req.body
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        Analytics.find({owner: user._id})
+        .sort({createdAt: -1})
+        .then(data => {
+            res.json({message: 'success', data: data})
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.getgrindinghistory = (req, res) => {
+    const { username } = req.body
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        GrindingHistory.find({owner: user._id})
+        .sort({createdAt: -1})
+        .then(data => {
+            res.json({message: 'success', data: data})
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.filtertransaction = (req, res) => {
+    const { filter, username } = req.body
+
+    Gameusers.findOne({ username: username })
+        .then(user => {
+            const regex = new RegExp(filter, 'i'); // 'i' for case-insensitive
+            Analytics.find({ owner: user._id, type: { $regex: regex } })
+                .then(data => {
+                    res.json({ message: 'success', data: data })
+                })
+                .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+        })
+        .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.filtergrinding = (req, res) => {
+    const { filter, username } = req.body
+
+    // Create a date range for the entire day
+    const startDate = new Date(filter);
+    startDate.setHours(0, 0, 0, 0); // Set to the beginning of the day
+    const endDate = new Date(filter);
+    endDate.setHours(23, 59, 59, 999); // Set to the end of the day
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        GrindingHistory.find({owner: user._id, createdAt: { $gte: startDate, $lte: endDate }})
+        .then(data => {
+            res.json({message: 'success', data: data})
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
 }

@@ -60,3 +60,12 @@ exports.updatepayoutrate = (req,res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 }
+
+exports.findpayoutrate = (req,res) => {
+    
+    Exchangerate.findOne({_id: process.env.payoutexchangerate})
+    .then(data => {
+        res.json({message: "success", data: data.amount})
+    })
+
+}

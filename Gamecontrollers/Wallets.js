@@ -10,6 +10,8 @@ const WalletsCutoff = require('../Gamemodels/Walletscutoff')
 const Pooldetails = require("../Gamemodels/Pooldetails")
 const DragonPaymentdetails = require('../Models/Paymentdetails')
 const Paymentdetails = require("../Gamemodels/Paymentdetails")
+const Analytics = require("../Gamemodels/Analytics")
+const GrindingHistory = require("../Gamemodels/Grindinghistory")
 const Payouthistory = require("../Models/Payout")
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const { default: mongoose } = require('mongoose')
@@ -368,6 +370,52 @@ exports.filterwallet = (req, res) => {
 
     Wallethistory.find({owner: req.user.id, type: filter})
     .sort({createdAt: -1})
+    .then(data => {
+        res.json({message: 'success', data: data})
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.findtransactionhistory = (req, res) => {
+    Analytics.find({owner: req.user.id})
+        .sort({createdAt: -1})
+        .then(data => {
+            res.json({message: 'success', data: data})
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.findgrindinghistory = (req, res) => {
+    GrindingHistory.find({owner: req.user.id})
+        .sort({createdAt: -1})
+        .then(data => {
+            res.json({message: 'success', data: data})
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.filtertransaction = (req, res) => {
+    const { filter } = req.body
+
+    const regex = new RegExp(filter, 'i'); // 'i' for case-insensitive
+
+    Analytics.find({ owner: req.user.id, type: { $regex: regex } })
+        .then(data => {
+            res.json({ message: 'success', data: data })
+        })
+        .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.filtergrinding = (req, res) => {
+    const { filter} = req.body
+
+    // Create a date range for the entire day
+    const startDate = new Date(filter);
+    startDate.setHours(0, 0, 0, 0); // Set to the beginning of the day
+    const endDate = new Date(filter);
+    endDate.setHours(23, 59, 59, 999); // Set to the end of the day
+
+    GrindingHistory.find({owner: req.user.id, createdAt: { $gte: startDate, $lte: endDate }})
     .then(data => {
         res.json({message: 'success', data: data})
     })

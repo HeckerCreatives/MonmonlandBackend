@@ -650,6 +650,36 @@ parentPort.on('message', async (message) => {
                         amount: 0,
                         createdAt: createdat
                     },
+                    {
+                        owner: userid,
+                        wallettype: '1watchads',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: '2watchads',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: '3watchads',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: '4watchads',
+                        amount: 0,
+                        createdAt: createdat
+                    },
+                    {
+                        owner: userid,
+                        wallettype: '5watchads',
+                        amount: 0,
+                        createdAt: createdat
+                    },
                 ]
 
                 Dailylimit.insertMany(dailylimit)

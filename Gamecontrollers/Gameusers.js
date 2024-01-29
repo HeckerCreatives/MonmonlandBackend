@@ -724,7 +724,31 @@ exports.register = async (req, res) => {
                 owner: userid,
                 wallettype: 'monstergemfarm',
                 amount: 0,
-                
+            },
+            {
+                owner: userid,
+                wallettype: '1watchads',
+                amount: 0,
+            },
+            {
+                owner: userid,
+                wallettype: '2watchads',
+                amount: 0,
+            },
+            {
+                owner: userid,
+                wallettype: '3watchads',
+                amount: 0,
+            },
+            {
+                owner: userid,
+                wallettype: '4watchads',
+                amount: 0,
+            },
+            {
+                owner: userid,
+                wallettype: '5watchads',
+                amount: 0,
             },
         ]
 
