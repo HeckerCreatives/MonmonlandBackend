@@ -29,15 +29,15 @@ exports.process = async (req, res) => {
     const rate = await Exchangerate.findOne({_id: process.env.payoutexchangerate}).then(data => data.amount)
     
 
-    Dragonpayoutrequest.findOne({_id: new mongoose.Types.ObjectId(id)})
+    await Dragonpayoutrequest.findOne({_id: new mongoose.Types.ObjectId(id)})
     .populate({
         path: 'paymentdetails'
     })
     .then(async (data) => {
         console.log(data)
-        let username;
+        
         let withdrawalfee;
-        const userid = await Gameusers.findOne({username: username}).then(user => user._id)
+        const userid = await Gameusers.findOne({username: data.username}).then(user => user._id)
 
         await Cosmetics.findOne({owner: userid, name: "Energy"})
         .then(item => {
@@ -82,8 +82,9 @@ exports.process = async (req, res) => {
         }
 
         const payout = await createpayout(info)
+
         if(payout === 'success'){
-            Dragonpayoutrequest.findOneAndUpdate({_id: new mongoose.Types.ObjectId(id) },{status: status, admin: req.user.username})
+            await Dragonpayoutrequest.findOneAndUpdate({_id: new mongoose.Types.ObjectId(id) },{status: status, admin: req.user.username})
             .then(async data => {
                 console.log("pasok pangalawa")
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
@@ -91,7 +92,7 @@ exports.process = async (req, res) => {
                 await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: amount}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
-            .catch((error) => res.status(500).json({message: 'failed', data: error.message}));
+            .catch((error) => res.status(500).json({message: 'failed', data: `pangalawa ${error.message}`}));
         } else {
             res.json({message: 'failed', data: 'Please check the payment details'})
         }
