@@ -34,7 +34,7 @@ exports.process = async (req, res) => {
         path: 'paymentdetails'
     })
     .then(async (data) => {
-        console.log("pasok una")
+        console.log(data)
         let username;
         let withdrawalfee;
         const userid = await Gameusers.findOne({username: username}).then(user => user._id)
@@ -83,7 +83,7 @@ exports.process = async (req, res) => {
 
         const payout = await createpayout(info)
         if(payout === 'success'){
-            Dragonpayoutrequest.findOneAndUpdate({_id: new mongoose.Types.ObjectId(data._id) },{status: status, admin: req.user.username})
+            Dragonpayoutrequest.findOneAndUpdate({_id: new mongoose.Types.ObjectId(id) },{status: status, admin: req.user.username})
             .then(async data => {
                 console.log("pasok pangalawa")
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
