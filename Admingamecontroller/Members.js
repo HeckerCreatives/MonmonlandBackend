@@ -676,6 +676,11 @@ exports.findnetwork = async (req, res) => {
         {
             $sort: { _id: 1 }, // Sort by level
         },
+        {
+            $match: {
+                _id: { $lte: 10 } // Only include levels up to 10
+            }
+        }
     ]);
 
     return res.json({message: 'success', data: downline});
