@@ -4,6 +4,8 @@ const Wallets = require('../Gamemodels/Wallets')
 const Exchangerate = require('../Models/Exchangerate')
 const withdrawal = require("../Models/Withdrawalfee")
 const PayoutWallet = require("../Models/PayoutWallet")
+const Cosmetics = require("../Gamemodels/Cosmetics")
+const Gameusers = require("../Gamemodels/Gameusers")
 const { createpayout } = require('./Dragonpay')
 
 exports.find = (req, res) => {
@@ -24,7 +26,7 @@ exports.process = async (req, res) => {
     const { id } = req.params
     const status = 'process'
     const rate = await Exchangerate.findOne({_id: process.env.payoutexchangerate}).then(data => data.amount)
-    const withdrawalfee = 0.1
+    
 
     Dragonpayoutrequest.findOne({_id: id})
     .populate({
@@ -32,14 +34,32 @@ exports.process = async (req, res) => {
     })
     .then(async (data) => {
 
+        let username;
+        let withdrawalfee;
+        const userid = await Gameusers.findOne({username: username}).then(user => user._id)
+
+        await Cosmetics.findOne({owner: userid, name: "Energy"})
+        .then(item => {
+            if(item){
+                if(item.isequip == "1"){
+                    withdrawalfee = 0.05
+                } else {
+                    withdrawalfee = 0.1
+                }
+            } else {
+                withdrawalfee = 0.1
+            }
+        })
+
         if(data.status !== 'pending'){
             return res.json({message: 'failed', data: 'This payout is already in process'})
         }
+
         let finalamount;
         const WFtobededuct = (data.amount * withdrawalfee)
         const deductedamount = (data.amount - WFtobededuct)
         finalamount = (deductedamount * rate)
-
+        console.log(withdrawalfee)
         const info = { 
             owner: data.id,
             FirstName: data.paymentdetails.firstname,
