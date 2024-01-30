@@ -6,7 +6,8 @@ const withdrawal = require("../Models/Withdrawalfee")
 const PayoutWallet = require("../Models/PayoutWallet")
 const Cosmetics = require("../Gamemodels/Cosmetics")
 const Gameusers = require("../Gamemodels/Gameusers")
-const { createpayout } = require('./Dragonpay')
+const { createpayout } = require('./Dragonpay');
+const { default: mongoose } = require('mongoose');
 
 exports.find = (req, res) => {
     const { status } = req.body
@@ -28,12 +29,12 @@ exports.process = async (req, res) => {
     const rate = await Exchangerate.findOne({_id: process.env.payoutexchangerate}).then(data => data.amount)
     
 
-    Dragonpayoutrequest.findOne({_id: id})
+    Dragonpayoutrequest.findOne({_id: new mongoose.Types.ObjectId(id)})
     .populate({
         path: 'paymentdetails'
     })
     .then(async (data) => {
-
+        console.log("pasok una")
         let username;
         let withdrawalfee;
         const userid = await Gameusers.findOne({username: username}).then(user => user._id)
@@ -82,8 +83,9 @@ exports.process = async (req, res) => {
 
         const payout = await createpayout(info)
         if(payout === 'success'){
-            Dragonpayoutrequest.findOneAndUpdate({_id: data._id},{status: status, admin: req.user.username})
+            Dragonpayoutrequest.findOneAndUpdate({_id: new mongoose.Types.ObjectId(data._id) },{status: status, admin: req.user.username})
             .then(async data => {
+                console.log("pasok pangalawa")
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
                 await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -amount}})
                 await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: amount}})
