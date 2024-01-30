@@ -89,13 +89,13 @@ exports.process = async (req, res) => {
                 await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: amount}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
-            .catch((error) => res.status(500).json({ error: error.message }));
+            .catch((error) => res.status(500).json({message: 'failed', data: error.message}));
         } else {
             res.json({message: 'failed', data: 'Please check the payment details'})
         }
 
     })
-    .catch((error) => res.status(500).json({ error: error.message }));
+    .catch((error) => res.status(500).json({message: 'failed', data: error.message}));
 }
 
 exports.reject = (req, res) => {
