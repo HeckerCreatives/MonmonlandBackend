@@ -34,7 +34,6 @@ exports.process = async (req, res) => {
         path: 'paymentdetails'
     })
     .then(async (data) => {
-        console.log(data)
 
         let withdrawalfee;
         const userid = await Gameusers.findOne({username: data.username}).then(user => user._id)
@@ -86,7 +85,6 @@ exports.process = async (req, res) => {
         if(payout === 'success'){
             await Dragonpayoutrequest.findOneAndUpdate({id: data.id },{status: status, admin: req.user.username})
             .then(async data => {
-                console.log("pasok pangalawa")
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
                 await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -data.amount}})
                 await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: data.amount}})

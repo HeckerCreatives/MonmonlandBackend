@@ -18,6 +18,8 @@ const Gameannouncement = require("../Gamemodels/Gameannouncement")
 const Gameunlock = require("../Gamemodels/Gameunlock")
 const Task = require("../Gamemodels/Task")
 const mongoose = require("mongoose");
+const Palosebo = require("../Gamemodels/Palosebo")
+const Supermonmon = require("../Gamemodels/Supermonmon")
 const moment = require('moment');
 const bcrypt = require('bcrypt')
 var playfab = require('playfab-sdk')
@@ -201,6 +203,18 @@ exports.register = async (req, res) => {
         await newuser.save()
         .then(async data => {
             userid = data._id
+            // supermonmon
+            const supermonmon = {
+                owner: userid
+            }
+            await Supermonmon.create(supermonmon)
+            
+            //palosebo
+            const palosebo = {
+                owner: userid
+            }
+
+            await Palosebo.create(palosebo)
 
             // fiesta
             const fiesta = [
