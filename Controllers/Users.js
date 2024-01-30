@@ -24,80 +24,70 @@ function generateRandomString() {
 module.exports.userRegister = async (request, response) => {
     const {firstName,lastName,userName,email,password, roleId, referrerId, phone} = request.body
 
-    const playFabUserData = {
-      CreateAccount: true,            
-      CustomId: generateRandomString(16),           
-    };
+    try{
+      await User.findOne({email: email})
+      .then(async result => {
+        console.log(result)
+          if(result !== null){
+              response.json({message: "failed", data: "Email Already Exist"})
+          } else {
+          // Create user
+          const newUser = {
+              roleId: roleId,
+              referrerId: request.user._id,
+              firstName: firstName,
+              lastName: lastName,
+              userName: userName,
+              email:email,
+              phone: phone,
+              password: password,
+              isVerified: true
+          }
+          console.log(newUser)
+          // Save new user
+          await User.create(newUser)
+          .then(save => {
+            console.log(save)
+            const topupwallet = {
+              amount: 0,
+              name: "manual",
+              user: save._id
+            }
 
-    PlayFabClient.LoginWithCustomID(playFabUserData, async (error, result) =>{
-        if(result){
-          try{
-            await User.findOne({email: email})
-            .then(result => {
-                if(result !== null){
-                    response.send(false)
-                } else {
-                // Create user
-                const newUser = new User({
-                    roleId: roleId,
-                    referrerId: req.user._id,
-                    firstName: firstName,
-                    lastName: lastName,
-                    userName: userName,
-                    email:email,
-                    phone: phone,
-                    password: password,
-                    playfabid: playFabUserData.CustomId
-                })
-                
-                // Save new user
-                newUser.save()
-                .then(save => {
-                  
-                  const topupwallet = {
-                    amount: 0,
-                    name: "manual",
-                    user: save._id
-                  }
-    
-                  TopUpWallet.create(topupwallet)
-    
-                  const payoutwalletprocess = [
-                    {
-                    amount: 0,
-                    name: "process",
-                    user: save._id
-                    },
-                    {
-                      amount: 0,
-                      name: "done",
-                      user: save._id
-                    },
-                    {
-                      amount: 0,
-                      name: "reject",
-                      user: save._id
-                    },
-                  ]
-    
-                  PayoutWallet.create(payoutwalletprocess)
-    
-                 
-    
-                 response.send(save)
-                })
-                
-                }
-            })
-            
+            TopUpWallet.create(topupwallet)
+
+            const payoutwalletprocess = [
+              {
+              amount: 0,
+              name: "process",
+              user: save._id
+              },
+              {
+                amount: 0,
+                name: "done",
+                user: save._id
+              },
+              {
+                amount: 0,
+                name: "reject",
+                user: save._id
+              },
+            ]
+
+            PayoutWallet.create(payoutwalletprocess)
+
+           
+
+           response.json({message: "success", data: save})
+          })
+          .catch(error => response.status(400).json({error: error.message}));
           }
-            catch (error){
-                return response.send(error)
-          }
-        } else if (error) {
-            return response.send(error)
-        }
-    })
+      })
+      
+    }
+      catch (error){
+          return response.send(error)
+    }
 }
 
 exports.marketingarmregister = (req, res) => {

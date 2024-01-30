@@ -196,7 +196,7 @@ module.exports.updatebuyer = async (request, response) => {
                   .then(() => {
                     AdminFeeWallet.findByIdAndUpdate(process.env.adminfee, {$inc: {amount: 1}})
                     .then(()=> {
-                      response.json({userhistory: history, roomdetails: upgradeSubscription})
+                      response.json({message: "success", userhistory: history, roomdetails: upgradeSubscription})
                     })
                     .catch((error) => {
                     session.abortTransaction()
