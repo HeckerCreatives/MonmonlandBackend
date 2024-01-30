@@ -88,8 +88,8 @@ exports.process = async (req, res) => {
             .then(async data => {
                 console.log("pasok pangalawa")
                 await withdrawal.findOneAndUpdate({ userId: process.env.superadminid}, { $inc: { withdrawalfee: WFtobededuct}})
-                await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -amount}})
-                await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: amount}})
+                await PayoutWallet.findOneAndUpdate({name: "dragonrequest"}, {$inc: {amount: -data.amount}})
+                await PayoutWallet.findOneAndUpdate({name: "dragonprocess"}, {$inc: {amount: data.amount}})
                 res.json({message: 'success', data: 'Process Succesfully'})
             })
             .catch((error) => res.status(500).json({message: 'failed', data: `pangalawa ${error.message}`}));
