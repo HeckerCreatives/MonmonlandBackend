@@ -28,10 +28,13 @@ exports.mcvalue = (req, res) => {
             .then(grind => {
                 Communityactivity.findOne({type: "quest"})
                 .then(quest => {
-                    const value = grind.amount + quest.amount + header.total + ads + investor
-                    const fnal = value / mc.amount
-                    // , totalmc: mc.amount, totalincome: value
-                    res.json({message: "success", data: fnal})
+                    Communityactivity.findOne({type: "investorfunds"})
+                    .then(investorfund => {
+                        const value = grind.amount + quest.amount + header.total + ads + investor + investorfund.amount
+                        const fnal = value / mc.amount
+                        // , totalmc: mc.amount, totalincome: value
+                        res.json({message: "success", data: fnal})
+                    })
                 })
                 .catch((error) => res.status(500).json({ error: error.message }));
             })
@@ -203,6 +206,12 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const investorfund = await Communityactivity.findOne({_id: process.env.investorfundca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -220,7 +229,8 @@ exports.find = async (req, res) => {
         "complanmerchandise": complanmerchandise,
         "complanpayin": complanpayin,
         "unilevelbonus": unilevelbonus,
-        "sponsorwallet": sponsorwallet
+        "sponsorwallet": sponsorwallet,
+        "investorfunds": investorfund
     }
 
     res.json({message: "success", data: summary})
@@ -246,7 +256,17 @@ exports.findlandingcoin = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
-    
+    const grinding =   await Communityactivity.findOne({_id: process.env.grindingca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const quest =  await Communityactivity.findOne({_id: process.env.questca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
 
 
     const diamondpools = await Communityactivity.findOne({_id: process.env.diamondpoolsca})
@@ -255,7 +275,11 @@ exports.findlandingcoin = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
-
+    const investorfund = await Communityactivity.findOne({_id: process.env.investorfundca})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
 
 
     const monstergem = await Communityactivity.findOne({_id: process.env.monstergemca})
@@ -270,6 +294,9 @@ exports.findlandingcoin = async (req, res) => {
         "leaderboard": leaderboard,
         "diamondpools": diamondpools,
         "monstergem": monstergem,
+        "grinding": grinding,
+        "quest": quest,
+        "investorfunds": investorfund
     }
 
     res.json({message: "success", data: summary})
