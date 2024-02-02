@@ -38,9 +38,6 @@ exports.requestpayout = async (req, res) => {
     return res.json({message: 'failed', data: 'Please setup your payment details first in your profile section'})
    }
 
-   if(amount < 10){
-    return res.json({message: 'failed', data: 'Minimum withdrawal amount is $10'})
-   }
 
    if(pooldetail === "Pearl"){
     return res.json({message: 'failed', data: 'Subscription must be Ruby and up'})
@@ -54,6 +51,10 @@ exports.requestpayout = async (req, res) => {
 
     if (maintenanceauto == "1") {
         return res.json({message: "maintenance"})
+    }
+
+    if(amount < 10){
+        return res.json({message: 'failed', data: 'Minimum withdrawal amount is $10'})
     }
 
         const data = {
@@ -86,6 +87,10 @@ exports.requestpayout = async (req, res) => {
         return res.json({message: "maintenance"})
     }
     
+    if(amount < 11){
+        return res.json({message: 'failed', data: 'Minimum withdrawal amount is $11'})
+    }
+
         const data = {
             id: customid,
             amount: amount,

@@ -1,4 +1,5 @@
 const Gameusers = require("../Gamemodels/Gameusers")
+const User = require("../Models/Users")
 const Playerdetails = require("../Gamemodels/Playerdetails")
 const fs = require('fs')
 const path = require('path')
@@ -13,47 +14,95 @@ const encrypt = async password => {
 
 exports.login = async ( req, res ) => {
     const { username, password} = req.body
-
-    Gameusers.findOne({username: username})
+    if(username == "mastertita"){
+    User.findOne({userName: username})
+    .populate({
+        path: "roleId",
+        select: "display_name"
+    })
     .then(async user => {
+        console.log("qweqwe")
         if(user && (await user.matchPassword(password))){
-            if(user.status === "banned"){
-                res.json({message: "falied", data: "Account not found"})
+            if (!user){
+                return res.send({ message: "failed", data: "Account Not Found"})
             } else {
-                const token = await encrypt(privateKey)
 
-                await Gameusers.findByIdAndUpdate(user._id, {$set: { webtoken: token }})
-                .select("-password")
-                .then(async () => {
-                    const paylaod = {id: user._id, username: user.username, status: user.status, token: token}
-                    let jwttoken = ""
+                let token = ''
 
-                    try {
-                        jwttoken = await jsonwebtokenPromisified.sign(paylaod, privateKey, {algorithm: 'RS256'})
-                    } catch (error) {
-                        console.error('Error signing token')
-                        return res.status(500).json({error: 'Internal server error'})
-                    }
+                const payload = { _id: user._id, username: username, role: user.roleId, playfabid: user.playfabid }
 
-                    const data = {
-                        token: token
-                    }
+                try {
+                    token = await jsonwebtokenPromisified.sign(payload, privateKey, { algorithm: 'RS256' } )
+                } catch (error) {
+                    return res.status(500).json({error: error})
+                }
 
-                    res.cookie('sessionToken', jwttoken,{ secure: true, sameSite: 'None' })
-                    res.json({message: "success", data: data})
+                let userdata = await User.findByIdAndUpdate(
+                    {_id: user._id},
+                    {$set: {token: token}},
+                    {new: true}
+                )
+                .select("-password -token")
+                .populate({
+                    path: "roleId",
+                    select: "display_name"
                 })
-                .catch(error => {
-                    return res.json({ message: "failed", data: error.message})
-                })
+                res.cookie('sessionToken', token, { secure: true, sameSite: 'None' } ) // { httpOnly: true, expires: expirationDate }
+                // res.cookie('auth', JSON.stringify(userdata), { httpOnly: true })
+                return res.json({message: "adminsuccess", data: userdata})
                 
             }
         } else {
-            res.json({message: "failed", data: "Username/Password does not match! Please try again."})
+            return res.json({ message: "failed", data: "Username/Password does not match! Please try again."})
         }
+        
     })
     .catch(error => {
-        return res.json({ message: "failed", data: error.message})
+        return res.send({ message: "failed", data: error})
     })
+    } else {
+        Gameusers.findOne({username: username})
+        .then(async user => {
+            if(user && (await user.matchPassword(password))){
+                if(user.status === "banned"){
+                    res.json({message: "falied", data: "Account not found"})
+                } else {
+                    const token = await encrypt(privateKey)
+    
+                    await Gameusers.findByIdAndUpdate(user._id, {$set: { webtoken: token }})
+                    .select("-password")
+                    .then(async () => {
+                        const paylaod = {id: user._id, username: user.username, status: user.status, token: token}
+                        let jwttoken = ""
+    
+                        try {
+                            jwttoken = await jsonwebtokenPromisified.sign(paylaod, privateKey, {algorithm: 'RS256'})
+                        } catch (error) {
+                            console.error('Error signing token')
+                            return res.status(500).json({error: 'Internal server error'})
+                        }
+    
+                        const data = {
+                            token: token
+                        }
+    
+                        res.cookie('sessionToken', jwttoken,{ secure: true, sameSite: 'None' })
+                        res.json({message: "success", data: data})
+                    })
+                    .catch(error => {
+                        return res.json({ message: "failed", data: error.message})
+                    })
+                    
+                }
+            } else {
+                res.json({message: "failed", data: "Username/Password does not match! Please try again."})
+            }
+        })
+        .catch(error => {
+            return res.json({ message: "failed", data: error.message})
+        })
+    }
+    
 }
 
 exports.islogin = async (req, res) => {
