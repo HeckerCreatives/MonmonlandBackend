@@ -366,7 +366,7 @@ exports.verifypayout = async (request, response) => {
           if(status === "F" || status === 'V'){
                await Dragonpayout.findByIdAndUpdate(item._id, {Status: "cancel", Refno: refno})
               .then(async ()=> {
-                await Dragonpayoutrequest.findOneAndUpdate({id: item.id}, {status: 'cancel'})
+                await Dragonpayoutrequest.findOneAndUpdate({id: item.owner}, {status: 'cancel'})
                 .populate({
                     path: "paymentdetails"
                 })
@@ -533,7 +533,7 @@ exports.createpayout = async (info) => {
 
         const response = await axios(config);
 
-        if (response.status === 200) {
+        if (response.status === 200 && response.data.Message !== "error in posting") { 
             const item = await Dragonpayout.create(data);
             await Dragonpayout.findByIdAndUpdate(item._id, { Refno: response.data.Message, owner: owner });
             return 'success';
