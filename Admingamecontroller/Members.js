@@ -27,6 +27,7 @@ const Prizepools = require("../Gamemodels/Prizepools")
 const Sponsorlist = require("../Gamemodels/Sponsorlist")
 const Analytics = require("../Gamemodels/Analytics") // Transaction history
 const GrindingHistory = require("../Gamemodels/Grindinghistory")
+const Payablehistory = require("../Models/Payableshistory")
 const { DateTimeServerExpiration1, DateTimeServerExpiration2, checkmclimit, checkmglimit } = require("../Utils/utils")
 const bcrypt = require('bcrypt')
 const encrypt = async password => {
@@ -34,9 +35,220 @@ const encrypt = async password => {
     return await bcrypt.hash(password, salt);
 };
 
-exports.find = (req, res) => {
+// exports.find = (req, res) => {
+//     const pageOptions = {
+//         page: parseInt(req.query.page) || 0,
+//         limit: parseInt(req.query.limit) || 10
+//     }
 
-    Gameusers.aggregate([
+//     Gameusers.aggregate([
+//         {
+//             $lookup: {
+//                 from: "playerdetails",
+//                 let: { userId: "$_id" },
+//                 pipeline: [
+//                     {
+//                         $match: {
+//                             $expr: { $eq: ["$owner", "$$userId"] }
+//                         }
+//                     },
+//                     {
+//                         $project: {
+//                             _id: 0,
+//                             owner: 0,
+//                             createdAt: 0,
+//                             updatedAt: 0,
+//                             __v: 0
+//                             // Add other fields to exclude as needed
+//                         }
+//                     }
+//                 ],
+//                 as: "playerDetails"
+//             }
+//         },
+//         {
+//             $unwind: "$playerDetails" // Unwind the playerDetails array
+//         },
+//         {
+//             $lookup: {
+//                 from: "gameusers",
+//                 localField: "referral",
+//                 foreignField: "_id",
+//                 as: "referralUser"
+//             }
+//         },
+//         {
+//             $lookup: {
+//                 from: "pooldetails",
+//                 localField: "_id",
+//                 foreignField: "owner",
+//                 as: "userSubscription"
+//             }
+//         },
+//         {
+//             $unwind: "$userSubscription" // Unwind the userSubscription array
+//         },
+//         {
+//             $lookup: {
+//                 from: "gamewallets",
+//                 localField: "_id",
+//                 foreignField: "owner",
+//                 pipeline: [
+//                     {
+//                         $project: {
+//                             _id: 0,
+//                             owner: 0,
+//                             createdAt: 0,
+//                             updatedAt: 0,
+//                             __v: 0
+//                             // Add other fields to exclude as needed
+//                         }
+//                     }
+//                 ],
+//                 as: "userWallet"
+//             }
+//         },
+//         {
+//             $project: {
+//                 _id: 0,
+//                 username: 1,
+//                 status: 1,
+//                 referral: { $arrayElemAt: ["$referralUser.username", 0] },
+//                 createdAt: 1,
+//                 phone: "$playerDetails.phone",
+//                 email: "$playerDetails.email",
+//                 subscription: "$userSubscription.subscription",
+//                 monstercoin: {
+//                     $arrayElemAt: [
+//                       {
+//                         $map: {
+//                           input: {
+//                             $filter: {
+//                               input: "$userWallet",
+//                               as: "wallet",
+//                               cond: { $eq: ["$$wallet.wallettype", "monstercoin"] }
+//                             }
+//                           },
+//                           as: "wallet",
+//                           in: "$$wallet.amount"
+//                         }
+//                       },
+//                       0
+//                     ]
+//                 },
+//                 monstergem: {
+//                     $arrayElemAt: [
+//                       {
+//                         $map: {
+//                           input: {
+//                             $filter: {
+//                               input: "$userWallet",
+//                               as: "wallet",
+//                               cond: { $eq: ["$$wallet.wallettype", "monstergemfarm"] }
+//                             }
+//                           },
+//                           as: "wallet",
+//                           in: "$$wallet.amount"
+//                         }
+//                       },
+//                       0
+//                     ]
+//                 },
+//                 monstergemunilevel: {
+//                     $arrayElemAt: [
+//                       {
+//                         $map: {
+//                           input: {
+//                             $filter: {
+//                               input: "$userWallet",
+//                               as: "wallet",
+//                               cond: { $eq: ["$$wallet.wallettype", "monstergemunilevel"] }
+//                             }
+//                           },
+//                           as: "wallet",
+//                           in: "$$wallet.amount"
+//                         }
+//                       },
+//                       0
+//                     ]
+//                 },
+//                 walletbalance: {
+//                     $arrayElemAt: [
+//                       {
+//                         $map: {
+//                           input: {
+//                             $filter: {
+//                               input: "$userWallet",
+//                               as: "wallet",
+//                               cond: { $eq: ["$$wallet.wallettype", "balance"] }
+//                             }
+//                           },
+//                           as: "wallet",
+//                           in: "$$wallet.amount"
+//                         }
+//                       },
+//                       0
+//                     ]
+//                 },
+//                 totalincome: {
+//                     $arrayElemAt: [
+//                       {
+//                         $map: {
+//                           input: {
+//                             $filter: {
+//                               input: "$userWallet",
+//                               as: "wallet",
+//                               cond: { $eq: ["$$wallet.wallettype", "totalincome"] }
+//                             }
+//                           },
+//                           as: "wallet",
+//                           in: "$$wallet.amount"
+//                         }
+//                       },
+//                       0
+//                     ]
+//                 },
+//             }
+//         },
+//         {
+//             $sort: {
+//               createdAt: -1 // Sort in descending order based on createdAt field
+//             }
+//         },
+//         {
+//             $match: {
+//                 status: "active",
+//                 username: { $ne: "monmonland" }
+//             }
+//         },
+//         { 
+//             $skip: pageOptions.page * pageOptions.limit 
+//         },
+//         { 
+//             $limit: pageOptions.limit 
+//         },
+//     ])
+//     .then(data => {
+//         res.json({message: "success", data: data})
+//     })
+//     .catch(err => {
+//         res.json({message: "failed", data: err})
+//     })
+// }
+exports.find = async (req, res) => {
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    // Calculate total count before pagination
+    const totalCountPromise = await Gameusers.countDocuments({
+        status: { $in: ["active", "expired"] },
+        username: { $ne: "monmonland" }
+    });
+
+    // Perform the aggregation with pagination
+    const aggregationPromise = await Gameusers.aggregate([
         {
             $lookup: {
                 from: "playerdetails",
@@ -115,122 +327,143 @@ exports.find = (req, res) => {
                 subscription: "$userSubscription.subscription",
                 monstercoin: {
                     $arrayElemAt: [
-                      {
+                        {
                         $map: {
-                          input: {
+                            input: {
                             $filter: {
-                              input: "$userWallet",
-                              as: "wallet",
-                              cond: { $eq: ["$$wallet.wallettype", "monstercoin"] }
+                                input: "$userWallet",
+                                as: "wallet",
+                                cond: { $eq: ["$$wallet.wallettype", "monstercoin"] }
                             }
-                          },
-                          as: "wallet",
-                          in: "$$wallet.amount"
+                            },
+                            as: "wallet",
+                            in: "$$wallet.amount"
                         }
-                      },
-                      0
+                        },
+                        0
                     ]
                 },
                 monstergem: {
                     $arrayElemAt: [
-                      {
+                        {
                         $map: {
-                          input: {
+                            input: {
                             $filter: {
-                              input: "$userWallet",
-                              as: "wallet",
-                              cond: { $eq: ["$$wallet.wallettype", "monstergemfarm"] }
+                                input: "$userWallet",
+                                as: "wallet",
+                                cond: { $eq: ["$$wallet.wallettype", "monstergemfarm"] }
                             }
-                          },
-                          as: "wallet",
-                          in: "$$wallet.amount"
+                            },
+                            as: "wallet",
+                            in: "$$wallet.amount"
                         }
-                      },
-                      0
+                        },
+                        0
                     ]
                 },
                 monstergemunilevel: {
                     $arrayElemAt: [
-                      {
+                        {
                         $map: {
-                          input: {
+                            input: {
                             $filter: {
-                              input: "$userWallet",
-                              as: "wallet",
-                              cond: { $eq: ["$$wallet.wallettype", "monstergemunilevel"] }
+                                input: "$userWallet",
+                                as: "wallet",
+                                cond: { $eq: ["$$wallet.wallettype", "monstergemunilevel"] }
                             }
-                          },
-                          as: "wallet",
-                          in: "$$wallet.amount"
+                            },
+                            as: "wallet",
+                            in: "$$wallet.amount"
                         }
-                      },
-                      0
+                        },
+                        0
                     ]
                 },
                 walletbalance: {
                     $arrayElemAt: [
-                      {
+                        {
                         $map: {
-                          input: {
+                            input: {
                             $filter: {
-                              input: "$userWallet",
-                              as: "wallet",
-                              cond: { $eq: ["$$wallet.wallettype", "balance"] }
+                                input: "$userWallet",
+                                as: "wallet",
+                                cond: { $eq: ["$$wallet.wallettype", "balance"] }
                             }
-                          },
-                          as: "wallet",
-                          in: "$$wallet.amount"
+                            },
+                            as: "wallet",
+                            in: "$$wallet.amount"
                         }
-                      },
-                      0
+                        },
+                        0
                     ]
                 },
                 totalincome: {
                     $arrayElemAt: [
-                      {
+                        {
                         $map: {
-                          input: {
+                            input: {
                             $filter: {
-                              input: "$userWallet",
-                              as: "wallet",
-                              cond: { $eq: ["$$wallet.wallettype", "totalincome"] }
+                                input: "$userWallet",
+                                as: "wallet",
+                                cond: { $eq: ["$$wallet.wallettype", "totalincome"] }
                             }
-                          },
-                          as: "wallet",
-                          in: "$$wallet.amount"
+                            },
+                            as: "wallet",
+                            in: "$$wallet.amount"
                         }
-                      },
-                      0
+                        },
+                        0
                     ]
                 },
             }
         },
         {
-            $sort: {
-              createdAt: -1 // Sort in descending order based on createdAt field
+            $match: {
+                status: { $in: ["active", "expired"] },
+                username: { $ne: "monmonland" }
             }
         },
         {
-            $match: {
-                status: "active",
-                username: { $ne: "monmonland" }
+            $sort: {
+                createdAt: -1 // Sort in descending order based on createdAt field
             }
+        },
+        {
+            $skip: pageOptions.page * pageOptions.limit
+        },
+        {
+            $limit: pageOptions.limit
         }
-    ])
-    .then(data => {
-        res.json({message: "success", data: data})
+    ]);
+
+    // Execute both promises concurrently
+    Promise.all([totalCountPromise, aggregationPromise])
+    .then(([totalCount, data]) => {
+        const totalPages = Math.ceil(totalCount / pageOptions.limit);
+        res.json({ message: "success", data: data, pages: totalPages });
     })
     .catch(err => {
-        res.json({message: "failed", data: err})
-    })
+        res.json({ message: "failed", data: err });
+    });
 }
+
 
 exports.searchByUsername = async (req, res) => {
     const { username } = req.body
 
     const usernameRegex = new RegExp(`^${username}`, 'i');
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    const totalCountPromise = await Gameusers.countDocuments({
+        status: { $in: ["active", "expired"] },
+        username: { $regex: usernameRegex, $ne: "monmonland" }
+    });
     
-    await Gameusers.aggregate([
+    const aggregationPromise = await Gameusers.aggregate([
         {
             $lookup: {
                 from: "playerdetails",
@@ -400,31 +633,52 @@ exports.searchByUsername = async (req, res) => {
             }
         },
         {
+            $match: {
+                status: { $in: ["active", "expired"] },
+                username: { $regex: usernameRegex }
+            }
+        },
+        {
             $sort: {
               createdAt: -1 // Sort in descending order based on createdAt field
             }
         },
+        
         {
-            $match: {
-                status: "active",
-                username: { $regex: usernameRegex }
-            }
+            $skip: pageOptions.page * pageOptions.limit
+        },
+        {
+            $limit: pageOptions.limit
         }
     ])
-    .then(data => {
-        res.json({message: "success", data: data})
+
+    // Execute both promises concurrently
+    Promise.all([totalCountPromise, aggregationPromise])
+    .then(([totalCount, data]) => {
+        const totalPages = Math.ceil(totalCount / pageOptions.limit);
+        res.json({ message: "success", data: data, pages: totalPages });
     })
     .catch(err => {
-        res.json({message: "failed", data: err})
-    })
+        res.json({ message: "failed", data: err });
+    });
 }
 
-exports.searchByEmail = (req, res) => {
+exports.searchByEmail = async (req, res) => {
     const { email } = req.body;
 
     // Create a regular expression for case-insensitive prefix search
     const emailRegex = new RegExp(`^${email}`, 'i');
-    Gameusers.aggregate([
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    const totalCountPromise = await Playerdetails.countDocuments({
+        email: { $regex: emailRegex, $ne: "monmonland@gmail.com"  }
+    });  
+
+    const aggregationPromise = await Gameusers.aggregate([
         {
             $lookup: {
                 from: "playerdetails",
@@ -600,24 +854,43 @@ exports.searchByEmail = (req, res) => {
         },
         {
             $match: {
-                status: "active",
-                email: { $regex: emailRegex }
+                status: { $in: ["active", "expired"] },
+                email:  { $regex: emailRegex }
             }
+        },
+        {
+            $skip: pageOptions.page * pageOptions.limit
+        },
+        {
+            $limit: pageOptions.limit
         }
     ])
-    .then(data => {
-        res.json({ message: "success", data: data });
+    
+    Promise.all([totalCountPromise, aggregationPromise])
+    .then(([totalCount, data]) => {
+        const totalPages = Math.ceil(totalCount / pageOptions.limit);
+        res.json({ message: "success", data: data, pages: totalPages });
     })
     .catch(err => {
         res.json({ message: "failed", data: err });
     });
 };
 
-exports.searchBySubscription = (req, res) => {
+exports.searchBySubscription = async (req, res) => {
     const { subscription } = req.body;
     // Create a regular expression for case-insensitive prefix search
     const subscriptionRegex = new RegExp(`^${subscription}`, 'i');
-    Gameusers.aggregate([
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    const totalCountPromise = await Pooldetails.countDocuments({
+        subscription: subscription
+    });  
+
+    const aggregationPromise = await Gameusers.aggregate([
         {
             $lookup: {
                 from: "playerdetails",
@@ -793,20 +1066,23 @@ exports.searchBySubscription = (req, res) => {
         },
         {
             $match: {
-                status: "active",
+                status: { $in: ["active", "expired"] },
                 subscription: subscription
             }
         }
     ])
-    .then(data => {
-        res.json({ message: "success", data: data });
+
+    Promise.all([totalCountPromise, aggregationPromise])
+    .then(([totalCount, data]) => {
+        const totalPages = Math.ceil(totalCount / pageOptions.limit);
+        res.json({ message: "success", data: data, pages: totalPages });
     })
     .catch(err => {
         res.json({ message: "failed", data: err });
     });
 };
 
-exports.searchByWallet = (req, res) => {
+exports.searchByWallet = async (req, res) => {
     const { wallet } = req.body;
     
     let pangsort;
@@ -835,7 +1111,13 @@ exports.searchByWallet = (req, res) => {
     const dynamicSort = {};
     dynamicSort[pangsort] = -1;
 
-    Gameusers.aggregate([
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+
+    await Gameusers.aggregate([
         {
             $lookup: {
                 from: "playerdetails",
@@ -1009,12 +1291,16 @@ exports.searchByWallet = (req, res) => {
         },
         {
             $match: {
-                status: "active",
+                status: { $in: ["active", "expired"] },
             }
-        }
+        },
+        
     ])
     .then(data => {
-        res.json({ message: "success", data: data });
+        // Extract the total count from the result
+        const totalCount = data.length > 0 ? data.length : 0;
+        const totalPages = Math.ceil(totalCount / pageOptions.limit);
+        res.json({ message: "success", data: data, pages: totalPages });
     })
     .catch(err => {
         res.json({ message: "failed", data: err });
@@ -2389,4 +2675,87 @@ exports.filtergrinding = (req, res) => {
         .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
     })
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.getpayables = async(req, res) => {
+    const { filterValue } = req.body
+    const pipeline = [
+        {
+          $match: {
+            wallettype: "balance",
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            totalAmount: { $sum: "$amount" },
+          },
+        },
+      ];
+      
+      if (filterValue == "10") {
+        pipeline[0].$match.amount = { $gte: parseInt(filterValue, 10) };
+      }
+      
+      try {
+        const result = await Wallets.aggregate(pipeline);
+      
+        const totalAmount = result.length > 0 ? result[0].totalAmount : 0;
+      
+        res.json({ message: "success", data:  totalAmount  });
+      } catch (err) {
+        res.json({ message: "failed", data: err.message });
+      }
+
+}
+
+exports.getpayableshistory = async(req, res) => {
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    try {
+        Payablehistory.find()
+        .skip(pageOptions.page * pageOptions.limit)
+        .limit(pageOptions.limit)
+        .sort({'createdAt': 1})
+        .then(user => {
+            Payablehistory.countDocuments()
+            .then(count => {
+                const totalPages = Math.ceil(count / pageOptions.limit)
+                res.json({ message: "success", data: user, pages: totalPages })
+            })
+            .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+        })
+        .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+    } catch (err) {
+    res.json({ message: "failed", data: err.message });
+    }
+
+}
+
+exports.makeplayeractive = (req, res) => {
+
+    const { username } = req.body
+
+    Gameusers.findOne({username: username})
+    .then(async data => {
+
+        const userdata = new Gameusers ({
+            _id: new mongoose.Types.ObjectId(data._id),
+            username: data.username,
+            password: data.password,
+            status: "active",
+            referral: new mongoose.Types.ObjectId(data.referral),
+            token: "",
+            webtoken: ""
+        })
+        
+        await Gameusers.deleteOne({username: username})
+        await Gameusers.create(userdata)
+        return res.json({message: 'success'})
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    
 }

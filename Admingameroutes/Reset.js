@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { convertleaderboard, convertmonstercoin, convertmonstergem, convertmonstergemunilevel, convertpalosebo, convertsupermonmon, gameplaytimegrindingreset, gametaskreset, gameunlockreset, gamedailytaskreset, gamedailylimitreset , grantenergytoringuser, gamegrindingplayreset , resetgrindingwithmaxenergy} = require('../Admingamecontroller/Reset'),
+    { convertleaderboard, convertmonstercoin, convertmonstergem, convertmonstergemunilevel, convertpalosebo, convertsupermonmon, gameplaytimegrindingreset, gametaskreset, gameunlockreset, gamedailytaskreset, gamedailylimitreset , grantenergytoringuser, gamegrindingplayreset , resetgrindingwithmaxenergy, resetpayables} = require('../Admingamecontroller/Reset'),
     { protect } = require('../Middleware/index')
 
 router
@@ -17,4 +17,5 @@ router
     .get('/runtaskgrantenergytoringuser', protect, grantenergytoringuser)
     .get('/runtaskgrindingplayreset', protect, gamegrindingplayreset)
     .get('/runtaskgrindingwithmaxenergyreset', protect, resetgrindingwithmaxenergy)
+    .get('/runtaskpayablereset', protect, resetpayables)
 module.exports = router;

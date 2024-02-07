@@ -212,6 +212,24 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const complantools= await Communityactivity.findOne({type: "complantools"})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const complancosmetics= await Communityactivity.findOne({type: "complancosmetics"})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const additional = await Gameactivity.findOne()
+    .then(data => {
+        return data
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -230,7 +248,11 @@ exports.find = async (req, res) => {
         "complanpayin": complanpayin,
         "unilevelbonus": unilevelbonus,
         "sponsorwallet": sponsorwallet,
-        "investorfunds": investorfund
+        "investorfunds": investorfund,
+        "complantools": complantools,
+        "complancosmetics": complancosmetics,
+        "additionalmc": additional.total,
+        "additionalmg": additional.initial
     }
 
     res.json({message: "success", data: summary})

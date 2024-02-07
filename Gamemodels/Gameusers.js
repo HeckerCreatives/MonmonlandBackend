@@ -35,13 +35,14 @@ const GameusersSchema = new mongoose.Schema(
     }
 )
 
-GameusersSchema.pre("save", async function (next) {
-    if (!this.isModified) {
-      next();
-    }
+// GameusersSchema.pre("save", async function (next) {
+//     if (!this.isModified("password")) {
+//       next();
+//     }
   
-    this.password = await bcrypt.hashSync(this.password, 10)
-});
+//     this.password = await bcrypt.hashSync(this.password, 10)
+// });
+
 
 GameusersSchema.methods.matchPassword = async function(password){
     return await bcrypt.compare(password, this.password)

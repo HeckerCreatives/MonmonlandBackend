@@ -32,7 +32,7 @@ exports.protectplayer = async (req, res, next) => {
             return res.status(401).json({message: "duallogin"})
         }
 
-        if(decodeToken.status != "active"){
+        if(decodeToken.status != "active" && decodeToken.status != "expired"){
             return res.status(401).json({message: "banned"})
         }
 

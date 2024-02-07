@@ -1,6 +1,6 @@
 
 const router = require('express').Router(),
-    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem, createsponsorprize, findsponsorprize, sponsorprizeonandoff, sponsorprizedelete, editsponsorprize, getgrindinghistory, gettransactionhistory, filtertransaction, filtergrinding, searchBySubscription, searchByWallet } = require('../Admingamecontroller/Members'),
+    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem, createsponsorprize, findsponsorprize, sponsorprizeonandoff, sponsorprizedelete, editsponsorprize, getgrindinghistory, gettransactionhistory, filtertransaction, filtergrinding, searchBySubscription, searchByWallet, getpayables, getpayableshistory, makeplayeractive } = require('../Admingamecontroller/Members'),
     { protect } = require('../Middleware/index')
 
 router 
@@ -52,4 +52,7 @@ router
     .post('/filtergrinding', protect, filtergrinding)
     .post('/filterbysubscription', protect, searchBySubscription)
     .post('/filterbywallet', protect, searchByWallet)
+    .post('/getpayables', protect, getpayables)
+    .get('/getpayableshistory', protect, getpayableshistory)
+    .post('/makeactive', protect, makeplayeractive)
 module.exports = router;

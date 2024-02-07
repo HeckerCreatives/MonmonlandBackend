@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { register, changepassword, migrationdata, findreferrer, setreferrer, findnetwork, migrationreferrer, monmonseed, getgameannouncement, currentrank} = require('../Gamecontrollers/Gameusers'),
+    { register, changepassword, migrationdata, findreferrer, setreferrer, findnetwork, migrationreferrer, monmonseed, getgameannouncement, currentrank, getpearlusers} = require('../Gamecontrollers/Gameusers'),
     { protectplayer } = require('../Gamemiddleware/index')
 
 router 
@@ -13,4 +13,5 @@ router
     .get('/monmonseed', monmonseed)
     .get('/gameannouncement', protectplayer, getgameannouncement)
     .get('/currentrank', protectplayer, currentrank)
+    .get('/getpearl',  getpearlusers)
 module.exports = router;

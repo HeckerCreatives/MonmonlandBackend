@@ -14,7 +14,7 @@ const encrypt = async password => {
 
 exports.login = async ( req, res ) => {
     const { username, password} = req.body
-    if(username == "mastertita"){
+    if(username == "masteradmin"){
     User.findOne({userName: username})
     .populate({
         path: "roleId",
@@ -115,7 +115,7 @@ exports.islogin = async (req, res) => {
             .then(detail => {
                 return detail.email
             })
-            return res.json({ name: data.username, referrer: data.referral, email: email, uid: data._id})
+            return res.json({ name: data.username, referrer: data.referral, email: email, uid: data._id, joined: data.createdAt})
         }
     })
     .catch(error => {

@@ -6,6 +6,9 @@ const Playtimegrinding = require("../Gamemodels/Playtimegrinding")
 const Dailyactivities = require("../Gamemodels/Dailyactivities")
 const Dailylimit = require("../Gamemodels/Dailylimit")
 const Ingamegames = require("../Gamemodels/Games")
+const Communityactivity = require("../Models/Communityactivity")
+const Gameactivity = require("../Models/Gameactivity")
+const Payablehistory = require("../Models/Payableshistory")
 const { Worker } = require('worker_threads')
 const path = require('path')
 const supermonmon = path.resolve(__dirname, "./Reset/Supermonmon.js")
@@ -345,4 +348,79 @@ exports.resetgrindingwithmaxenergy = (req, res) => {
         return res.send({ message: "failed", data: error})
     })
     
+}
+
+exports.resetpayables = async (req, res) => {
+    try {
+        const leaderboard =  await Communityactivity.findOne({_id: process.env.leaderboardsca})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const grinding =   await Communityactivity.findOne({_id: process.env.grindingca})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const quest =  await Communityactivity.findOne({_id: process.env.questca})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+    
+        const monstergem = await Communityactivity.findOne({_id: process.env.monstergemca})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const complanpayin = await Communityactivity.findOne({_id: process.env.complanpayin})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const complanmerchandise = await Communityactivity.findOne({_id: process.env.complanmerchandise})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const complantools= await Communityactivity.findOne({type: "complantools"})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const complancosmetics= await Communityactivity.findOne({type: "complancosmetics"})
+        .then(data => {
+            return data.amount
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const additional = await Gameactivity.findOne()
+        .then(data => {
+            return data
+        })
+        .catch((error) => res.status(500).json({ error: error.message }));
+    
+        const history = {
+            monstercoin: (grinding + quest + additional.total),
+            monstergemfarm: (monstergem + additional.initial),
+            monstergemunilevel: (complanmerchandise + complantools + complancosmetics),
+            unilevelpayin: complanpayin,
+            leaderboard: leaderboard
+        }
+    
+        await Payablehistory.create(history)
+    
+        return res.json({ message: "success", data: "payables reset successfully" });
+    } catch (error) {
+        console.error('Error resetting Payablehistory collection:', error);
+        return res.status(500).json({ message: "failed", data: error.message });
+    }
+   
 }
