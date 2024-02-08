@@ -28,13 +28,14 @@ exports.mcvalue = (req, res) => {
             .then(grind => {
                 Communityactivity.findOne({type: "quest"})
                 .then(quest => {
-                    Communityactivity.findOne({type: "investorfunds"})
-                    .then(investorfund => {
-                        const value = grind.amount + quest.amount + header.total + ads + investor + investorfund.amount
-                        const fnal = value / mc.amount
-                        // , totalmc: mc.amount, totalincome: value
-                        res.json({message: "success", data: fnal})
-                    })
+                    const value = grind.amount + quest.amount + header.total + ads + investor
+                    const fnal = value / mc.amount
+                    // , totalmc: mc.amount, totalincome: value
+                    res.json({message: "success", data: fnal})
+                    // Communityactivity.findOne({type: "investorfunds"})
+                    // .then(investorfund => {
+                        
+                    // })
                 })
                 .catch((error) => res.status(500).json({ error: error.message }));
             })

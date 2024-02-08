@@ -21,7 +21,6 @@ exports.login = async ( req, res ) => {
         select: "display_name"
     })
     .then(async user => {
-        console.log("qweqwe")
         if(user && (await user.matchPassword(password))){
             if (!user){
                 return res.send({ message: "failed", data: "Account Not Found"})
@@ -65,7 +64,7 @@ exports.login = async ( req, res ) => {
         .then(async user => {
             if(user && (await user.matchPassword(password))){
                 if(user.status === "banned"){
-                    res.json({message: "falied", data: "Account not found"})
+                    res.json({message: "failed", data: "Account is banned. please contact and admin"})
                 } else {
                     const token = await encrypt(privateKey)
     

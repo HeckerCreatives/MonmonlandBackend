@@ -25,6 +25,16 @@ exports.protect = async (req, res, next) => {
   } else {
     try {
       const decodeToken = await verifyJWT(token)
+
+      const userdata = await User.findOne({_id: decodeToken._id })
+      .select('-password')
+      .then(data => data)
+      .catch(err => res.status(401).json({expired: "Unathorized"}))
+
+      if(token != userdata.token){
+          return res.status(401).json({expired: "duallogin"})
+      }
+
       req.user = decodeToken
       next()
     } catch (error) {

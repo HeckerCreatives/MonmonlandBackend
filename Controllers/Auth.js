@@ -25,7 +25,7 @@ module.exports.Login = (request, response) => {
 
                 let token = ''
 
-                const payload = { _id: user._id, username: email, role: user.roleId, playfabid: user.playfabid }
+                const payload = { _id: user._id, username: email, role: user.roleId, playfabid: user.playfabid,}
 
                 try {
                     token = await jsonwebtokenPromisified.sign(payload, privateKey, { algorithm: 'RS256' } )
