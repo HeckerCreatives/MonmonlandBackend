@@ -560,8 +560,8 @@ exports.getdpstatus = async (req, res) => {
     }
 
     const response = await axios(config);
-
-    res.json(response)
+    console.log(response)
+    res.json({data: response.data})
 }
 
 exports.getavailabledpchannel = async (req, res) => {
@@ -576,6 +576,6 @@ exports.getavailabledpchannel = async (req, res) => {
     }
 
     const response = await axios(config);
-
-    res.json(response)
+    console.log(response)
+    res.json({data: response.data})
 }
