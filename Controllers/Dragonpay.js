@@ -546,3 +546,36 @@ exports.createpayout = async (info) => {
         return 'failed';
     }
 }
+
+exports.getdpstatus = async (req, res) => {
+    const TnxId = process.env.merchantid
+    const apiKey = process.env.merchantapi
+    const config = {
+        method: 'get',
+        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/MMLGBS/${TnxId}`,
+        headers: { 
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+    }
+
+    const response = await axios(config);
+
+    res.json(response)
+}
+
+exports.getavailabledpchannel = async (req, res) => {
+    const apiKey = process.env.merchantapi
+    const config = {
+        method: 'get',
+        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/processors`,
+        headers: { 
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+        },
+    }
+
+    const response = await axios(config);
+
+    res.json(response)
+}

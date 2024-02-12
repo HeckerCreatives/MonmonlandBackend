@@ -9,4 +9,6 @@ router.post("/createpayout", Dragonpay.createpayout)
 router.get("/verifypayout", Dragonpay.verifypayout)
 router.post("/subscribe", Dragonpay.subscribe)
 router.post("/track", Dragonpay.track)
+router.get("/dpstatus", Dragonpay.getdpstatus)
+router.get("/dpchannel", Dragonpay.getavailabledpchannel)
 module.exports = router
