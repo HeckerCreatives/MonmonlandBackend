@@ -548,11 +548,11 @@ exports.createpayout = async (info) => {
 }
 
 exports.getdpstatus = async (req, res) => {
-    const TnxId = process.env.merchantid
+    const {TnxId} = req.body
     const apiKey = process.env.merchantapi
     const config = {
         method: 'get',
-        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/MMLGBS/${TnxId}`,
+        url: `${DragonpayURL}/payout/merchant/v1/MMLGBS/${TnxId}`,
         headers: { 
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
@@ -568,7 +568,7 @@ exports.getavailabledpchannel = async (req, res) => {
     const apiKey = process.env.merchantapi
     const config = {
         method: 'get',
-        url: `https://gw.dragonpay.ph/api/payout/merchant/v1/processors`,
+        url: `${DragonpayURL}/payout/merchant/v1/processors`,
         headers: { 
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
