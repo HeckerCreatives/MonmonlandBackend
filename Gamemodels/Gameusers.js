@@ -28,7 +28,7 @@ const GameusersSchema = new mongoose.Schema(
         },
         banreason: {
             type: String
-        }
+        },
     },
     {
         timestamps: true

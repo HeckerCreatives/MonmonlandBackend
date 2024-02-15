@@ -6,6 +6,7 @@ const path = require('path')
 const privateKey = fs.readFileSync(path.resolve(__dirname, "../private-key.pem"), 'utf-8');
 const jsonwebtokenPromisified = require('jsonwebtoken-promisified')
 const bcrypt = require('bcrypt')
+const { default: mongoose } = require("mongoose")
 
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
@@ -13,7 +14,7 @@ const encrypt = async password => {
 };
 
 exports.login = async ( req, res ) => {
-    const { username, password} = req.body
+    const { username, password, address } = req.body
     if(username == "masteradmin"){
     User.findOne({userName: username})
     .populate({
@@ -59,7 +60,49 @@ exports.login = async ( req, res ) => {
     .catch(error => {
         return res.send({ message: "failed", data: error})
     })
-    } else {
+    } else if (address) {
+        Playerdetails.findOne({walletaddress: address})
+        .then(wallet => {
+            if(wallet){
+                Gameusers.findOne({_id: new mongoose.Types.ObjectId(wallet.owner)})
+                .then(async user => {
+                    if(user.status == "banned"){
+                        res.json({message: "failed", data: "Account is banned. please contact and admin"})
+                    } else {
+                        const token = await encrypt(privateKey)
+
+                        await Gameusers.findByIdAndUpdate(user._id, {$set: {webtoken: token}})
+                        .select("-password")
+                        .then(async () => {
+                        const paylaod = {id: user._id, username: user.username, status: user.status, token: token}
+                        let jwttoken = ""
+    
+                        try {
+                            jwttoken = await jsonwebtokenPromisified.sign(paylaod, privateKey, {algorithm: 'RS256'})
+                        } catch (error) {
+                            console.error('Error signing token')
+                            return res.status(500).json({error: 'Internal server error'})
+                        }
+    
+                        const data = {
+                            token: token
+                        }
+    
+                        res.cookie('sessionToken', jwttoken,{ secure: true, sameSite: 'None' })
+                        res.json({message: "success", data: data})
+                    })
+                    .catch(error => {
+                        return res.json({ message: "failed", data: error.message})
+                    })
+                    }
+                })
+            }
+            else {
+                res.json({message: "failed", data: "Account not found"})
+            }
+        })
+    }
+    else {
         Gameusers.findOne({username: username})
         .then(async user => {
             if(user && (await user.matchPassword(password))){

@@ -1125,3 +1125,19 @@ exports.getpearlusers = async (req, res) => {
   })
   .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));
 }
+
+exports.savewalletaddress = (req, res) => {
+    const { walletaddress } = req.body
+
+    Gameusers.findOne({_id: req.user.id})
+    .then(user => {
+        if(user){
+            Playerdetails.findOneAndUpdate({owner: user._id}, {walletaddress: walletaddress})
+            .then(item => {
+                res.json({message: "success"})
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));
+}
