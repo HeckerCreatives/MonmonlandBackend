@@ -15,8 +15,8 @@ const GrindingHistory = require("../Gamemodels/Grindinghistory")
 const Payouthistory = require("../Models/Payout")
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const { default: mongoose } = require('mongoose')
-
-
+const { nanoid } = require("nanoid")
+const Buytokenhistory = require("../Gamemodels/Buytokenhistory")
 exports.find = async (req, res) => {
     
     Wallets.find({owner: req.user.id})
@@ -420,4 +420,23 @@ exports.filtergrinding = (req, res) => {
         res.json({message: 'success', data: data})
     })
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.buymmt = async (req, res) => {
+    const { amount } = req.body
+
+    const balance = await Wallets.findOne({owner: req.user.id, wallettype: 'balance'}).then(data => data.amount)
+
+    const customid = nanoid(10)
+
+    if(balance < amount){
+        return res.json({message: 'failed', data: 'Not Enough Balance'})
+    }
+
+    const buytoken = {
+        owner: req.user.id,
+        id: customid,
+        type: "MMT",
+        tokenreceive: "",
+    }
 }

@@ -6,12 +6,8 @@ const SponsorSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Gameusers"
         },
-        type: {
+        itemwon: {
             type: String,
-        },
-        amount: {
-            type: Number,
-            default: 0
         },
     },
     {

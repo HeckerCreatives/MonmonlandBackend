@@ -33,7 +33,7 @@ parentPort.on('message', async (data) => {
       const playerlist = [
         {
           $match: {
-            subscription: { $in: ['Pearl', 'Ruby', 'Emerald', 'Diamond'] }
+            subscription: { $in: ['Pearl','Pearlplus', 'Ruby', 'Emerald', 'Diamond'] }
           },
         },
         {

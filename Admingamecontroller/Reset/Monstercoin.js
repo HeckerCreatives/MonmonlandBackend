@@ -40,9 +40,8 @@ parentPort.on('message', async (data) => {
   
           const grinding = finalcommunityval.filter(e => e.type == "grinding")
           const quest = finalcommunityval.filter(e => e.type == "quest")
-          const investorfundval = finalcommunityval.filter(e => e.type == "investorfunds")
 
-          const mclimit = investorfundval[0].amount + grinding[0].amount + quest[0].amount + gameactivityval.total + adsval.amount + investorval.amount
+          const mclimit =  grinding[0].amount + quest[0].amount + gameactivityval.total + adsval.amount + investorval.amount
   
           const mcvalue = mclimit / (totalmcval.amount == 0 ? 1 : totalmcval.amount)
   
@@ -55,7 +54,7 @@ parentPort.on('message', async (data) => {
       const playerlist = [
         {
           $match: {
-            subscription: { $in: ['Pearl', 'Ruby', 'Emerald', 'Diamond'] }
+            subscription: { $in: ['Pearl', 'Pearlplus', 'Ruby', 'Emerald', 'Diamond'] }
           },
         },
         {
@@ -195,13 +194,9 @@ parentPort.on('message', async (data) => {
         filter: { type: "quest" },
         update: { $set: { amount: 0 } }
       },
-      updateOne: {
-        filter: { type: "investorfunds" },
-        update: { $set: { amount: 0 } }
-      }
     }])
 
-    await mchistory.insertOne({amount: mcvalue, leaderboardamount: 0, grindingamount: grinding[0].amount, questamount: quest[0].amount, totalmcfarmed: totalmcfarmed, totalmgfarmed: totalmgfarmed, investorfundca: investorfundval[0].amount, createdAt: createdat})
+    await mchistory.insertOne({amount: mcvalue, leaderboardamount: 0, grindingamount: grinding[0].amount, questamount: quest[0].amount, totalmcfarmed: totalmcfarmed, totalmgfarmed: totalmgfarmed, createdAt: createdat})
 
     await ingamegame.updateMany({}, { $set: { status: "pending", timestarted: 0, unixtime: 0, harvestmc: 0, harvestmg: 0, harvestap: 0}})
 

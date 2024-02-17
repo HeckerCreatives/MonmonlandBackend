@@ -1814,17 +1814,25 @@ exports.fiesta = async(req, res) => {
 }
 
 exports.sponsor = (req, res) => {
-    const { type } = req.body
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
 
-    Sponsor.find({type: type})
+    Sponsor.find()
     .populate({
         path: "owner",
         select: "username"
     })
-    .sort({amount: -1})
-    .limit(15)
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .sort({createdAt: -1})
     .then(data => {
-        res.json({message: "success", data: data})
+        Sponsor.countDocuments()
+        .then(count => {
+            const totalPages = Math.ceil(count / pageOptions.limit)
+            res.json({ message: "success", data: data, pages: totalPages})
+        })
     })
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
 
