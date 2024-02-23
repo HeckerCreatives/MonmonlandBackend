@@ -17,6 +17,17 @@ const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const { default: mongoose } = require('mongoose')
 const { nanoid } = require("nanoid")
 const Buytokenhistory = require("../Gamemodels/Buytokenhistory")
+const Token = require("../Gamemodels/Token")
+const TokenTransactions = require("../Gamemodels/Tokentransaction")
+const SubsAccumulated = require("../Models/SubsAccumulated")
+const { checkmaintenance } = require("../Utils/utils")
+const { sendcommissiontounilevel, checkwalletamount, addwalletamount, getwalletamount } = require("../Utils/Walletutils")
+const { getsubsamount, getpooldetails } = require("../Utils/Pooldetailsutils")
+const { addanalytics } = require("../Utils/Analytics")
+const { computecomplan } = require("../Utils/Communityactivityutils")
+const { addtototalfarmmc } = require("../Utils/Gameutils")
+
+
 exports.find = async (req, res) => {
     
     Wallets.find({owner: req.user.id})
@@ -423,20 +434,1148 @@ exports.filtergrinding = (req, res) => {
 }
 
 exports.buymmt = async (req, res) => {
-    const { amount } = req.body
+    const { amount, tokenreceive, transactiontype } = req.body
+    const customid = nanoid(10)
+    if(transactiontype == "walletbalance"){
+        const balance = await Wallets.findOne({owner: req.user.id, wallettype: 'balance'}).then(data => data.amount)
 
-    const balance = await Wallets.findOne({owner: req.user.id, wallettype: 'balance'}).then(data => data.amount)
+        if(balance < amount){
+            return res.json({message: 'failed', data: 'Not Enough Balance'})
+        }
+
+        await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'balance'}, {$inc: {amount: -amount}})
+        .then(async data => {
+
+            if(data){
+                await Token.findOne({owner: req.user.id, type: "MMT"})
+                .then(async token => {
+                    if(token){
+                        const buytoken = {
+                            owner: req.user.id,
+                            id: customid,
+                            type: "MMT",
+                            tokenreceive: tokenreceive,
+                            amount: amount,
+                            transactiontype: transactiontype
+                        }
+                        
+                        const wallet = {
+                            owner: req.user.id,
+                            type: "Buy MMT Token",
+                            description: "Buy MMT Token",
+                            amount: amount,
+                            historystructure: "mmt token buy using wallet balance"
+                        }
+                        
+                        await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                        await Buytokenhistory.create(buytoken)
+                        await Wallethistory.create(wallet)
+                        await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                        res.json({message: "success", data: "Buy Token Successfully"})
+                    } else {
+                        const tokenwallet = {
+                            owner: req.user.id,
+                            type: "MMT",
+                            amount: tokenreceive
+                        }
+
+                        await Token.create(tokenwallet)
+
+                        const buytoken = {
+                            owner: req.user.id,
+                            id: customid,
+                            type: "MMT",
+                            tokenreceive: tokenreceive,
+                            amount: amount,
+                            transactiontype: transactiontype
+                        }
+                        
+                        const wallet = {
+                            owner: req.user.id,
+                            type: "Buy MMT Token",
+                            description: "Buy MMT Token",
+                            amount: amount,
+                            historystructure: "mmt token buy using wallet balance"
+                        }
+                
+                        await Buytokenhistory.create(buytoken)
+                        await Wallethistory.create(wallet)
+                        await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                        res.json({message: "success", data: "Buy Token Successfully"})
+                    }
+                    
+                })
+                .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+            }
+
+        
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "monstergem"){
+        const balance1 = await Wallets.findOne({owner: req.user.id, wallettype: 'monstergemunilevel'}).then(data => data.amount)
+
+        const balance2 = await Wallets.findOne({owner: req.user.id, wallettype: 'monstergemfarm'}).then(data => data.amount)
+
+        if(balance1 >= amount){
+            await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'monstergemunilevel'}, {$inc: {amount: -amount}})
+            .then(async data => {
+
+                if(data){
+                    await Token.findOne({owner: req.user.id, type: "MMT"})
+                    .then(async token => {
+                        if(token){
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MMT Token",
+                                description: "Buy MMT Token",
+                                amount: amount,
+                                historystructure: "mmt token buy using monstegemunilevel balance"
+                            }
+                            
+                            await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        } else {
+                            const tokenwallet = {
+                                owner: req.user.id,
+                                type: "MMT",
+                                amount: tokenreceive
+                            }
+
+                            await Token.create(tokenwallet)
+
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MMT Token",
+                                description: "Buy MMT Token",
+                                amount: amount,
+                                historystructure: "mmt token buy using monstergemunilevel balance"
+                            }
+                    
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        }
+                        
+                    })
+                    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+                }
+
+            
+            })
+            .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+        } else if (balance2 >= amount){
+            await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'monstergemfarm'}, {$inc: {amount: -amount}})
+            .then(async data => {
+
+                if(data){
+                    await Token.findOne({owner: req.user.id, type: "MMT"})
+                    .then(async token => {
+                        if(token){
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MMT Token",
+                                description: "Buy MMT Token",
+                                amount: amount,
+                                historystructure: "mmt token buy using monstergemfarm balance"
+                            }
+                            
+                            await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        } else {
+                            const tokenwallet = {
+                                owner: req.user.id,
+                                type: "MMT",
+                                amount: tokenreceive
+                            }
+
+                            await Token.create(tokenwallet)
+
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MMT Token",
+                                description: "Buy MMT Token",
+                                amount: amount,
+                                historystructure: "mmt token buy using monstergemfarm balance"
+                            }
+                    
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        }
+                        
+                    })
+                    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+                }
+
+            
+            })
+            .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+        } else {
+            res.json({message: "failed", data: "You don't have enough monster gem balance"})
+        }
+    } else if (transactiontype == "bnb"){
+        await Token.findOne({owner: req.user.id, type: "MMT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (BNB)",
+                    amount: amount,
+                    historystructure: "mmt token buy using bnb balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MMT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (BNB)",
+                    amount: amount,
+                    historystructure: "mmt token buy using bnb balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "usdt"){
+        await Token.findOne({owner: req.user.id, type: "MMT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (USDT)",
+                    amount: amount,
+                    historystructure: "mmt token buy using usdt balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MMT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (USDT)",
+                    amount: amount,
+                    historystructure: "mmt token buy using usdt balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "busd"){
+        await Token.findOne({owner: req.user.id, type: "MMT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (BUSD)",
+                    amount: amount,
+                    historystructure: "mmt token buy using busd balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MMT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MMT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MMT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MMT Token",
+                    description: "Buy MMT Token (BUSD)",
+                    amount: amount,
+                    historystructure: "mmt token buy using busd balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mmttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    }
+
+}
+
+exports.buymmc = async (req, res) => {
+    const { amount, tokenreceive, transactiontype } = req.body
 
     const customid = nanoid(10)
 
-    if(balance < amount){
-        return res.json({message: 'failed', data: 'Not Enough Balance'})
+    if(transactiontype == "walletbalance"){
+        const balance = await Wallets.findOne({owner: req.user.id, wallettype: 'balance'}).then(data => data.amount)
+
+        if(balance < amount){
+            return res.json({message: 'failed', data: 'Not Enough Balance'})
+        }
+    
+        await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'balance'}, {$inc: {amount: -amount}})
+        .then(async data => {
+    
+            if(data){
+                await Token.findOne({owner: req.user.id, type: "MCT"})
+                .then(async token => {
+                    if(token){
+                        const buytoken = {
+                            owner: req.user.id,
+                            id: customid,
+                            type: "MCT",
+                            tokenreceive: tokenreceive,
+                            amount: amount,
+                            transactiontype: transactiontype
+                        }
+                        
+                        const wallet = {
+                            owner: req.user.id,
+                            type: "Buy MCT Token",
+                            description: "Buy MCT Token",
+                            amount: amount,
+                            historystructure: "mct token buy using wallet balance"
+                        }
+    
+                        await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"}, {$inc: {amount: tokenreceive}})
+                        await Buytokenhistory.create(buytoken)
+                        await Wallethistory.create(wallet)
+                        await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                        res.json({message: "success", data: "Buy Token Successfully"})
+                    } else {
+                        const tokenwallet = {
+                            owner: req.user.id,
+                            type: "MCT",
+                            amount: tokenreceive
+                        }
+    
+                        await Token.create(tokenwallet)
+    
+                        const buytoken = {
+                            owner: req.user.id,
+                            id: customid,
+                            type: "MCT",
+                            tokenreceive: tokenreceive,
+                            amount: amount,
+                            transactiontype: transactiontype
+                        }
+                        
+                        const wallet = {
+                            owner: req.user.id,
+                            type: "Buy MCT Token",
+                            description: "Buy MCT Token",
+                            amount: amount,
+                            historystructure: "mct token buy using wallet balance"
+                        }
+                
+                        await Buytokenhistory.create(buytoken)
+                        await Wallethistory.create(wallet)
+                        await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                        res.json({message: "success", data: "Buy Token Successfully"})
+                    }
+                    
+                })
+                .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+            }
+    
+           
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "monstergem"){
+        const balance1 = await Wallets.findOne({owner: req.user.id, wallettype: 'monstergemunilevel'}).then(data => data.amount)
+
+        const balance2 = await Wallets.findOne({owner: req.user.id, wallettype: 'monstergemfarm'}).then(data => data.amount)
+
+        if(balance1 >= amount){
+            await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'monstergemunilevel'}, {$inc: {amount: -amount}})
+            .then(async data => {
+        
+                if(data){
+                    await Token.findOne({owner: req.user.id, type: "MCT"})
+                    .then(async token => {
+                        if(token){
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MCT Token",
+                                description: "Buy MCT Token",
+                                amount: amount,
+                                historystructure: "mct token buy using monstergemunilevel balance"
+                            }
+        
+                            await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"}, {$inc: {amount: tokenreceive}})
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        } else {
+                            const tokenwallet = {
+                                owner: req.user.id,
+                                type: "MCT",
+                                amount: tokenreceive
+                            }
+        
+                            await Token.create(tokenwallet)
+        
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokenreceive,
+                                amount: amount
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MCT Token",
+                                description: "Buy MCT Token",
+                                amount: amount,
+                                historystructure: "mct token buy using monstergemunilevel balance"
+                            }
+                    
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        }
+                        
+                    })
+                    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+                }
+        
+            
+            })
+            .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+        } else if (balance2 >= amount){
+            await Wallets.findOneAndUpdate({owner: req.user.id, wallettype: 'monstergemfarm'}, {$inc: {amount: -amount}})
+            .then(async data => {
+        
+                if(data){
+                    await Token.findOne({owner: req.user.id, type: "MCT"})
+                    .then(async token => {
+                        if(token){
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MCT Token",
+                                description: "Buy MCT Token",
+                                amount: amount,
+                                historystructure: "mct token buy using monstergemfarm balance"
+                            }
+        
+                            await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"}, {$inc: {amount: tokenreceive}})
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        } else {
+                            const tokenwallet = {
+                                owner: req.user.id,
+                                type: "MCT",
+                                amount: tokenreceive
+                            }
+        
+                            await Token.create(tokenwallet)
+        
+                            const buytoken = {
+                                owner: req.user.id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokenreceive,
+                                amount: amount,
+                                transactiontype: transactiontype
+                            }
+                            
+                            const wallet = {
+                                owner: req.user.id,
+                                type: "Buy MCT Token",
+                                description: "Buy MCT Token",
+                                amount: amount,
+                                historystructure: "mct token buy using monstergemfarm balance"
+                            }
+                    
+                            await Buytokenhistory.create(buytoken)
+                            await Wallethistory.create(wallet)
+                            await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                            res.json({message: "success", data: "Buy Token Successfully"})
+                        }
+                        
+                    })
+                    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+                }
+        
+            
+            })
+            .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+        } else {
+            res.json({message: "success", data: "You don't have enough monster gem balance"})
+        }
+    } else if (transactiontype == "bnb"){
+        await Token.findOne({owner: req.user.id, type: "MCT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (BNB)",
+                    amount: amount,
+                    historystructure: "mct token buy using bnb balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MCT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (BNB)",
+                    amount: amount,
+                    historystructure: "mct token buy using bnb balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "usdt"){
+        await Token.findOne({owner: req.user.id, type: "MCT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (USDT)",
+                    amount: amount,
+                    historystructure: "mct token buy using usdt balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MCT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (USDT)",
+                    amount: amount,
+                    historystructure: "mct token buy using usdt balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    } else if (transactiontype == "busd"){
+        await Token.findOne({owner: req.user.id, type: "MCT"})
+        .then(async token => {
+            if(token){
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (BUSD)",
+                    amount: amount,
+                    historystructure: "mct token buy using busd balance"
+                }
+                
+                await Token.findOneAndUpdate({owner: req.user.id, type: "MCT"},{$inc:{amount: tokenreceive}})
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            } else {
+                const tokenwallet = {
+                    owner: req.user.id,
+                    type: "MCT",
+                    amount: tokenreceive
+                }
+
+                await Token.create(tokenwallet)
+
+                const buytoken = {
+                    owner: req.user.id,
+                    id: customid,
+                    type: "MCT",
+                    tokenreceive: tokenreceive,
+                    amount: amount,
+                    transactiontype: transactiontype
+                }
+                
+                const wallet = {
+                    owner: req.user.id,
+                    type: "Buy MCT Token",
+                    description: "Buy MCT Token (BUSD)",
+                    amount: amount,
+                    historystructure: "mct token buy using busd balance"
+                }
+        
+                await Buytokenhistory.create(buytoken)
+                await Wallethistory.create(wallet)
+                await Communityactivity.findOneAndUpdate({type: "mcttoken"},{$inc: {amount: amount}})
+                res.json({message: "success", data: "Buy Token Successfully"})
+            }
+            
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
     }
 
-    const buytoken = {
+    
+    
+
+}
+
+exports.mytoken = (req,res) => {
+
+    Token.find({owner: req.user.id})
+    .sort({createdAt: -1})
+    .then(data => {
+        const mct = data.find(e => e.type == "MCT")
+        const mmt = data.find(e => e.type == "MMT")
+
+        res.json({message: "success", data: mmt?.amount, data2: mct?.amount})
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.mytokenbuyhistory = (req,res) => {
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    Buytokenhistory.find({owner: req.user.id})
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .sort({createdAt: -1})
+    .then(data => {
+        Buytokenhistory.countDocuments({owner: req.user.id})
+        .then(count => {
+            const totalPages = Math.ceil(count / pageOptions.limit)
+            res.json({ message: "success", data: data, pages: totalPages })
+        })
+        .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.tokenwithdrawhistory = (req, res) => {
+    const {amount , token, metamaskwallet, claimedAt, hash} = req.body
+
+    const withdrawtransaction = {
         owner: req.user.id,
-        id: customid,
-        type: "MMT",
-        tokenreceive: "",
+        wallet: metamaskwallet,
+        hash: hash,
+        amount: amount,
+        type: token,
+        claimedAt: claimedAt
     }
+
+    TokenTransactions.create(withdrawtransaction)
+    .then(data => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.withdrawtoken = (req, res) => {
+    const { amount , token } = req.body
+
+    Token.findOne({owner: req.user.id, type: token})
+    .then(async tokens => {
+        if(tokens){
+            if(amount > tokens.amount){
+                res.json({message: "failed", data: "You don't have enough balance"})
+                return
+            }
+
+            await Token.findOneAndUpdate({owner: req.user.id, type: token},{$inc: {amount: -amount}})
+            .then(data => {
+                if(data){
+                    res.json({message: "success"})
+                }
+            })
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+        } else {
+            res.json({message: "failed", data: "Token wallet not found"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.buysubscription = async (req, res) => {
+    const { id } = req.user
+    const { substype } = req.body
+
+    const maintenance = await checkmaintenance("maintenancesubscription")
+
+    if (maintenance == "1") {
+        return res.json({message: "maintenance"})
+    }
+
+    if (substype != "Pearlplus" && substype != "Ruby" && substype != "Emerald" && substype != "Diamond"){
+        return res.json({message: "subsnotexist"})
+    }
+
+    let subsamount = getsubsamount(substype);
+
+    if (subsamount <= 0){
+        return res.json({message: "subsamountiszero"})
+    }
+
+    const pooldetails = await getpooldetails(id)
+
+    if (pooldetails == "bad-request"){
+        return res.status(400).json({ message: "bad-request" })
+    }
+
+    if (pooldetails == "erroraccount"){
+        return res.json({ message: "erroraccount" })
+    }
+
+    const previoussubs = getsubsamount(pooldetails.subscription)
+
+    if (substype == pooldetails.subscription){
+        return res.json({message: "samesubs"})
+    }
+    
+    const finalsubsamount = subsamount - previoussubs
+
+    const checkwallet = await checkwalletamount(finalsubsamount, id)
+
+    if (checkwallet == "notexist"){
+        return res.json({message: "walletnotexist"})
+    }
+
+    if (checkwallet == "notenoughfunds"){
+        return res.json({message: "notenoughfunds"})
+    }
+
+    if (checkwallet == "bad-request"){
+        return res.status(400).json({ message: "bad-request" })
+    }
+
+    const sendcoms = await sendcommissiontounilevel(finalsubsamount, id, substype);
+    
+    if (sendcoms == "bad-request"){
+        console.log("fck")
+        await addwalletamount(id, "balance", finalsubsamount)
+
+        return res.status(400).json({ message: "bad-request" })
+    }
+
+    if (sendcoms == "success"){
+        await Pooldetails.findOneAndUpdate({owner: new mongoose.Types.ObjectId(id)}, [
+            {
+                $set: {
+                    subscription: substype,
+                    status: {
+                        $cond: {
+                            if: {
+                                $eq: [substype, "Diamond"]
+                            },
+                            then: "Active",
+                            else: "Inactive"
+                        }
+                    },
+                    rank: "none"
+                }
+            }
+        ])
+        .then(async () => {
+            const complan = await computecomplan(finalsubsamount)
+
+            if (complan != "success"){
+                return res.status(400).json({ message: "bad-request" })
+            }
+
+            const walletamount = await getwalletamount(id, "monstercoin")
+
+            if (!walletamount){
+                return res.json({message: "nowallet"})
+            }
+
+            const addtotalmc = await addtototalfarmmc(walletamount.amount, 0)
+
+            if (addtotalmc.message != "success"){
+                return res.json({message: "failed"})
+            }
+
+            await SubsAccumulated.findOneAndUpdate({subsname: substype.toLowerCase()}, {$inc: {amount: finalsubsamount}})
+            .then(async () => {
+                const analyticsadd = await addanalytics(id, `Buy Subscription (${substype})`, finalsubsamount)
+
+                if (analyticsadd == "bad-request"){
+                    return res.status(400).json({ message: "bad-requestasdfasd" })
+                }
+
+                return res.json({message: "success"})
+            })
+            .catch(err => res.status(400).json({ message: "bad-request whaat", data: err.message }))
+        })
+        .catch(err => res.status(400).json({ message: "bad-request shiiit", data: err.message }))
+    }
+    else{
+        await addwalletamount(id, "balance", finalsubsamount)
+        return res.json({message: "failed"})
+    }
+
+}
+
+exports.totaltokens = (req, res) => {
+    Buytokenhistory.find()
+    .then(tokens => {
+        // Filter tokens based on type
+        const MMTTokens = tokens.filter(e => e.type === "MMT");
+        const MCTTokens = tokens.filter(e => e.type === "MCT");
+
+        // Calculate sum of amounts for each type
+        const sumMMT = MMTTokens.reduce((acc, token) => acc + token.tokenreceive, 0);
+        const sumMCT = MCTTokens.reduce((acc, token) => acc + token.tokenreceive, 0);
+
+        res.json({ message: "success", data: sumMMT, data2: sumMCT });
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+};
+
+exports.deposittoken = (req, res) => {
+    const { token, amount, hash, walletaddress, depositAt } = req.body
+    Token.findOne({owner: req.user.id, type: token})
+    .then(async data => {
+        if(data){
+
+            const deposithistory = {
+                owner: req.user.id,
+                wallet: walletaddress,
+                hash: hash,
+                amount: amount,
+                type: token,
+                depositAt: depositAt
+            }
+            await TokenTransactions.create(deposithistory)
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
+            await Token.findOneAndUpdate({owner: req.user.id, type: token},{$inc: {amount: parseFloat(amount)}})
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
+            res.json({message: "success"})
+        } else {
+            const createtokenwallet = {
+                owner: req.user.id,
+                type: token,
+                amount: amount
+            }
+
+            await Token.create(createtokenwallet)
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
+            const deposithistory = {
+                owner: req.user.id,
+                wallet: walletaddress,
+                hash: hash,
+                amount: parseFloat(amount),
+                type: token,
+                depositAt: depositAt
+            }
+
+            await TokenTransactions.create(deposithistory)
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
+            res.json({message: "success"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.mydeposittokenhistory = (req, res) => {
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    TokenTransactions.find({owner: req.user.id, depositAt: { $ne: null, $ne: "", $exists: true }})
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .sort({createdAt: -1})
+    .then(data => {
+        TokenTransactions.countDocuments({owner: req.user.id, depositAt: { $ne: null, $ne: "", $exists: true }})
+        .then(count => {
+            const totalPages = Math.ceil(count / pageOptions.limit)
+            res.json({ message: "success", data: data, pages: totalPages })
+        })
+        .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.mywithdrawaltokenhistory = (req, res) => {
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    TokenTransactions.find({owner: req.user.id, claimedAt: { $ne: null, $ne: "", $exists: true }})
+    .skip(pageOptions.page * pageOptions.limit)
+    .limit(pageOptions.limit)
+    .sort({createdAt: -1})
+    .then(data => {
+        TokenTransactions.countDocuments({owner: req.user.id, claimedAt: { $ne: null, $ne: "", $exists: true }})
+        .then(count => {
+            const totalPages = Math.ceil(count / pageOptions.limit)
+            res.json({ message: "success", data: data, pages: totalPages })
+        })
+        .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.ifwithdrawerror = (req, res) => {
+    const { amount, token } = req.body
+
+    Token.findOne({owner: req.user.id, type: token})
+    .then(async tokens => {
+        if(tokens){
+            
+            await Token.findOneAndUpdate({owner: req.user.id, type: token},{$inc: {amount: +amount}})
+            .then(data => {
+                if(data){
+                    res.json({message: "success"})
+                }
+            })
+            .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+        } else {
+            res.json({message: "failed", data: "Token wallet not found"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
 }

@@ -29,7 +29,11 @@ const Analytics = require("../Gamemodels/Analytics") // Transaction history
 const GrindingHistory = require("../Gamemodels/Grindinghistory")
 const Payablehistory = require("../Models/Payableshistory")
 const { DateTimeServerExpiration1, DateTimeServerExpiration2, checkmclimit, checkmglimit } = require("../Utils/utils")
+const { checktokenlimit } = require("../Utils/Walletutils")
 const bcrypt = require('bcrypt')
+const Token = require('../Gamemodels/Token')
+const Buytokenhistory = require('../Gamemodels/Buytokenhistory')
+const { nanoid } = require("nanoid")
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -2767,3 +2771,242 @@ exports.makeplayeractive = (req, res) => {
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
     
 }
+
+exports.grantmmt = async (req, res) => {
+    const {amount, tokentoreceive, username, description, ischecked} = req.body
+    const customid = nanoid(10)
+    Gameusers.findOne({username: username})
+    .then(async user => {
+        if(user){
+            Token.findOne({owner: user._id ,type: "MMT"})
+            .then(async token => {
+                if(token){
+                    if(ischecked){
+                        const tokenlimit = await checktokenlimit(tokentoreceive, "MMT")
+
+                        if(tokenlimit === false){
+                            const tokenhistory = {
+                                owner: user._id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokentoreceive,
+                                amount: amount
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MMT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Buytokenhistory.create(tokenhistory)
+                            await Token.findOneAndUpdate({owner: user._id ,type: "MMT"}, {$inc: {amount: tokentoreceive}})
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning: The granted token amount will exceed the total supply limit"})
+                        }
+                    } else {
+
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MMT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        await Token.findOneAndUpdate({owner: user._id ,type: "MMT"}, {$inc: {amount: tokentoreceive}})
+                        res.json({message: "success"})
+                    }
+
+                } else {
+
+                    if(ischecked){
+                        const tokenlimit = await checktokenlimit(tokentoreceive, "MMT")
+
+                        if(tokenlimit === false){
+                            const tokenwallet = {
+                                owner: user._id,
+                                type: "MMT",
+                                amount: tokentoreceive
+                            }
+                            
+                            await Token.create(tokenwallet)
+
+                            const tokenhistory = {
+                                owner: user._id,
+                                id: customid,
+                                type: "MMT",
+                                tokenreceive: tokentoreceive,
+                                amount: amount
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MMT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Buytokenhistory.create(tokenhistory)
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning: The granted token amount will exceed the total supply limit"})
+                        }
+                    } else {
+
+                        const tokenwallet = {
+                            owner: user._id,
+                            type: "MMT",
+                            amount: tokentoreceive
+                        }
+                        
+                        await Token.create(tokenwallet)
+
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MMT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        res.json({message: "success"})
+                    }
+
+
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantmct = async (req, res) => {
+    const {amount, tokentoreceive, username, description, ischecked} = req.body
+    const customid = nanoid(10)
+    Gameusers.findOne({username: username})
+    .then(async user => {
+        if(user){
+            Token.findOne({owner: user._id ,type: "MCT"})
+            .then(async token => {
+                if(token){
+                    if(ischecked){
+                        const tokenlimit = await checktokenlimit(tokentoreceive, "MCT")
+                        if(tokenlimit === false){
+                            const tokenhistory = {
+                                owner: user._id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokentoreceive,
+                                amount: amount
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MCT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Buytokenhistory.create(tokenhistory)
+                            await Token.findOneAndUpdate({owner: user._id ,type: "MCT"}, {$inc: {amount: tokentoreceive}})
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning: The granted token amount will exceed the total supply limit"})
+                        }
+                    } else {
+
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MCT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        await Token.findOneAndUpdate({owner: user._id ,type: "MCT"}, {$inc: {amount: tokentoreceive}})
+                        res.json({message: "success"})
+                    }
+
+                } else {
+
+                    if(ischecked){
+                        const tokenlimit = await checktokenlimit(tokentoreceive, "MCT")
+
+                        if(tokenlimit === false){
+                            const tokenwallet = {
+                                owner: user._id,
+                                type: "MCT",
+                                amount: tokentoreceive
+                            }
+                            
+                            await Token.create(tokenwallet)
+
+                            const tokenhistory = {
+                                owner: user._id,
+                                id: customid,
+                                type: "MCT",
+                                tokenreceive: tokentoreceive,
+                                amount: amount
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MCT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Buytokenhistory.create(tokenhistory)
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning: The granted token amount will exceed the total supply limit"})
+                        }
+                    } else {
+
+                        const tokenwallet = {
+                            owner: user._id,
+                            type: "MCT",
+                            amount: tokentoreceive
+                        }
+                        
+                        await Token.create(tokenwallet)
+
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MCT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        res.json({message: "success"})
+                    }
+
+
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        }
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}   

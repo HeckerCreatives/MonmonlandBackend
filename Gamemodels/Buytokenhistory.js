@@ -20,6 +20,10 @@ const BuytokenhistorySchema = new mongoose.Schema(
         },
         status: {
             type: String // pending - approve - reject
+            
+        },
+        transactiontype: {
+            type: String // walletbalance, mg, bnb, usdt, busd
         }
     },
     {

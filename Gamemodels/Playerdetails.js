@@ -14,6 +14,10 @@ const PlayerdetailsSchema = new mongoose.Schema(
         },
         walletaddress: {
             type: String
+        },
+        profilepicture: {
+            type: String,
+            default: "none"
         }
     },
     {

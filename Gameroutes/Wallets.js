@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, filtergrinding,filtertransaction, findgrindinghistory, findtransactionhistory } = require('../Gamecontrollers/Wallets'),
+    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, filtergrinding,filtertransaction, findgrindinghistory, findtransactionhistory, buymmt, buymmc, mytoken, mytokenbuyhistory, tokenwithdrawhistory, buysubscription, totaltokens, deposittoken, mydeposittokenhistory, withdrawtoken, mywithdrawaltokenhistory, ifwithdrawerror} = require('../Gamecontrollers/Wallets'),
     { protectplayer } = require('../Gamemiddleware/index')
     
 router 
@@ -15,4 +15,16 @@ router
     .get('/findgrindinghistory', protectplayer, findgrindinghistory)
     .post('/filtertransaction', protectplayer, filtertransaction)
     .post('/filtergrinding', protectplayer, filtergrinding)
+    .post('/buymmt', protectplayer, buymmt)
+    .post('/buymmc', protectplayer, buymmc)
+    .get('/mytoken', protectplayer, mytoken)
+    .get('/tokenbuyhistory', protectplayer, mytokenbuyhistory)
+    .post('/tokenwithdrawhistory', protectplayer, tokenwithdrawhistory)
+    .post('/buysubscription', protectplayer, buysubscription)
+    .get("/totaltoken",protectplayer, totaltokens)
+    .post("/deposittoken", protectplayer, deposittoken)
+    .get("/deposithistory", protectplayer, mydeposittokenhistory)
+    .post("/withdrawtoken", protectplayer, withdrawtoken)
+    .get("/withdrawhistory", protectplayer, mywithdrawaltokenhistory)
+    .post("/withdrawerror", protectplayer, ifwithdrawerror)
 module.exports = router;

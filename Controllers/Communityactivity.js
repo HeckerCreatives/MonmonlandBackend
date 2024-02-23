@@ -231,6 +231,18 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const mmttoken = await Communityactivity.findOne({type: "mmttoken"})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
+    const mcttoken = await Communityactivity.findOne({type: "mcttoken"})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -253,7 +265,9 @@ exports.find = async (req, res) => {
         "complantools": complantools,
         "complancosmetics": complancosmetics,
         "additionalmc": additional.total,
-        "additionalmg": additional.initial
+        "additionalmg": additional.initial,
+        "mmt": mmttoken,
+        "mct": mcttoken
     }
 
     res.json({message: "success", data: summary})
