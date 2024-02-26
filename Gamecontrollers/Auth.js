@@ -103,8 +103,11 @@ exports.login = async ( req, res ) => {
         })
     }
     else {
+        
         Gameusers.findOne({username: username})
         .then(async user => {
+
+
             if(user && (await user.matchPassword(password))){
                 if(user.status === "banned"){
                     res.json({message: "failed", data: "Account is banned. please contact and admin"})
@@ -114,7 +117,7 @@ exports.login = async ( req, res ) => {
                     await Gameusers.findByIdAndUpdate(user._id, {$set: { webtoken: token }})
                     .select("-password")
                     .then(async () => {
-                        const paylaod = {id: user._id, username: user.username, status: user.status, token: token}
+                        const paylaod = {id: user._id, username: user.username, status: user.status, token: token,}
                         let jwttoken = ""
     
                         try {
@@ -153,11 +156,15 @@ exports.islogin = async (req, res) => {
     .select("-password")
     .then(async data => {
         if(data){
+
             const email = await Playerdetails.findOne({owner: req.user.id})
             .then(detail => {
                 return detail.email
             })
-            return res.json({ name: data.username, referrer: data.referral, email: email, uid: data._id, joined: data.createdAt})
+
+            const metamask = await Playerdetails.findOne({owner: req.user.id}).then(e => e.walletaddress)
+
+            return res.json({ name: data.username, referrer: data.referral, email: email, uid: data._id, joined: data.createdAt, walletaddress: metamask, playstatus: data.playstatus})
         }
     })
     .catch(error => {
