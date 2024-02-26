@@ -1610,9 +1610,6 @@ exports.buymmc = async (req, res) => {
         .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
     } 
 
-    
-    
-
 }
 
 exports.mytoken = (req,res) => {
