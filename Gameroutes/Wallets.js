@@ -1,5 +1,5 @@
 const router = require('express').Router(),
-    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, filtergrinding,filtertransaction, findgrindinghistory, findtransactionhistory, buymmt, buymmc, mytoken, mytokenbuyhistory, tokenwithdrawhistory, buysubscription, totaltokens, deposittoken, mydeposittokenhistory, withdrawtoken, mywithdrawaltokenhistory, ifwithdrawerror} = require('../Gamecontrollers/Wallets'),
+    { find, findwallethistory, findcashouthistory, paymentdetail , findpaymentdetail, subscommission, filterwallet, filtergrinding,filtertransaction, findgrindinghistory, findtransactionhistory, buymmt, buymmc, mytoken, mytokenbuyhistory, tokenwithdrawhistory, buysubscription, totaltokens, deposittoken, mydeposittokenhistory, withdrawtoken, mywithdrawaltokenhistory, ifwithdrawerror, acceptairdropquest, findquest, claimairdropquest, totalairdrop, createwithdrawhistory} = require('../Gamecontrollers/Wallets'),
     { protectplayer } = require('../Gamemiddleware/index')
     
 router 
@@ -27,4 +27,9 @@ router
     .post("/withdrawtoken", protectplayer, withdrawtoken)
     .get("/withdrawhistory", protectplayer, mywithdrawaltokenhistory)
     .post("/withdrawerror", protectplayer, ifwithdrawerror)
+    .post("/acceptquest", protectplayer, acceptairdropquest)
+    .get("/getquest", protectplayer, findquest)
+    .post("/claimquest", protectplayer, claimairdropquest)
+    .get("/totalairdrop", protectplayer, totalairdrop)
+    .post("/createwithdrawhistory", protectplayer, createwithdrawhistory)
 module.exports = router;

@@ -5,8 +5,10 @@ const Wallethistory = require("../Gamemodels/Wallethistory")
 const Ingameleaderboard = require("../Gamemodels/Leaderboard")
 const Communityactivity = require("../Models/Communityactivity")
 const Buytokenhistory = require("../Gamemodels/Buytokenhistory")
+const Token = require("../Gamemodels/Token")
 const { setleaderboard } = require("../Utils/Leaderboards")
-
+const Airdroptransaction = require("../Gamemodels/Airdroptransaction")
+const Walletscutoff = require("../Gamemodels/Walletscutoff")
 exports.checkwalletamount = async (amount, id) => {
     return await Gamewallet.findOne({owner: new mongoose.Types.ObjectId(id), wallettype: "balance"})
     .then(async data => {
@@ -328,4 +330,121 @@ exports.checktokenlimit = async (tokentoreceive, tokentype) => {
         }
     })
     .catch((error) => `error ${error}`);
+}
+
+exports.addtoken = async (id, substype) => {
+    let tokentoreceive = 0;
+    switch(substype){
+        case "Pearlplus":
+            tokentoreceive = 100;
+        break;
+        case "Ruby":
+            tokentoreceive = 200;
+        break;
+        case "Emerald":
+            tokentoreceive = 500;
+        break;
+        case "Diamond":
+            tokentoreceive = 1000;
+        break;
+        default:
+        break;
+    }
+    
+
+    return await Token.findOne({owner: id})
+    .then(async token => {
+        if(token){
+
+            const history = {
+                owner: id,
+                type: "Subscription incentive MMT Token",
+                description: "Subscription incentive MMT Token",
+                amount: tokentoreceive,
+                historystructure: "mmt token subscription incentive"
+            }
+
+            const airdrophistory = {
+                owner: req.user.id,
+                // questid: questid,
+                questtitle: "Subscription Incentive",
+                mmttokenreward: tokentoreceive,
+                mcttokenreward: 0,
+            }
+
+            await Token.findOneAndUpdate({owner: id, type: "MMT"},{$inc: {amount: tokentoreceive}})
+            await Wallethistory.create(history)
+            await Airdroptransaction.create(airdrophistory)
+            return 'success'
+        } else {
+            const createwallet = {
+                owner: id,
+                type: "MMT",
+                amount: tokentoreceive
+            }
+
+            const history = {
+                owner: id,
+                type: "Subscription incentive MMT Token",
+                description: "Subscription incentive MMT Token",
+                amount: tokentoreceive,
+                historystructure: "mmt token subscription incentive"
+            }
+
+            const airdrophistory = {
+                owner: id,
+                type: "MMT",
+                tokereward: tokentoreceive
+            }
+
+            await Token.create(createwallet)
+            await Wallethistory.create(history)
+            await Airdroptransaction.create(airdrophistory)
+            return 'success'
+        }
+    })
+    .catch(err => {
+        console.log(err.message, "addtoken amount failed")
+        return "bad-request"
+    })
+}
+
+exports.checkairdroplimit = async (tokentoreceive, tokentype) => {
+
+    return await Airdroptransaction.find()
+    .then(tokens => {
+        const MMTTokens = tokens.filter(e => e.type === "MMT");
+        const MCTTokens = tokens.filter(e => e.type === "MCT");
+
+        const sumMMT = MMTTokens.reduce((acc, token) => acc + token.tokenreward, 0);
+        const sumMCT = MCTTokens.reduce((acc, token) => acc + token.tokenreward, 0);
+
+        if(tokentype == "MMT"){
+            const tokentobeadd = sumMMT + parseFloat(tokentoreceive)
+            const limit = 1000000
+
+            if(tokentobeadd > limit){
+                return 'limit'
+            } else {
+                return 'notlimit'
+            }
+        } else if (tokentype == "MCT"){
+            const tokentobeadd = sumMCT + parseFloat(tokentoreceive)
+            const limit = 10000000
+
+            if(tokentobeadd > limit){
+                return 'limit'
+            } else {
+                return 'notlimit'
+            }
+
+        } else {
+            return "token not found"
+        }
+
+    })
+    .catch(err => {
+        console.log(err.message, "checkairdroplimit failed")
+        return "bad-request"
+    })
 }

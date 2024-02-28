@@ -11,9 +11,11 @@ const TokenTransactionsSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    hash: {
+    gasfeehash: {
       type: String,
-      required: true
+    },
+    mmthash: {
+      type: String,
     },
     type: {
       type: String, // MCT or MMT
@@ -28,6 +30,9 @@ const TokenTransactionsSchema = new mongoose.Schema(
     depositAt: {
         type: String,
     },
+    status: {
+      type: String
+    }
   },
   {
     timestamps: true,

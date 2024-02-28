@@ -21,13 +21,14 @@ const Token = require("../Gamemodels/Token")
 const TokenTransactions = require("../Gamemodels/Tokentransaction")
 const SubsAccumulated = require("../Models/SubsAccumulated")
 const { checkmaintenance } = require("../Utils/utils")
-const { sendcommissiontounilevel, checkwalletamount, addwalletamount, getwalletamount } = require("../Utils/Walletutils")
+const { sendcommissiontounilevel, checkwalletamount, addwalletamount, getwalletamount, checkairdroplimit, addtoken } = require("../Utils/Walletutils")
 const { getsubsamount, getpooldetails } = require("../Utils/Pooldetailsutils")
 const { addanalytics } = require("../Utils/Analytics")
 const { computecomplan } = require("../Utils/Communityactivityutils")
 const { addtototalfarmmc } = require("../Utils/Gameutils")
 const Gameusers = require('../Gamemodels/Gameusers')
-
+const Airdroptransaction = require('../Gamemodels/Airdroptransaction')
+const Airdropquest = require('../Gamemodels/Airdropquest')
 
 exports.find = async (req, res) => {
     
@@ -1647,18 +1648,36 @@ exports.mytokenbuyhistory = (req,res) => {
 }
 
 exports.tokenwithdrawhistory = (req, res) => {
-    const {amount , token, metamaskwallet, claimedAt, hash} = req.body
+    const { claimedAt, hash, gasfeehash} = req.body
 
     const withdrawtransaction = {
-        owner: req.user.id,
-        wallet: metamaskwallet,
-        hash: hash,
-        amount: amount,
-        type: token,
-        claimedAt: claimedAt
+        mmthash: hash,
+        claimedAt: claimedAt,
+        status: "success"
     }
 
-    TokenTransactions.create(withdrawtransaction)
+    TokenTransactions.findOneAndUpdate({gasfeehash: gasfeehash}, withdrawtransaction)
+    .then(data => {
+        if(data){
+            res.json({message: "success"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.createwithdrawhistory = (req,res) => {
+    const { amount , token, walletaddress, gasfeehash } = req.body
+
+    const createhistory = {
+        owner: req.user.id,
+        wallet: walletaddress,
+        gasfeehash: gasfeehash,
+        type: token,
+        amount: amount,
+        status: "processing"
+    }
+
+    TokenTransactions.create(createhistory)
     .then(data => {
         if(data){
             res.json({message: "success"})
@@ -1798,7 +1817,50 @@ exports.buysubscription = async (req, res) => {
                     return res.status(400).json({ message: "bad-requestasdfasd" })
                 }
 
-                return res.json({message: "success"})
+                if(pooldetails.subscription != "Pearl"){
+                    return res.json({message: "success"})
+                } else {
+                    let tokentoreceive;
+                    switch(substype){
+                        case "Pearlplus":
+                            tokentoreceive = 100;
+                        case "Ruby":
+                            tokentoreceive = 200;
+                        case "Emerald":
+                            tokentoreceive = 500;
+                        case "Diamond":
+                            tokentoreceive = 1000;
+                        default:
+                    }
+
+                    const airdroplimit = await checkairdroplimit((tokentoreceive * 2), "MMT")
+                    const directreferralid = await Gameusers.findOne({_id: new mongoose.Types.ObjectId(id)}).then(e => e.referral)
+                    if(airdroplimit == "bad-request"){
+                        return res.status(400).json({ message: "bad-request" })
+                    }
+
+                    if(airdroplimit == 'notlimit'){
+                        const addmmt = await addtoken(id, substype)
+
+                        if(addmmt == "bad-request"){
+                            return res.status(400).json({ message: "bad-request" })
+                        }
+
+                        if(addmmt == 'success'){
+                            const addmmttoreferal = await addtoken(directreferralid, substype)
+
+                            if(addmmttoreferal == "bad-request"){
+                                return res.status(400).json({ message: "bad-request" })
+                            }
+
+                            return res.json({message: "success"})
+                        }
+                    } else {
+                        return res.json({message: "success"})
+                    }
+                }
+
+                
             })
             .catch(err => res.status(400).json({ message: "bad-request whaat", data: err.message }))
         })
@@ -1935,6 +1997,110 @@ exports.ifwithdrawerror = (req, res) => {
         } else {
             res.json({message: "failed", data: "Token wallet not found"})
         }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.acceptairdropquest = (req, res) => {
+    const {
+        questid,
+        questtitle,
+        mmttokenreward,
+        mcttokenreward,
+        acceptAt,
+        expiredAt,
+    } = req.body
+
+
+    const quest = {
+        owner: req.user.id,
+        questid: questid,
+        questtitle: questtitle,
+        mmttokenreward: mmttokenreward,
+        mcttokenreward: mcttokenreward,
+        acceptAt: acceptAt,
+        expiredAt: expiredAt,
+    }
+
+    Airdropquest.create(quest)
+    .then(data => {
+        if(data){
+            res.json({message: "success", data: "Quest Accepted"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+
+}
+
+exports.findquest = async (req, res) => {
+
+    Airdropquest.find({owner: req.user.id})
+    .then(async data => {
+        if(data){
+            const quest1 = data.find(e => e.questid == 1)
+            const claimablequest = {}
+            if(quest1){
+                const accountstatus = await Gameusers.findOne({_id: req.user.id}).then(e => e.playstatus)
+    
+                if(accountstatus == "active"){
+                    claimablequest.Quest1 = "claimable";
+                } else {
+                    claimablequest.Quest1 = "notclaimable";
+                }
+                res.json({message: "success", data: data, data2: claimablequest})
+            } else {
+                res.json({message: "success", data: "noquest"})
+            }
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.claimairdropquest = (req, res) => {
+    const {questid, claimedAt} = req.body
+
+    Airdropquest.findOne({owner: req.user.id, questid: questid})
+    .then(async data => {
+        if(data){
+
+            const airdrophistory = {
+                owner: req.user.id,
+                questid: questid,
+                questtitle: data.questtitle,
+                mmttokenreward: data.mmttokenreward,
+                mcttokenreward: data.mcttokenreward,
+                acceptAt: data.acceptAt,
+                expiredAt: data.expiredAt,
+                claimedAt: claimedAt
+            }
+            if(data.mmttokenreward != null || data.mmttokenreward != undefined){
+                await Token.findOneAndUpdate({owner: data.owner, type: "MMT"}, {$inc: {amount: data.mmttokenreward}})
+            }
+
+            if(data.mcttokenreward != null || data.mcttokenreward != undefined){
+                await Token.findOneAndUpdate({owner: data.owner, type: "MCT"}, {$inc: {amount: data.mcttokenreward}})
+            }
+
+            await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: questid}, {claimedAt: claimedAt})
+            await Airdroptransaction.create(airdrophistory)
+            res.json({message: "success"})
+        }
+    })
+    .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
+}
+
+exports.totalairdrop = (req, res) => {
+    Airdroptransaction.find()
+    .then(tokens => {
+        // Filter tokens based on type
+        const MMTTokens = tokens.filter(e => e.mmttokenreward);
+        const MCTTokens = tokens.filter(e => e.mcttokenreward);
+
+        // Calculate sum of amounts for each type
+        const sumMMT = MMTTokens.reduce((acc, token) => acc + token.mmttokenreward, 0);
+        const sumMCT = MCTTokens.reduce((acc, token) => acc + token.mcttokenreward, 0);
+
+        res.json({ message: "success", data: sumMMT, data2: sumMCT });
     })
     .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
 }
