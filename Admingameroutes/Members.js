@@ -1,6 +1,6 @@
 
 const router = require('express').Router(),
-    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem, createsponsorprize, findsponsorprize, sponsorprizeonandoff, sponsorprizedelete, editsponsorprize, getgrindinghistory, gettransactionhistory, filtertransaction, filtergrinding, searchBySubscription, searchByWallet, getpayables, getpayableshistory, makeplayeractive, grantmct, grantmmt } = require('../Admingamecontroller/Members'),
+    { find, searchByEmail, searchByUsername, findByUsername, changepassmember, updatememberdetail, memberwallethistory, joined, banmember, banmultiplemember, unbanmember, unbanmultiplemember, memberbannedlist, bannedcount, filterwallet, findtopearners, findnetwork, fiesta, sponsor, getmembertools, getmemberclock, getmembercosmetics, getmemberpaydetail, paymentdetail, getmembersupplies, getmembertask, gameannouncement, maintenance, maintenancevalue, getcurrentrank, grantenergy, grantclock, granttool, grantcosmetic, grantbalance, grantmonstercoin, grantmonstergem, createsponsorprize, findsponsorprize, sponsorprizeonandoff, sponsorprizedelete, editsponsorprize, getgrindinghistory, gettransactionhistory, filtertransaction, filtergrinding, searchBySubscription, searchByWallet, getpayables, getpayableshistory, makeplayeractive, grantmct, grantmmt, memberbuytokenhistory, memberdeposittokenhistory, memberwithdrawtokenhistory } = require('../Admingamecontroller/Members'),
     { protect } = require('../Middleware/index')
 
 router 
@@ -57,5 +57,7 @@ router
     .post('/makeactive', protect, makeplayeractive)
     .post('/grantmmt', protect, grantmmt)
     .post("/grantmct", protect, grantmct)
-    
+    .post("/memberbuytokenhistory", protect, memberbuytokenhistory)
+    .post("/memberdeposittokenhistory", protect, memberdeposittokenhistory)
+    .post("/memberwithdrawtokenhistory", protect, memberwithdrawtokenhistory)
 module.exports = router;

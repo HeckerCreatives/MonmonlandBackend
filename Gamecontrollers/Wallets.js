@@ -1898,7 +1898,7 @@ exports.deposittoken = (req, res) => {
             const deposithistory = {
                 owner: req.user.id,
                 wallet: walletaddress,
-                hash: hash,
+                mmthash: hash,
                 amount: amount,
                 type: token,
                 depositAt: depositAt
@@ -2038,6 +2038,7 @@ exports.findquest = async (req, res) => {
     .then(async data => {
         if(data){
             const quest1 = data.find(e => e.questid == 1)
+            const quest2 = data.find(e => e.questid == 2)
             const claimablequest = {}
             if(quest1){
                 const accountstatus = await Gameusers.findOne({_id: req.user.id}).then(e => e.playstatus)
@@ -2047,10 +2048,24 @@ exports.findquest = async (req, res) => {
                 } else {
                     claimablequest.Quest1 = "notclaimable";
                 }
+
                 res.json({message: "success", data: data, data2: claimablequest})
+            } else if (quest2) {
+                const directpoints = await WalletsCutoff.findOne({_id: req.user.id, wallettype: "wallettype"}).then(e => e.amount)
+
+                if(directpoints >= 20){
+                    claimablequest.Quest2 = "claimable";
+                } else {
+                    claimablequest.Quest2 = "notclaimable";
+                }
+
+                res.json({message: "success", data: data, data2: claimablequest})
+
             } else {
                 res.json({message: "success", data: "noquest"})
             }
+        } else {
+            res.json({message: "success", data: "noquest"})
         }
     })
     .catch((error) => res.status(500).json({ message: "failed", error: error.message }));
@@ -2074,11 +2089,40 @@ exports.claimairdropquest = (req, res) => {
                 claimedAt: claimedAt
             }
             if(data.mmttokenreward != null || data.mmttokenreward != undefined){
-                await Token.findOneAndUpdate({owner: data.owner, type: "MMT"}, {$inc: {amount: data.mmttokenreward}})
+                await Token.findOne({owner: data.owner, type: "MMT"})
+                .then(async data1 => {
+                    if(data1){
+                        await Token.findOneAndUpdate({owner: data.owner, type: "MMT"}, {$inc: {amount: data.mmttokenreward}})
+                    } else {
+                        const createtokenwallet = {
+                            owner: data.owner,
+                            type: "MMT",
+                            amount: data.mmttokenreward
+                        }
+            
+                        await Token.create(createtokenwallet)
+                    }
+                    
+                })
+                
             }
 
             if(data.mcttokenreward != null || data.mcttokenreward != undefined){
-                await Token.findOneAndUpdate({owner: data.owner, type: "MCT"}, {$inc: {amount: data.mcttokenreward}})
+                await Token.findOne({owner: data.owner, type: "MCT"})
+                .then(async data1 => {
+                    if(data1){
+                        await Token.findOneAndUpdate({owner: data.owner, type: "MCT"}, {$inc: {amount: data.mcttokenreward}})
+                    } else {
+                        const createtokenwallet = {
+                            owner: data.owner,
+                            type: "MCT",
+                            amount: data.mcttokenreward
+                        }
+            
+                        await Token.create(createtokenwallet)
+                    }
+                    
+                })
             }
 
             await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: questid}, {claimedAt: claimedAt})

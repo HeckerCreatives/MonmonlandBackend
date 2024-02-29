@@ -32,6 +32,7 @@ const { DateTimeServerExpiration1, DateTimeServerExpiration2, checkmclimit, chec
 const { checktokenlimit } = require("../Utils/Walletutils")
 const bcrypt = require('bcrypt')
 const Token = require('../Gamemodels/Token')
+const Tokentransaction = require("../Gamemodels/Tokentransaction")
 const Buytokenhistory = require('../Gamemodels/Buytokenhistory')
 const { nanoid } = require("nanoid")
 const encrypt = async password => {
@@ -324,6 +325,7 @@ exports.find = async (req, res) => {
                 _id: 0,
                 username: 1,
                 status: 1,
+                playstatus: 1,
                 referral: { $arrayElemAt: ["$referralUser.username", 0] },
                 createdAt: 1,
                 phone: "$playerDetails.phone",
@@ -1355,7 +1357,9 @@ exports.findByUsername = (req, res) => {
                 }
             })
             .catch(error => res.status(500).json({ message: "failed", data: error.message }));
-    
+            
+            const mmttoken = await Token.findOne({owner: user._id, type: "MMT"}).then(e => e ? e.amount : 0)
+            const mcttoken = await Token.findOne({owner: user._id, type: "MCT"}).then(e => e ? e.amount : 0)
     
             const activitypoints = data.find(e => e.wallettype === "activitypoints")
             const adspoints = data.find(e => e.wallettype === "adspoints")
@@ -1388,6 +1392,8 @@ exports.findByUsername = (req, res) => {
                 'poolstatus': pooldetail.status,
                 'poolrank': pooldetail.rank,
                 "grouppoints": grouppoints?.amount,
+                "mmt": mmttoken,
+                "mct": mcttoken,
             }
 
         await WalletsCutoff.find({owner: user._id})
@@ -3009,4 +3015,85 @@ exports.grantmct = async (req, res) => {
         }
     })
     .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
-}   
+}
+
+exports.memberbuytokenhistory = (req, res) => {
+    const { username } = req.body
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        Buytokenhistory.find({owner: user._id})
+        .skip(pageOptions.page * pageOptions.limit)
+        .limit(pageOptions.limit)
+        .sort({createdAt: -1})
+        .then(data => {
+            Buytokenhistory.countDocuments({owner: user._id})
+            .then(count => {
+                const totalPages = Math.ceil(count / pageOptions.limit)
+                res.json({ message: "success", data: data, pages: totalPages })
+            })
+            .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.memberdeposittokenhistory = (req, res) => {
+    const { username } = req.body
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        Tokentransaction.find({owner: user._id, depositAt: { $ne: null, $ne: "", $exists: true }})
+        .skip(pageOptions.page * pageOptions.limit)
+        .limit(pageOptions.limit)
+        .sort({createdAt: -1})
+        .then(data => {
+            Tokentransaction.countDocuments({owner: user._id, depositAt: { $ne: null, $ne: "", $exists: true }})
+            .then(count => {
+                const totalPages = Math.ceil(count / pageOptions.limit)
+                res.json({ message: "success", data: data, pages: totalPages })
+            })
+            .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.memberwithdrawtokenhistory = (req, res) => {
+    const { username } = req.body
+
+    const pageOptions = {
+        page: parseInt(req.query.page) || 0,
+        limit: parseInt(req.query.limit) || 10
+    };
+
+    Gameusers.findOne({username: username})
+    .then(user => {
+        Tokentransaction.find({owner: user._id, claimedAt: { $ne: null, $ne: "", $exists: true }})
+        .skip(pageOptions.page * pageOptions.limit)
+        .limit(pageOptions.limit)
+        .sort({createdAt: -1})
+        .then(data => {
+            Tokentransaction.countDocuments({owner: user._id, claimedAt: { $ne: null, $ne: "", $exists: true }})
+            .then(count => {
+                const totalPages = Math.ceil(count / pageOptions.limit)
+                res.json({ message: "success", data: data, pages: totalPages })
+            })
+            .catch(error => res.status(400).json({ message: "bad-request", data: error.message}))
+        })
+        .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+    })
+    .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}

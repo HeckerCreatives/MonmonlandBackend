@@ -416,8 +416,8 @@ exports.checkairdroplimit = async (tokentoreceive, tokentype) => {
         const MMTTokens = tokens.filter(e => e.type === "MMT");
         const MCTTokens = tokens.filter(e => e.type === "MCT");
 
-        const sumMMT = MMTTokens.reduce((acc, token) => acc + token.tokenreward, 0);
-        const sumMCT = MCTTokens.reduce((acc, token) => acc + token.tokenreward, 0);
+        const sumMMT = MMTTokens.reduce((acc, token) => acc + token.mmttokenreward, 0);
+        const sumMCT = MCTTokens.reduce((acc, token) => acc + token.mcttokenreward, 0);
 
         if(tokentype == "MMT"){
             const tokentobeadd = sumMMT + parseFloat(tokentoreceive)

@@ -6,6 +6,7 @@ const PayoutWallet = require("../Models/PayoutWallet")
 const Cashouthistory = require('../Gamemodels/Cashouthistory')
 const Dragonpayoutrequest = require('../Models/Dragonpayoutrequest')
 const Wallethistory = require('../Gamemodels/Wallethistory')
+const Gameusers = require("../Gamemodels/Gameusers")
 const Pooldetails = require("../Gamemodels/Pooldetails")
 const { nanoid } = require("nanoid")
 const { checkmaintenance } = require("../Utils/utils")
@@ -25,13 +26,17 @@ exports.requestpayout = async (req, res) => {
 
    const pooldetail = await Pooldetails.findOne({owner: req.user.id}).then(data => data.subscription)
 
-   const hastopup = await Wallethistory.findOne({owner: req.user.id, type: "Topup Balance"}).then(data => data)
+   const accountstatus = await Gameusers.findOne({_id: req.user.id}).then(data => data.playstatus)
 
    const customid = nanoid(10)
 
 
    if(balance < amount){
     return res.json({message: 'failed', data: 'Not Enough Balance'})
+   }
+
+   if(accountstatus == "inactive"){
+    return res.json({message: 'failed', data: 'Your account status is inactive to be able to withdraw your account status needs to be active again.'})
    }
 
    if(!dragonpaymentdetail && !payoption){
