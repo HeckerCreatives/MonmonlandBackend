@@ -29,12 +29,13 @@ const Analytics = require("../Gamemodels/Analytics") // Transaction history
 const GrindingHistory = require("../Gamemodels/Grindinghistory")
 const Payablehistory = require("../Models/Payableshistory")
 const { DateTimeServerExpiration1, DateTimeServerExpiration2, checkmclimit, checkmglimit } = require("../Utils/utils")
-const { checktokenlimit } = require("../Utils/Walletutils")
+const { checktokenlimit, checkairdroplimit } = require("../Utils/Walletutils")
 const bcrypt = require('bcrypt')
 const Token = require('../Gamemodels/Token')
 const Tokentransaction = require("../Gamemodels/Tokentransaction")
 const Buytokenhistory = require('../Gamemodels/Buytokenhistory')
 const { nanoid } = require("nanoid")
+const Airdroptransaction = require('../Gamemodels/Airdroptransaction')
 const encrypt = async password => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -3096,4 +3097,248 @@ exports.memberwithdrawtokenhistory = (req, res) => {
         .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
     })
     .catch((error) => res.status(500).json({ message: "failed",  error: error.message }));
+}
+
+exports.grantmmtasreward = async (req, res) => {
+    const {amount, tokentoreceive, username, description, ischecked} = req.body
+    const customid = nanoid(10)
+
+    Gameusers.findOne({username: username})
+    .then(async user => {
+        if(user){
+            Token.findOne({owner: new mongoose.Types.ObjectId(user._id), type: "MMT"})
+            .then(async token => {
+                if(token){
+                    if(ischecked){
+                        const airdroplimit = await checkairdroplimit(tokentoreceive, "MMT")
+
+                        if(airdroplimit == "notlimit"){
+                            const airdroptokenhistory = {
+                                owner: new mongoose.Types.ObjectId(user._id),
+                                questid: 0,
+                                questtitle: "Granted as reward",
+                                mmttokenreward: parseFloat(tokentoreceive),
+                            }
+
+                            const wallethistory = {
+                                owner: new mongoose.Types.ObjectId(user._id),
+                                type: "Granted MMT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+                            await Airdroptransaction.create(airdroptokenhistory)
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+                            await Token.findOneAndUpdate({owner: new mongoose.Types.ObjectId(user._id) ,type: "MMT"}, {$inc: {amount: tokentoreceive}})
+                            .then(ey => {
+                                console.log(ey)
+                            })
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning!: The granted amount will exceed to the total airdrop limit supply"})
+                        }
+                    } else {
+                        const wallethistory = {
+                            owner: new mongoose.Types.ObjectId(user._id),
+                            type: "Granted MMT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+                        await Token.findOneAndUpdate({owner: new mongoose.Types.ObjectId(user._id) ,type: "MMT"}, {$inc: {amount: tokentoreceive}})
+                        .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                        res.json({message: "success"})
+                    }
+                } else {
+                    if(ischecked){
+                        const airdroplimit = await checkairdroplimit(tokentoreceive, "MMT")
+
+                        if(airdroplimit == "notlimit"){
+
+                            const tokenwallet = {
+                                owner: new mongoose.Types.ObjectId(user._id),
+                                type: "MMT",
+                                amount: tokentoreceive
+                            }
+
+                            await Token.create(tokenwallet)
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+
+                            const airdroptokenhistory = {
+                                owner: new mongoose.Types.ObjectId(user._id),
+                                questid: 0,
+                                questtitle: "Granted as reward",
+                                mmttokenreward: parseFloat(tokentoreceive),
+                            }
+
+                            const wallethistory = {
+                                owner: new mongoose.Types.ObjectId(user._id),
+                                type: "Granted MMT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                            await Airdroptransaction.create(airdroptokenhistory)
+                            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning!: The granted amount will exceed to the total airdrop limit supply"})
+                        }
+                    } else {
+                        const tokenwallet = {
+                            owner: new mongoose.Types.ObjectId(user._id),
+                            type: "MMT",
+                            amount: tokentoreceive
+                        }
+                        
+                        await Token.create(tokenwallet)
+
+                        const wallethistory = {
+                            owner: new mongoose.Types.ObjectId(user._id),
+                            type: "Granted MMT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+                        res.json({message: "success"})
+                    }
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        } 
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+}
+
+exports.grantmctasreward = (req, res) => {
+    const {amount, tokentoreceive, username, description, ischecked} = req.body
+    const customid = nanoid(10)
+
+    Gameusers.findOne({username: username})
+    .then(async user => {
+        if(user){
+            Token.findOne({owner: user._id, type: "MCT"})
+            .then(async token => {
+                if(token){
+                    if(ischecked){
+                        const airdroplimit = await checkairdroplimit(tokentoreceive, "MCT")
+
+                        if(airdroplimit == "notlimit"){
+                            const airdroptokenhistory = {
+                                owner: user._id,
+                                questid: 0,
+                                questtitle: "Granted as reward",
+                                mcttokenreward: parseFloat(tokentoreceive),
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MCT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Airdroptransaction.create(airdroptokenhistory)
+                            await Token.findOneAndUpdate({owner: user._id ,type: "MCT"}, {$inc: {amount: tokentoreceive}})
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning!: The granted amount will exceed to the total airdrop limit supply"})
+                        }
+                    } else {
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MCT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        await Token.findOneAndUpdate({owner: user._id ,type: "MCT"}, {$inc: {amount: tokentoreceive}})
+                        res.json({message: "success"})
+                    }
+                } else {
+                    if(ischecked){
+                        const airdroplimit = await checkairdroplimit(tokentoreceive, "MCT")
+
+                        if(airdroplimit == "notlimit"){
+
+                            const tokenwallet = {
+                                owner: user._id,
+                                type: "MCT",
+                                amount: tokentoreceive
+                            }
+
+                            await Token.create(tokenwallet)
+
+                            const airdroptokenhistory = {
+                                owner: user._id,
+                                questid: 0,
+                                questtitle: "Granted as reward",
+                                mcttokenreward: parseFloat(tokentoreceive),
+                            }
+
+                            const wallethistory = {
+                                owner: user._id,
+                                type: "Granted MCT Token",
+                                description: description,
+                                amount: amount,
+                                historystructure: `granted by ${req.user.username}: ${description}`
+                            }
+
+                            await Wallethistory.create(wallethistory)
+                            await Airdroptransaction.create(airdroptokenhistory)
+                            res.json({message: "success"})
+                        } else {
+                            res.json({message: "failed", data: "Warning!: The granted amount will exceed to the total airdrop limit supply"})
+                        }
+                    } else {
+                        const tokenwallet = {
+                            owner: user._id,
+                            type: "MCT",
+                            amount: tokentoreceive
+                        }
+                        
+                        await Token.create(tokenwallet)
+
+                        const wallethistory = {
+                            owner: user._id,
+                            type: "Granted MCT Token",
+                            description: description,
+                            amount: amount,
+                            historystructure: `granted by ${req.user.username}: ${description}`
+                        }
+
+                        await Wallethistory.create(wallethistory)
+                        res.json({message: "success"})
+                    }
+                }
+            })
+            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
+        } else {
+            res.json({message: "failed", data: "user not found"})
+        } 
+    })
+    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }))
 }

@@ -1130,13 +1130,21 @@ exports.savewalletaddress = (req, res) => {
     const { walletaddress } = req.body
 
     Gameusers.findOne({_id: req.user.id})
-    .then(user => {
+    .then(async user => {
         if(user){
-            Playerdetails.findOneAndUpdate({owner: user._id}, {walletaddress: walletaddress})
-            .then(item => {
-                res.json({message: "success"})
+            await Playerdetails.findOne({walletaddress: walletaddress})
+            .then(wallet => {
+                if(wallet){
+                    return res.json({message: "failed", data: "wallet is already used by other user"})
+                } else {
+                    Playerdetails.findOneAndUpdate({owner: user._id}, {walletaddress: walletaddress})
+                    .then(item => {
+                        res.json({message: "success"})
+                    })
+                    .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));
+                }
             })
-            .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));
+           
         }
     })
     .catch(err => res.status(400).json({ message: "bad-request", data: err.message }));

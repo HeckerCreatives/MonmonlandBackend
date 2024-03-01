@@ -1820,6 +1820,9 @@ exports.buysubscription = async (req, res) => {
                 if(pooldetails.subscription != "Pearl"){
                     return res.json({message: "success"})
                 } else {
+                    // activaaateee heeem
+                    await Gameusers.findOneAndUpdate({_id: new mongoose.Types.ObjectId(id)},{status: "active"})
+
                     let tokentoreceive;
                     switch(substype){
                         case "Pearlplus":
@@ -1835,6 +1838,7 @@ exports.buysubscription = async (req, res) => {
 
                     const airdroplimit = await checkairdroplimit((tokentoreceive * 2), "MMT")
                     const directreferralid = await Gameusers.findOne({_id: new mongoose.Types.ObjectId(id)}).then(e => e.referral)
+                    
                     if(airdroplimit == "bad-request"){
                         return res.status(400).json({ message: "bad-request" })
                     }
@@ -2037,33 +2041,26 @@ exports.findquest = async (req, res) => {
     Airdropquest.find({owner: req.user.id})
     .then(async data => {
         if(data){
-            const quest1 = data.find(e => e.questid == 1)
-            const quest2 = data.find(e => e.questid == 2)
+
             const claimablequest = {}
-            if(quest1){
-                const accountstatus = await Gameusers.findOne({_id: req.user.id}).then(e => e.playstatus)
+
+            const accountstatus = await Gameusers.findOne({_id: req.user.id}).then(e => e.playstatus)
     
-                if(accountstatus == "active"){
-                    claimablequest.Quest1 = "claimable";
-                } else {
-                    claimablequest.Quest1 = "notclaimable";
-                }
-
-                res.json({message: "success", data: data, data2: claimablequest})
-            } else if (quest2) {
-                const directpoints = await WalletsCutoff.findOne({_id: req.user.id, wallettype: "wallettype"}).then(e => e.amount)
-
-                if(directpoints >= 20){
-                    claimablequest.Quest2 = "claimable";
-                } else {
-                    claimablequest.Quest2 = "notclaimable";
-                }
-
-                res.json({message: "success", data: data, data2: claimablequest})
-
+            if(accountstatus == "active"){
+                claimablequest.Quest1 = "claimable";
             } else {
-                res.json({message: "success", data: "noquest"})
+                claimablequest.Quest1 = "notclaimable";
             }
+
+            // const directpoints = await WalletsCutoff.findOne({owner: req.user.id, wallettype: "directpoints"}).then(e => e.amount)
+
+            // if(directpoints >= 20){
+            //     claimablequest.Quest2 = "claimable";
+            // } else {
+            //     claimablequest.Quest2 = "notclaimable";
+            // }
+
+            res.json({message: "success", data: data, data2: claimablequest})
         } else {
             res.json({message: "success", data: "noquest"})
         }
