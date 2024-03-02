@@ -29,6 +29,7 @@ const { addtototalfarmmc } = require("../Utils/Gameutils")
 const Gameusers = require('../Gamemodels/Gameusers')
 const Airdroptransaction = require('../Gamemodels/Airdroptransaction')
 const Airdropquest = require('../Gamemodels/Airdropquest')
+const Cosmetics = require("../Gamemodels/Cosmetics")
 
 exports.find = async (req, res) => {
     
@@ -2052,13 +2053,57 @@ exports.findquest = async (req, res) => {
                 claimablequest.Quest1 = "notclaimable";
             }
 
-            // const directpoints = await WalletsCutoff.findOne({owner: req.user.id, wallettype: "directpoints"}).then(e => e.amount)
+            const directpoints = await WalletsCutoff.findOne({owner: req.user.id, wallettype: "directpoints"}).then(e => e.amount)
 
-            // if(directpoints >= 20){
-            //     claimablequest.Quest2 = "claimable";
-            // } else {
-            //     claimablequest.Quest2 = "notclaimable";
-            // }
+            if(directpoints >= 20){
+                claimablequest.Quest2 = "claimable";
+            } else {
+                claimablequest.Quest2 = "notclaimable";
+            }
+
+            const totalpoints = await WalletsCutoff.findOne({owner: req.user.id, wallettype: "totalpoints"}).then(e => e.amount)
+
+            if(totalpoints >= 10000){
+                claimablequest.Quest3 = "claimable";
+            } else {
+                claimablequest.Quest3 = "notclaimable";
+            }
+
+            const ringofenergy = await Cosmetics.findOne({owner: req.user.id, name: "Energy"}).then(e => e)
+
+            if(ringofenergy){
+                claimablequest.Quest6 = "claimable";
+            } else {
+                claimablequest.Quest6 = "notclaimable";
+            }
+
+            const mmtbalance = await Token.findOne({owner: req.user.id, type: "MMT"}).then(e => e ? e.amount : 0)
+
+            if(mmtbalance >= 100000){
+                claimablequest.Quest7 = "claimable";
+            } else {
+                claimablequest.Quest7 = "notclaimable";
+            }
+
+            const mctbalance = await Token.findOne({owner: req.user.id, type: "MCT"}).then(e => e ? e.amount : 0)
+
+            if(mctbalance >= 100000){
+                claimablequest.Quest8 = "claimable";
+            } else {
+                claimablequest.Quest8 = "notclaimable";
+            }
+
+            if(mmtbalance >= 500000){
+                claimablequest.Quest9 = "claimable";
+            } else {
+                claimablequest.Quest9 = "notclaimable";
+            }
+
+            if(mctbalance >= 500000){
+                claimablequest.Quest10 = "claimable";
+            } else {
+                claimablequest.Quest10 = "notclaimable";
+            }
 
             res.json({message: "success", data: data, data2: claimablequest})
         } else {
