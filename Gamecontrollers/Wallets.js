@@ -2258,7 +2258,10 @@ exports.claimairdropquest = (req, res) => {
                 expiredAt: data.expiredAt,
                 claimedAt: claimedAt
             }
-            if(data.mmttokenreward != null || data.mmttokenreward != undefined){
+            const airmmtlimit = await checkairdroplimit(data.mmttokenreward, "MMT")
+            const airmctlimit = await checkairdroplimit(data.mmttokenreward, "MCT")
+
+            if(data.mmttokenreward != null || data.mmttokenreward != undefined && airmmtlimit == "notlimit"){
                 await Token.findOne({owner: data.owner, type: "MMT"})
                 .then(async data1 => {
                     if(data1){
@@ -2277,7 +2280,7 @@ exports.claimairdropquest = (req, res) => {
                 
             }
 
-            if(data.mcttokenreward != null || data.mcttokenreward != undefined){
+            if(data.mcttokenreward != null || data.mcttokenreward != undefined && airmctlimit == "notlimit"){
                 await Token.findOne({owner: data.owner, type: "MCT"})
                 .then(async data1 => {
                     if(data1){
