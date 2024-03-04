@@ -19,6 +19,7 @@ parentPort.on('message', async (data) => {
       database = client.db()
       const createdat = new Date(moment(new Date(), 'MM/DD/YYYY HH:mm:ss').toISOString(true))
       const wallethistory = database.collection("wallethistories")
+      const lbhistory = database.collection("leaderboardhistories")
       const gamewallets = database.collection("gamewallets")
       const communityactivity = database.collection("communityactivities")
       const leaderboard = database.collection("ingameleaderboards")
@@ -84,7 +85,7 @@ parentPort.on('message', async (data) => {
   
       const leaderboardlist = await walletscutoff.aggregate(lbpipeline)
       const leaderboarduserlist = await leaderboardlist.toArray()
-  
+      
       let leaderboardindex = 0;
       let percentage = 0
   
@@ -171,6 +172,12 @@ parentPort.on('message', async (data) => {
           update: { $set: { amount: 0 } }
         }
       }])
+
+      await lbhistory.insertOne({
+          owner: new mongoose.Types.ObjectId(leaderboarduserlist[0].owner),
+          amount: leaderboarduserlist[0].amount,
+          createdAt: createdat
+      })
 
       if (monstercoinBulkWrite.length > 0){
         await gamewallets.bulkWrite(monstercoinBulkWrite)

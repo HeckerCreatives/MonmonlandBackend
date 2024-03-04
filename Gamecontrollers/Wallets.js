@@ -30,6 +30,11 @@ const Gameusers = require('../Gamemodels/Gameusers')
 const Airdroptransaction = require('../Gamemodels/Airdroptransaction')
 const Airdropquest = require('../Gamemodels/Airdropquest')
 const Cosmetics = require("../Gamemodels/Cosmetics")
+const Clocks = require("../Gamemodels/Clock")
+const Equipment = require("../Gamemodels/Equipment")
+const moment = require("moment")
+const Fiestahistory = require('../Gamemodels/Fiestahistory')
+const Leaderboardhistory = require("../Gamemodels/Leaderboardhistory")
 
 exports.find = async (req, res) => {
     
@@ -2038,10 +2043,32 @@ exports.acceptairdropquest = (req, res) => {
 }
 
 exports.findquest = async (req, res) => {
+    function getLastDayOfPreviousMonth() {
+        const currentDate = new Date();
+  
+        // Set the current date to the first day of the current month
+        currentDate.setDate(1);
+
+        // Set the time to midnight on the first day of the current month
+        currentDate.setHours(0, 0, 0, 0);
+
+        // Subtract one day to move to the last day of the previous month
+        currentDate.setDate(0);
+
+        // Return the date of the last day of the previous month with time set to midnight
+        return currentDate;
+    }
+    
+    // Example usage:
+    const lastDayOfPreviousMonth = getLastDayOfPreviousMonth();
+    const nextDay = new Date(lastDayOfPreviousMonth);
+    nextDay.setDate(lastDayOfPreviousMonth.getDate() + 1);
 
     Airdropquest.find({owner: req.user.id})
     .then(async data => {
         if(data){
+            const quest4 = data.find(e => e.questid == 4)
+            const quest5 = data.find(e => e.questid == 5)
 
             const claimablequest = {}
 
@@ -2067,6 +2094,72 @@ exports.findquest = async (req, res) => {
                 claimablequest.Quest3 = "claimable";
             } else {
                 claimablequest.Quest3 = "notclaimable";
+            }
+
+            const buyanyclock = await Clocks.find({owner: req.user.id})
+            .then(async clock => {
+                const basic = clock.find(e => e.type == "1")
+                const intermediate = clock.find(e => e.type == "2")
+                const master = clock.find(e => e.type == "3")
+                const advance = clock.find(e => e.type == "4")
+
+                if(quest4 && quest4?.mmttokenreward == 0 && quest4?.mcttokenreward == 0 && advance.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 4}, {mmttokenreward: 2000, mcttokenreward: 4000})
+                    return true
+                } else if(quest4 && quest4?.mmttokenreward == 0 && quest4?.mcttokenreward == 0 && master.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 4}, {mmttokenreward: 1000, mcttokenreward: 2000})
+                    return true
+                } else if(quest4 && quest4?.mmttokenreward == 0 && quest4?.mcttokenreward == 0 && intermediate.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 4}, {mmttokenreward: 500, mcttokenreward: 1000})
+                    return true
+                } else if(quest4 && quest4?.mmttokenreward == 0 && quest4?.mcttokenreward == 0 && basic.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 4}, {mmttokenreward: 200, mcttokenreward: 400})
+                    return true
+                } else if(quest4 && quest4?.mmttokenreward != 0 && quest4?.mcttokenreward != 0){
+
+                    return true
+                } else {
+                    return false
+                }
+            })
+
+            if(buyanyclock){
+                claimablequest.Quest4 = "claimable";
+            } else {
+                claimablequest.Quest4 = "notclaimable";
+            }
+
+            const buyanytool = await Equipment.find({owner: req.user.id})
+            .then(async tool => {
+                const iron = tool.find(e => e.type == "2")
+                const steel = tool.find(e => e.type == "3")
+                const mithril = tool.find(e => e.type == "4")
+                const adamant = tool.find(e => e.type == "5")
+
+                if(quest5 && quest5?.mmttokenreward == 0 && quest5?.mcttokenreward == 0 && adamant.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 5}, {mmttokenreward: 2000, mcttokenreward: 4000})
+                    return true
+                } else if(quest5 && quest5?.mmttokenreward == 0 && quest5?.mcttokenreward == 0 && mithril.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 5}, {mmttokenreward: 1000, mcttokenreward: 2000})
+                    return true
+                } else if(quest5 && quest5?.mmttokenreward == 0 && quest5?.mcttokenreward == 0 && steel.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 5}, {mmttokenreward: 500, mcttokenreward: 1000})
+                    return true
+                } else if(quest5 && quest5?.mmttokenreward == 0 && quest5?.mcttokenreward == 0 && iron.isowned == "1"){
+                    await Airdropquest.findOneAndUpdate({owner: req.user.id, questid: 5}, {mmttokenreward: 200, mcttokenreward: 400})
+                    return true
+                } else if(quest5 && quest5?.mmttokenreward != 0 && quest5?.mcttokenreward != 0){
+
+                    return true
+                } else {
+                    return false
+                }
+            })
+
+            if(buyanytool){
+                claimablequest.Quest5 = "claimable";
+            } else {
+                claimablequest.Quest5 = "notclaimable";
             }
 
             const ringofenergy = await Cosmetics.findOne({owner: req.user.id, name: "Energy"}).then(e => e)
@@ -2103,6 +2196,41 @@ exports.findquest = async (req, res) => {
                 claimablequest.Quest10 = "claimable";
             } else {
                 claimablequest.Quest10 = "notclaimable";
+            }
+
+            const topleaderboard = await Leaderboardhistory.findOne({
+                owner: req.user.id,
+                createdAt: {
+                  $gte: lastDayOfPreviousMonth,
+                  $lt: nextDay
+                }
+              }).then(e => e?.owner)
+
+            // console.log( topleaderboard )
+            if(topleaderboard == req.user.id){
+                claimablequest.Quest11 = "claimable";
+            } else {
+                claimablequest.Quest11 = "notclaimable";
+            }
+
+            const palosebo = await Fiestahistory.findOne({owner: req.user.id, type: "palosebo",createdAt: {
+                $gte: lastDayOfPreviousMonth,
+                $lt: nextDay
+              }}).then(e => e?.owner)
+
+            const supermonmon = await Fiestahistory.findOne({owner: req.user.id, type: "supermonmon",createdAt: {
+                $gte: lastDayOfPreviousMonth,
+                $lt: nextDay
+              }}).then(e => e?.owner)
+            
+            // console.log(palosebo)
+            // console.log(supermonmon)
+            if(palosebo == req.user.id){
+                claimablequest.Quest12 = "claimable";
+            } else if(supermonmon == req.user.id){
+                claimablequest.Quest12 = "claimable";
+            } else {
+                claimablequest.Quest12 = "notclaimable";
             }
 
             res.json({message: "success", data: data, data2: claimablequest})

@@ -22,7 +22,7 @@ parentPort.on('message', async (data) => {
         const createdat = new Date(moment(new Date(), 'MM/DD/YYYY HH:mm:ss').toISOString(true))
         const wallethistory = database.collection("wallethistories")
         const gamewallets = database.collection("gamewallets")
-
+        const supermonmonhistory = database.collection("fiestahistories")
         const monstercoinBulkWrite = []
         const monstercoinHistoryBulkWrite = []
 
@@ -133,6 +133,13 @@ parentPort.on('message', async (data) => {
           })
 
           smmlbindex++
+        })
+
+        await supermonmonhistory.insertOne({
+            owner: new mongoose.Types.ObjectId(smmlbdata[0]._id),
+            type: "supermonmon",
+            amount: smmlbdata[0].amount,
+            createdAt: createdat
         })
 
         //  THIS IS FOR FIESTA LEADERBOARD

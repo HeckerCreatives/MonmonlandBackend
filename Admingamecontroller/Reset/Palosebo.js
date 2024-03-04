@@ -21,7 +21,7 @@ parentPort.on('message', async (data) => {
         const createdat = new Date(moment(new Date(), 'MM/DD/YYYY HH:mm:ss').toISOString(true))
         const wallethistory = database.collection("wallethistories")
         const gamewallets = database.collection("gamewallets")
-
+        const palosebohistory = database.collection("fiestahistories")
         const monstercoinBulkWrite = []
         const monstercoinHistoryBulkWrite = []
 
@@ -131,6 +131,13 @@ parentPort.on('message', async (data) => {
         })
 
         palosebolbindex++
+      })
+
+      await palosebohistory.insertOne({
+          owner: new mongoose.Types.ObjectId(palosebolbdata[0]._id),
+          type: "palosebo",
+          amount: palosebolbdata[0].amount,
+          createdAt: createdat
       })
 
       //  THIS IS FOR FIESTA LEADERBOARD
