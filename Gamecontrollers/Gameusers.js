@@ -20,6 +20,7 @@ const Task = require("../Gamemodels/Task")
 const mongoose = require("mongoose");
 const Palosebo = require("../Gamemodels/Palosebo")
 const Supermonmon = require("../Gamemodels/Supermonmon")
+const Token = require("../Gamemodels/Token")
 const moment = require('moment');
 const bcrypt = require('bcrypt')
 var playfab = require('playfab-sdk')
@@ -203,6 +204,22 @@ exports.register = async (req, res) => {
         await Gameusers.create(newuser)
         .then(async data => {
             userid = data._id
+
+            const tuken = [
+                {
+                    owner: userid,
+                    type: "MMT",
+                    amount: 0
+                },
+                {
+                    owner: userid,
+                    type: "MCT",
+                    amount: 0
+                }
+            ]
+
+            await Token.create(tuken)
+
             // supermonmon
             const supermonmon = {
                 owner: userid
