@@ -2088,8 +2088,18 @@ exports.findquest = async (req, res) => {
                 claimablequest.Quest2 = "notclaimable";
             }
 
-            const totalpoints = await WalletsCutoff.findOne({owner: req.user.id, wallettype: "totalpoints"}).then(e => e.amount)
+            const totalpoints = await WalletsCutoff.find({owner: req.user.id}).then(e => {
+                const Ap = e.filter(e => e.wallettype == "activitypoints")
+                const Tp = e.filter(e => e.wallettype == "taskpoints")
+                const Pp = e.filter(e => e.wallettype == "purchasepoints")
+                const Adsp = e.filter(e => e.wallettype == "adspoints")
+                const Dp = e.filter(e => e.wallettype == "directpoints")
 
+                const total = (Ap[0].amount + Tp[0].amount + Pp[0].amount + Adsp[0].amount + Dp[0].amount)
+                
+                return total
+            })
+            
             if(totalpoints >= 10000){
                 claimablequest.Quest3 = "claimable";
             } else {
