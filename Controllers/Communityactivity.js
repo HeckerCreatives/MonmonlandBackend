@@ -243,6 +243,12 @@ exports.find = async (req, res) => {
     })
     .catch((error) => res.status(500).json({ error: error.message }));
 
+    const systemfund = await Communityactivity.findOne({type: "systempands"})
+    .then(data => {
+        return data.amount
+    })
+    .catch((error) => res.status(500).json({ error: error.message }));
+
     const summary = {
         "leaderboard": leaderboard,
         "grinding": grinding,
@@ -267,7 +273,8 @@ exports.find = async (req, res) => {
         "additionalmc": additional.total,
         "additionalmg": additional.initial,
         "mmt": mmttoken,
-        "mct": mcttoken
+        "mct": mcttoken,
+        "systemfund": systemfund
     }
 
     res.json({message: "success", data: summary})

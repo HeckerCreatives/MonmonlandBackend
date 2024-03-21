@@ -6,19 +6,25 @@ exports.computecomplan = async (amount) => {
 
     let response = ""
                 
-    const complan = (amount * 0.19)
-    const leaderboards = (amount * 0.02)
+    const complan = (amount * 0.40)
+    const leaderboards = (amount * 0.00)
     const grinding = (amount * 0.20)
-    const monstergem = (amount * 0.36)
-    const diamondpools = (amount * 0.01)
-    const incentives = (amount * 0.03)
-    const marketing = (amount * 0.02)
+    const monstergem = (amount * 0.00)
+    const diamondpools = (amount * 0.05)
+    const incentives = (amount * 0.05)
+    const marketing = (amount * 0.03)
     const investorfunds = (amount * 0.02)
-    const officers = (amount * 0.08)
+    const officers = (amount * 0.15)
     const devsshare = (amount * 0.05)
     const companyshare = (amount * 0.02)
-
+    const systemfund = (amount * 0.03)
     const bulkOperations = [
+        {
+            updateOne: {
+                filter: { _id: new mongoose.Types.ObjectId(process.env.systempandsca)},
+                update: { $inc: { amount: systemfund }}
+            }
+        },
         {
             updateOne: {
                 filter: { _id: new mongoose.Types.ObjectId(process.env.leaderboardsca)},
