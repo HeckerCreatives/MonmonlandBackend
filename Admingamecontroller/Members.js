@@ -651,7 +651,6 @@ exports.searchByUsername = async (req, res) => {
               createdAt: -1 // Sort in descending order based on createdAt field
             }
         },
-        
         {
             $skip: pageOptions.page * pageOptions.limit
         },
@@ -1079,6 +1078,12 @@ exports.searchBySubscription = async (req, res) => {
                 status: { $in: ["active", "expired"] },
                 subscription: subscription
             }
+        },
+        {
+            $skip: pageOptions.page * pageOptions.limit
+        },
+        {
+            $limit: pageOptions.limit
         }
     ])
 
@@ -1305,6 +1310,12 @@ exports.searchByWallet = async (req, res) => {
                 status: { $in: ["active", "expired"] },
             }
         },
+        {
+            $skip: pageOptions.page * pageOptions.limit
+        },
+        {
+            $limit: pageOptions.limit
+        }
         
     ])
     .then(data => {
