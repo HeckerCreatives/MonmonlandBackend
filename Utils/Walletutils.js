@@ -364,7 +364,7 @@ exports.addtoken = async (id, substype) => {
             }
 
             const airdrophistory = {
-                owner: req.user.id,
+                owner: id,
                 // questid: questid,
                 questtitle: "Subscription Incentive",
                 mmttokenreward: tokentoreceive,
